@@ -30,6 +30,7 @@
 #include <string.h>
 #include "nmrtf.h"
 #include "debug.h"
+#include "util.h"
 
 /* Internal RTF parser error codes */
 #define NMRTF_OK 0                      /* Everything's fine! */
@@ -132,7 +133,8 @@ struct _NMRtfContext
 	int depth;				/* how many groups deep are we */
 	gboolean skip_unknown;	/* if true, skip any unknown destinations (this is set after encountering '\*') */
 	char *input;			/* input string */
-	char nextch;			/* next char in input */
+	guchar nextch;			/* next char in input */
+	gboolean nextch_available;	/* nextch value is set */
 	GString *ansi;   		/* Temporary ansi text, will be convert/flushed to the output string */
 	GString *output; 		/* The plain text UTF8 string */
 };
@@ -217,7 +219,7 @@ NMRtfContext *
 nm_rtf_init()
 {
 	NMRtfContext *ctx = g_new0(NMRtfContext, 1);
-	ctx->nextch = -1;
+	ctx->nextch_available = FALSE;
 	ctx->ansi = g_string_new("");
 	ctx->output = g_string_new("");
 	return ctx;
@@ -315,7 +317,6 @@ get_current_encoding(NMRtfContext *ctx)
 			purple_debug_info("novell", "Unhandled font charset %d\n", font->charset);
 			return "CP1252";
 	}
-	return "CP1252";
 }
 
 
@@ -474,23 +475,23 @@ rtf_push_state(NMRtfContext *ctx)
 static int
 rtf_pop_state(NMRtfContext *ctx)
 {
-    NMRtfStateSave *save_old;
+	NMRtfStateSave *save_old;
 	GSList *link_old;
 
-    if (ctx->saved == NULL)
-        return NMRTF_STACK_UNDERFLOW;
+	if (ctx->saved == NULL)
+		return NMRTF_STACK_UNDERFLOW;
 
 	save_old = ctx->saved->data;
-    ctx->chp = save_old->chp;
-    ctx->rds = save_old->rds;
-    ctx->ris = save_old->ris;
-    (ctx->depth)--;
+	ctx->chp = save_old->chp;
+	ctx->rds = save_old->rds;
+	ctx->ris = save_old->ris;
+	(ctx->depth)--;
 
-    g_free(save_old);
+	g_free(save_old);
 	link_old = ctx->saved;
 	ctx->saved = g_slist_remove_link(ctx->saved, link_old);
 	g_slist_free_1(link_old);
-    return NMRTF_OK;
+	return NMRTF_OK;
 }
 
 /*
@@ -508,7 +509,7 @@ rtf_parse_keyword(NMRtfContext *ctx)
     int param = 0;
     char keyword[30];
     char parameter[20];
-	int i;
+	gsize i;
 
     keyword[0] = '\0';
     parameter[0] = '\0';
@@ -671,13 +672,13 @@ rtf_flush_data(NMRtfContext *ctx)
 static int
 rtf_apply_property(NMRtfContext *ctx, NMRtfProperty prop, int val)
 {
-    if (ctx->rds == NMRTF_STATE_SKIP)  /* If we're skipping text, */
-        return NMRTF_OK;          /* don't do anything. */
+	if (ctx->rds == NMRTF_STATE_SKIP)  /* If we're skipping text, */
+		return NMRTF_OK;          /* don't do anything. */
 
 	/* Need to flush any temporary data before a property change*/
 	rtf_flush_data(ctx);
 
-    switch (prop) {
+	switch (prop) {
 		case NMRTF_PROP_FONT_IDX:
 			ctx->chp.font_idx = val;
 			break;
@@ -686,9 +687,9 @@ rtf_apply_property(NMRtfContext *ctx, NMRtfProperty prop, int val)
 			break;
 		default:
 			return NMRTF_BAD_TABLE;
-    }
+	}
 
-    return NMRTF_OK;
+	return NMRTF_OK;
 }
 
 /*
@@ -707,7 +708,7 @@ rtf_dispatch_control(NMRtfContext *ctx, char *keyword, int param, gboolean param
     int idx;
 
     for (idx = 0; idx < table_size; idx++) {
-        if (strcmp(keyword, rtf_symbols[idx].keyword) == 0)
+        if (purple_strequal(keyword, rtf_symbols[idx].keyword))
             break;
 	}
 
@@ -803,14 +804,13 @@ rtf_dispatch_special(NMRtfContext *ctx, NMRtfSpecialKwd type)
 static int
 rtf_get_char(NMRtfContext *ctx, guchar *ch)
 {
-    if (ctx->nextch >= 0) {
-        *ch = ctx->nextch;
-        ctx->nextch = -1;
-    }
-    else {
+	if (ctx->nextch_available) {
+		*ch = ctx->nextch;
+		ctx->nextch_available = FALSE;
+	} else {
 		*ch = *(ctx->input);
 		ctx->input++;
-    }
+	}
 
 	if (*ch)
 		return NMRTF_OK;
@@ -824,6 +824,7 @@ rtf_get_char(NMRtfContext *ctx, guchar *ch)
 static int
 rtf_unget_char(NMRtfContext *ctx, guchar ch)
 {
-    ctx->nextch = ch;
-    return NMRTF_OK;
+	ctx->nextch = ch;
+	ctx->nextch_available = TRUE;
+	return NMRTF_OK;
 }

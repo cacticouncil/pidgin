@@ -10,6 +10,17 @@ include $(PIDGIN_TREE_TOP)/libpurple/win32/global.mak
 TARGET = libpurple
 NEEDED_DLLS = $(LIBXML2_TOP)/bin/libxml2-2.dll
 
+ifeq ($(CYRUS_SASL), 1)
+NEEDED_DLLS += $(CYRUS_SASL_TOP)/bin/libsasl2-3.dll
+
+CYRUS_SASL_PLUGINS = \
+                        $(CYRUS_SASL_TOP)/lib/sasl2/libanonymous-3.dll \
+                        $(CYRUS_SASL_TOP)/lib/sasl2/libcrammd5-3.dll \
+                        $(CYRUS_SASL_TOP)/lib/sasl2/libdigestmd5-3.dll \
+                        $(CYRUS_SASL_TOP)/lib/sasl2/libplain-3.dll
+
+endif
+
 ##
 ## INCLUDE PATHS
 ##
@@ -53,6 +64,7 @@ C_SRC =	\
 			dnssrv.c \
 			eventloop.c \
 			ft.c \
+			glibcompat.c \
 			idle.c \
 			imgstore.c \
 			log.c \
@@ -104,6 +116,7 @@ OBJECTS = $(C_SRC:%.c=%.o) $(RC_SRC:%.rc=%.o)
 ## LIBRARIES
 ##
 LIBS =	\
+		-ldnsapi \
 		-lglib-2.0 \
 		-lgthread-2.0 \
 		-lgobject-2.0 \
@@ -126,6 +139,10 @@ all: $(TARGET).dll
 install_shallow: $(PURPLE_INSTALL_DIR) $(TARGET).dll
 	cp $(TARGET).dll $(PURPLE_INSTALL_DIR)
 	cp $(NEEDED_DLLS) $(PURPLE_INSTALL_DIR)
+ifeq ($(CYRUS_SASL), 1)
+	mkdir -p $(PURPLE_INSTALL_DIR)/sasl2
+	cp $(CYRUS_SASL_PLUGINS) $(PURPLE_INSTALL_DIR)/sasl2
+endif
 
 install: install_shallow all
 	$(MAKE) -C $(PURPLE_PROTOS_TOP) -f $(MINGW_MAKEFILE) install

@@ -33,7 +33,7 @@
 static void
 bonjour_bytestreams_init(PurpleXfer *xfer);
 static void
-bonjour_bytestreams_connect(PurpleXfer *xfer, PurpleBuddy *pb);
+bonjour_bytestreams_connect(PurpleXfer *xfer);
 static void
 bonjour_xfer_init(PurpleXfer *xfer);
 static void
@@ -67,14 +67,14 @@ xep_ft_si_reject(BonjourData *bd, const char *id, const char *to, const char *er
 	xmlnode_set_attrib(error_node, "type", error_type);
 
 	/* TODO: Make this better */
-	if (!strcmp(error_code, "403")) {
+	if (purple_strequal(error_code, "403")) {
 		xmlnode *tmp_node = xmlnode_new_child(error_node, "forbidden");
 		xmlnode_set_namespace(tmp_node, "urn:ietf:params:xml:ns:xmpp-stanzas");
 
 		tmp_node = xmlnode_new_child(error_node, "text");
 		xmlnode_set_namespace(tmp_node, "urn:ietf:params:xml:ns:xmpp-stanzas");
 		xmlnode_insert_data(tmp_node, "Offer Declined", -1);
-	} else if (!strcmp(error_code, "404")) {
+	} else if (purple_strequal(error_code, "404")) {
 		xmlnode *tmp_node = xmlnode_new_child(error_node, "item-not-found");
 		xmlnode_set_namespace(tmp_node, "urn:ietf:params:xml:ns:xmpp-stanzas");
 	}
@@ -165,8 +165,8 @@ bonjour_si_xfer_find(BonjourData *bd, const char *sid, const char *from)
 		xf = xfer->data;
 		if(xf == NULL)
 			break;
-		if(xf->sid && xfer->who && !strcmp(xf->sid, sid) &&
-				!strcmp(xfer->who, from))
+		if(purple_strequal(xf->sid, sid) &&
+				purple_strequal(xfer->who, from))
 			return xfer;
 	}
 
@@ -280,6 +280,25 @@ xep_ft_si_result(PurpleXfer *xfer, char *to)
 	xep_iq_send_and_free(iq);
 }
 
+/**
+ * Frees the whole tree of an xml node
+ *
+ * First determines the root of the xml tree and then frees the whole tree
+ * from there.
+ *
+ * @param node	The node to free the tree from
+ */
+static void
+xmlnode_free_tree(xmlnode *node)
+{
+	g_return_if_fail(node != NULL);
+
+	while(xmlnode_get_parent(node))
+		node = xmlnode_get_parent(node);
+
+	xmlnode_free(node);
+}
+
 static void
 bonjour_free_xfer(PurpleXfer *xfer)
 {
@@ -310,6 +329,9 @@ bonjour_free_xfer(PurpleXfer *xfer)
 		g_free(xf->proxy_host);
 		g_free(xf->buddy_ip);
 		g_free(xf->sid);
+
+		xmlnode_free_tree(xf->streamhost);
+
 		g_free(xf);
 		xfer->data = NULL;
 	}
@@ -426,19 +448,24 @@ xep_si_parse(PurpleConnection *pc, xmlnode *packet, PurpleBuddy *pb)
 
 	type = xmlnode_get_attrib(packet, "type");
 	id = xmlnode_get_attrib(packet, "id");
-	if(type) {
-		if(!strcmp(type, "set")) {
+	if(!type)
+		return;
+
+	if(purple_strequal(type, "set")) {
+		xmlnode *si;
+		gboolean parsed_receive = FALSE;
+
+		si = xmlnode_get_child(packet, "si");
+
+		purple_debug_info("bonjour", "si offer Message type - SET.\n");
+		if (si) {
 			const char *profile;
-			xmlnode *si;
-			gboolean parsed_receive = FALSE;
 
-			si = xmlnode_get_child(packet, "si");
+			profile = xmlnode_get_attrib(si, "profile");
 
-			purple_debug_info("bonjour", "si offer Message type - SET.\n");
-			if (si && (profile = xmlnode_get_attrib(si, "profile"))
-					&& !strcmp(profile, "http://jabber.org/protocol/si/profile/file-transfer")) {
+			if (purple_strequal(profile, "http://jabber.org/protocol/si/profile/file-transfer")) {
 				const char *filename = NULL, *filesize_str = NULL;
-				int filesize = 0;
+				goffset filesize = 0;
 				xmlnode *file;
 
 				const char *sid = xmlnode_get_attrib(si, "id");
@@ -446,7 +473,7 @@ xep_si_parse(PurpleConnection *pc, xmlnode *packet, PurpleBuddy *pb)
 				if ((file = xmlnode_get_child(si, "file"))) {
 					filename = xmlnode_get_attrib(file, "name");
 					if((filesize_str = xmlnode_get_attrib(file, "size")))
-						filesize = atoi(filesize_str);
+						filesize = g_ascii_strtoll(filesize_str, NULL, 10);
 				}
 
 				/* TODO: Make sure that it is advertising a bytestreams transfer */
@@ -457,46 +484,226 @@ xep_si_parse(PurpleConnection *pc, xmlnode *packet, PurpleBuddy *pb)
 					parsed_receive = TRUE;
 				}
 			}
+		}
 
-			if (!parsed_receive) {
-				BonjourData *bd = purple_connection_get_protocol_data(pc);
+		if (!parsed_receive) {
+			BonjourData *bd = purple_connection_get_protocol_data(pc);
 
-				purple_debug_info("bonjour", "rejecting unrecognized si SET offer.\n");
-				xep_ft_si_reject(bd, id, name, "403", "cancel");
-				/*TODO: Send Cancel (501) */
-			}
-		} else if(!strcmp(type, "result")) {
-			purple_debug_info("bonjour", "si offer Message type - RESULT.\n");
+			purple_debug_info("bonjour", "rejecting unrecognized si SET offer.\n");
+			xep_ft_si_reject(bd, id, name, "403", "cancel");
+			/*TODO: Send Cancel (501) */
+		}
+	} else if(purple_strequal(type, "result")) {
+		purple_debug_info("bonjour", "si offer Message type - RESULT.\n");
 
-			xfer = bonjour_si_xfer_find(bd, id, name);
+		xfer = bonjour_si_xfer_find(bd, id, name);
 
-			if(xfer == NULL) {
-				BonjourData *bd = purple_connection_get_protocol_data(pc);
-				purple_debug_info("bonjour", "xfer find fail.\n");
-				xep_ft_si_reject(bd, id, name, "403", "cancel");
-			} else
-				bonjour_bytestreams_init(xfer);
-
-		} else if(!strcmp(type, "error")) {
-			purple_debug_info("bonjour", "si offer Message type - ERROR.\n");
-
-			xfer = bonjour_si_xfer_find(bd, id, name);
-
-			if(xfer == NULL)
-				purple_debug_info("bonjour", "xfer find fail.\n");
-			else
-				purple_xfer_cancel_remote(xfer);
+		if(xfer == NULL) {
+			BonjourData *bd = purple_connection_get_protocol_data(pc);
+			purple_debug_info("bonjour", "xfer find fail.\n");
+			xep_ft_si_reject(bd, id, name, "403", "cancel");
 		} else
-			purple_debug_info("bonjour", "si offer Message type - Unknown-%s.\n", type);
+			bonjour_bytestreams_init(xfer);
+
+	} else if(purple_strequal(type, "error")) {
+		purple_debug_info("bonjour", "si offer Message type - ERROR.\n");
+
+		xfer = bonjour_si_xfer_find(bd, id, name);
+
+		if(xfer == NULL)
+			purple_debug_info("bonjour", "xfer find fail.\n");
+		else
+			purple_xfer_cancel_remote(xfer);
+	} else
+		purple_debug_info("bonjour", "si offer Message type - Unknown-%s.\n", type);
+}
+
+/**
+ * Will compare a host with a buddy_ip.
+ *
+ * Additionally to a common 'purple_strequal(host, buddy_ip)', it will also return TRUE
+ * if 'host' is a link local IPv6 address without an appended interface
+ * identifier and 'buddy_ip' string is "host" + "%iface".
+ *
+ * Note: This may theoretically result in the attempt to connect to the wrong
+ * host, because we do not know for sure which interface the according link
+ * local IPv6 address might relate to and RFC4862 for instance only ensures the
+ * uniqueness of this address on a given link. So we could possibly have two
+ * distinct buddies with the same ipv6 link local address on two distinct
+ * interfaces. Unfortunately XEP-0065 does not seem to specify how to deal with
+ * link local ip addresses properly...
+ * However, in practice the possiblity for such a conflict is relatively low
+ * (2011 - might be different in the future though?).
+ *
+ * @param host		ipv4 or ipv6 address string
+ * @param buddy_ip	ipv4 or ipv6 address string
+ * @return		TRUE if they match, FALSE otherwise
+ */
+static gboolean
+xep_cmp_addr(const char *host, const char *buddy_ip)
+{
+#if defined(AF_INET6) && defined(HAVE_GETADDRINFO)
+	struct addrinfo hint, *res = NULL;
+	int ret;
+
+	memset(&hint, 0, sizeof(hint));
+	hint.ai_family = AF_UNSPEC;
+	hint.ai_flags = AI_NUMERICHOST;
+
+	ret = getaddrinfo(host, NULL, &hint, &res);
+	if(ret)
+		goto out;
+
+	if(res->ai_family != AF_INET6 ||
+	   !IN6_IS_ADDR_LINKLOCAL(&((struct sockaddr_in6 *)res->ai_addr)->sin6_addr)) {
+		freeaddrinfo(res);
+		goto out;
 	}
+	freeaddrinfo(res);
+
+	if(strlen(buddy_ip) <= strlen(host) ||
+	   buddy_ip[strlen(host)] != '%')
+		return FALSE;
+
+	return !strncmp(host, buddy_ip, strlen(host));
+
+out:
+#endif
+	return purple_strequal(host, buddy_ip);
+}
+
+static inline gint
+xep_addr_differ(const char *buddy_ip, const char *host)
+{
+	return !xep_cmp_addr(host, buddy_ip);
+}
+
+/**
+ * Create and insert an identical twin
+ *
+ * Creates a copy of the specified node and inserts it right after
+ * this original node.
+ *
+ * @param node	The node to clone
+ * @return	A pointer to the new, cloned twin if successful
+ *		or NULL otherwise.
+ */
+static xmlnode *
+xmlnode_insert_twin_copy(xmlnode *node) {
+	xmlnode *copy;
+
+	g_return_val_if_fail(node != NULL, NULL);
+
+	copy = xmlnode_copy(node);
+	g_return_val_if_fail(copy != NULL, NULL);
+
+	copy->next = node->next;
+	node->next = copy;
+
+	return copy;
+}
+
+/**
+ * Tries to append an interface scope to an IPv6 link local address.
+ *
+ * If the given address is a link local IPv6 address (with no
+ * interface scope) then we try to determine all fitting interfaces
+ * from our Bonjour IP address list.
+ *
+ * For any such found matches we insert a copy of our current xml
+ * streamhost entry right after this streamhost entry and append
+ * the determined interface to the host address of this copy.
+ *
+ * @param cur_streamhost	The XML streamhost node we examine
+ * @param host	The host address to examine in text form
+ * @param pb	Buddy to get the list of link local IPv6 addresses
+ *		and their interface from
+ * @return	Returns TRUE if the specified 'host' address is a
+ *		link local IPv6 address with no interface scope.
+ *		Otherwise returns FALSE.
+ */
+static gboolean
+add_ipv6_link_local_ifaces(xmlnode *cur_streamhost, const char *host,
+			   const PurpleBuddy *pb) {
+	xmlnode *new_streamhost = NULL;
+	struct in6_addr in6_addr;
+	BonjourBuddy *bb;
+	GSList *ip_elem;
+
+	if (inet_pton(AF_INET6, host, &in6_addr) != 1 ||
+	    !IN6_IS_ADDR_LINKLOCAL(&in6_addr) ||
+	    strchr(host, '%'))
+		return FALSE;
+
+	bb = purple_buddy_get_protocol_data(pb);
+
+	for (ip_elem = bb->ips;
+	     (ip_elem = g_slist_find_custom(ip_elem, host, (GCompareFunc)&xep_addr_differ));
+	     ip_elem = ip_elem->next) {
+		purple_debug_info("bonjour", "Inserting an xmlnode twin copy for %s with new host address %s\n",
+				  host, (char*)ip_elem->data);
+		new_streamhost = xmlnode_insert_twin_copy(cur_streamhost);
+		xmlnode_set_attrib(new_streamhost, "host", ip_elem->data);
+	}
+
+	if (!new_streamhost)
+		purple_debug_info("bonjour", "No interface for this IPv6 link local address found: %s\n",
+				  host);
+
+	return TRUE;
+}
+
+static gboolean
+__xep_bytestreams_parse(PurpleBuddy *pb, PurpleXfer *xfer, xmlnode *streamhost,
+			const char *iq_id)
+{
+	char *tmp_iq_id;
+	const char *jid, *host, *port;
+	int portnum;
+	XepXfer *xf = NULL;
+
+	xf = (XepXfer*)xfer->data;
+	for(; streamhost; streamhost = xmlnode_get_next_twin(streamhost)) {
+		if(!(jid = xmlnode_get_attrib(streamhost, "jid")) ||
+		   !(host = xmlnode_get_attrib(streamhost, "host")) ||
+		   !(port = xmlnode_get_attrib(streamhost, "port")) ||
+		   !(portnum = atoi(port))) {
+			purple_debug_info("bonjour", "bytestream offer Message parse error.\n");
+			continue;
+		}
+
+		/* skip IPv6 link local addresses with no interface scope
+		 * (but try to add a new one with an interface scope then) */
+		if(add_ipv6_link_local_ifaces(streamhost, host, pb))
+			continue;
+
+		tmp_iq_id = g_strdup(iq_id);
+		g_free(xf->iq_id);
+		g_free(xf->jid);
+		g_free(xf->proxy_host);
+
+		xf->iq_id = tmp_iq_id;
+		xf->jid = g_strdup(jid);
+		xf->proxy_host = g_strdup(host);
+		xf->proxy_port = portnum;
+		xf->streamhost = streamhost;
+		xf->pb = pb;
+		purple_debug_info("bonjour", "bytestream offer parse"
+				  "jid=%s host=%s port=%d.\n", jid, host, portnum);
+		bonjour_bytestreams_connect(xfer);
+		return TRUE;
+	}
+
+	return FALSE;
 }
 
 void
 xep_bytestreams_parse(PurpleConnection *pc, xmlnode *packet, PurpleBuddy *pb)
 {
-	const char *type, *from;
-	xmlnode *query;
+	const char *type, *from, *iq_id, *sid;
+	xmlnode *query, *streamhost;
 	BonjourData *bd;
+	PurpleXfer *xfer;
 
 	g_return_if_fail(pc != NULL);
 	g_return_if_fail(packet != NULL);
@@ -511,66 +718,33 @@ xep_bytestreams_parse(PurpleConnection *pc, xmlnode *packet, PurpleBuddy *pb)
 	type = xmlnode_get_attrib(packet, "type");
 	from = purple_buddy_get_name(pb);
 	query = xmlnode_get_child(packet,"query");
-	if(type) {
-		if(!strcmp(type, "set")) {
-			const char *iq_id, *sid;
-			gboolean found = FALSE;
-			PurpleXfer *xfer;
+	if(!type)
+		return;
 
-			purple_debug_info("bonjour", "bytestream offer Message type - SET.\n");
+	query = xmlnode_copy(query);
+	if (!query)
+		return;
 
-			iq_id = xmlnode_get_attrib(packet, "id");
-
-			sid = xmlnode_get_attrib(query, "sid");
-			xfer = bonjour_si_xfer_find(bd, sid, from);
-
-			if(xfer) {
-				const char *jid, *host, *port;
-				xmlnode *streamhost;
-				int portnum;
-				XepXfer *xf = NULL;
-
-				xf = (XepXfer*)xfer->data;
-				for(streamhost = xmlnode_get_child(query, "streamhost");
-						streamhost;
-						streamhost = xmlnode_get_next_twin(streamhost)) {
-
-					if((jid = xmlnode_get_attrib(streamhost, "jid")) &&
-					   (host = xmlnode_get_attrib(streamhost, "host")) &&
-					   (port = xmlnode_get_attrib(streamhost, "port")) &&
-					   (portnum = atoi(port))) {
-
-						if(!strcmp(host, xf->buddy_ip)) {
-							g_free(xf->iq_id);
-							xf->iq_id = g_strdup(iq_id);
-							xf->jid = g_strdup(jid);
-							xf->proxy_host = g_strdup(host);
-							xf->proxy_port = portnum;
-							purple_debug_info("bonjour", "bytestream offer parse"
-									  "jid=%s host=%s port=%d.\n", jid, host, portnum);
-							bonjour_bytestreams_connect(xfer, pb);
-							found = TRUE;
-							break;
-						}
-					} else {
-						purple_debug_info("bonjour", "bytestream offer Message parse error.\n");
-					}
-				}
-			} else {
-
-			}
-
-			if (!found) {
-				purple_debug_error("bonjour", "Didn't find an acceptable streamhost.\n");
-
-				if (iq_id && xfer != NULL)
-					xep_ft_si_reject(bd, iq_id, xfer->who, "404", "cancel");
-			}
-
-		} else {
-			purple_debug_info("bonjour", "bytestream offer Message type - Unknown-%s.\n", type);
-		}
+	if(!purple_strequal(type, "set")) {
+		purple_debug_info("bonjour", "bytestream offer Message type - Unknown-%s.\n", type);
+		return;
 	}
+
+	purple_debug_info("bonjour", "bytestream offer Message type - SET.\n");
+
+	iq_id = xmlnode_get_attrib(packet, "id");
+
+	sid = xmlnode_get_attrib(query, "sid");
+	xfer = bonjour_si_xfer_find(bd, sid, from);
+	streamhost = xmlnode_get_child(query, "streamhost");
+
+	if(xfer && streamhost && __xep_bytestreams_parse(pb, xfer, streamhost, iq_id))
+		return; /* success */
+
+	purple_debug_error("bonjour", "Didn't find an acceptable streamhost.\n");
+
+	if (iq_id && xfer != NULL)
+		xep_ft_si_reject(bd, iq_id, xfer->who, "404", "cancel");
 }
 
 static void
@@ -638,16 +812,9 @@ bonjour_sock5_request_cb(gpointer data, gint source, PurpleInputCondition cond)
 			purple_xfer_cancel_remote(xfer);
 			return;
 		} else {
-			int flags;
-
 			purple_debug_info("bonjour", "Accepted SOCKS5 ft connection - fd=%d\n", acceptfd);
 
-			flags = fcntl(acceptfd, F_GETFL);
-			fcntl(acceptfd, F_SETFL, flags | O_NONBLOCK);
-#ifndef _WIN32
-			fcntl(acceptfd, F_SETFD, FD_CLOEXEC);
-#endif
-
+			_purple_network_set_common_socket_flags(acceptfd);
 			purple_input_remove(xfer->watcher);
 			close(source);
 			xfer->watcher = purple_input_add(acceptfd, PURPLE_INPUT_READ,
@@ -775,7 +942,7 @@ bonjour_bytestreams_listen(int sock, gpointer data)
 
 	local_ips = bonjour_jabber_get_local_ips(sock);
 
-	port = g_strdup_printf("%hu", xfer->local_port);
+	port = g_strdup_printf("%hu", (guint16)purple_xfer_get_local_port(xfer));
 	while(local_ips) {
 		streamhost = xmlnode_new_child(query, "streamhost");
 		xmlnode_set_attrib(streamhost, "jid", xf->sid);
@@ -817,15 +984,22 @@ bonjour_bytestreams_connect_cb(gpointer data, gint source, const gchar *error_me
 	XepIq *iq;
 	xmlnode *q_node, *tmp_node;
 	BonjourData *bd;
+	gboolean ret = FALSE;
 
 	xf->proxy_connection = NULL;
 
 	if(source < 0) {
-		purple_debug_error("bonjour", "Error connecting via SOCKS5 - %s\n",
-			error_message ? error_message : "(null)");
-		xep_ft_si_reject(xf->data, xf->iq_id, xfer->who, "404", "cancel");
-		/* Cancel the connection */
-		purple_xfer_cancel_local(xfer);
+		purple_debug_error("bonjour", "Error connecting via SOCKS5 to %s - %s\n",
+			xf->proxy_host, error_message ? error_message : "(null)");
+
+		tmp_node = xmlnode_get_next_twin(xf->streamhost);
+		ret = __xep_bytestreams_parse(xf->pb, xfer, tmp_node, xf->iq_id);
+
+		if (!ret) {
+			xep_ft_si_reject(xf->data, xf->iq_id, purple_xfer_get_remote_user(xfer), "404", "cancel");
+			/* Cancel the connection */
+			purple_xfer_cancel_local(xfer);
+		}
 		return;
 	}
 
@@ -847,8 +1021,9 @@ bonjour_bytestreams_connect_cb(gpointer data, gint source, const gchar *error_me
 }
 
 static void
-bonjour_bytestreams_connect(PurpleXfer *xfer, PurpleBuddy *pb)
+bonjour_bytestreams_connect(PurpleXfer *xfer)
 {
+	PurpleBuddy *pb;
 	PurpleAccount *account = NULL;
 	XepXfer *xf;
 	char dstaddr[41];
@@ -866,6 +1041,7 @@ bonjour_bytestreams_connect(PurpleXfer *xfer, PurpleBuddy *pb)
 	if(!xf)
 		return;
 
+	pb = xf->pb;
 	name = purple_buddy_get_name(pb);
 	account = purple_buddy_get_account(pb);
 

@@ -220,7 +220,7 @@ pounce_to_xmlnode(PurplePounce *pounce)
 	g_hash_table_foreach(pounce->actions, action_parameter_list_to_xmlnode, child);
 
 	if (purple_pounce_get_save(pounce))
-		child = xmlnode_new_child(node, "save");
+		xmlnode_new_child(node, "save");
 
 	return node;
 }
@@ -714,7 +714,7 @@ purple_pounce_destroy_all_by_buddy(PurpleBuddy *buddy)
 		pouncer = purple_pounce_get_pouncer(pounce);
 		pouncee = purple_pounce_get_pouncee(pounce);
 
-		if ( (pouncer == bacct) && (strcmp(pouncee, bname) == 0) )
+		if ( (pouncer == bacct) && (purple_strequal(pouncee, bname)) )
 			purple_pounce_destroy(pounce);
 	}
 }

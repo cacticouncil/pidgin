@@ -41,8 +41,11 @@
 #ifdef _WIN32
 #include <gdk/gdkwin32.h>
 #endif
+#include <gdk/gdkkeysyms.h>
 
+#if !GST_CHECK_VERSION(1,0,0)
 #include <gst/interfaces/xoverlay.h>
+#endif
 
 #define PIDGIN_TYPE_MEDIA            (pidgin_media_get_type())
 #define PIDGIN_MEDIA(obj)            (G_TYPE_CHECK_INSTANCE_CAST((obj), PIDGIN_TYPE_MEDIA, PidginMedia))
@@ -290,14 +293,14 @@ setup_menubar(PidginMedia *window)
 	GtkWidget *menu;
 
 	action_group = gtk_action_group_new("MediaActions");
-	gtk_action_group_add_actions(action_group,
-	                             menu_entries,
-	                             G_N_ELEMENTS(menu_entries),
-	                             GTK_WINDOW(window));
 #ifdef ENABLE_NLS
 	gtk_action_group_set_translation_domain(action_group,
 	                                        PACKAGE);
 #endif
+	gtk_action_group_add_actions(action_group,
+	                             menu_entries,
+	                             G_N_ELEMENTS(menu_entries),
+	                             GTK_WINDOW(window));
 
 	window->priv->ui = gtk_ui_manager_new();
 	gtk_ui_manager_insert_action_group(window->priv->ui, action_group, 0);
@@ -454,8 +457,12 @@ level_message_cb(PurpleMedia *media, gchar *session_id, gchar *participant,
 	else
 		progress = pidgin_media_get_widget(gtkmedia, session_id, participant);
 
+	level *= 5;
+	if (level > 1.0)
+		level = 1.0;
+
 	if (progress)
-		gtk_progress_bar_set_fraction(GTK_PROGRESS_BAR(progress), level * 5);
+		gtk_progress_bar_set_fraction(GTK_PROGRESS_BAR(progress), level);
 }
 
 
@@ -482,6 +489,8 @@ pidgin_media_dispose(GObject *media)
 		purple_request_close_with_handle(gtkmedia);
 		purple_media_remove_output_windows(gtkmedia->priv->media);
 		pidgin_media_disconnect_levels(gtkmedia->priv->media, gtkmedia);
+		g_signal_handlers_disconnect_matched(gtkmedia->priv->media,
+			G_SIGNAL_MATCH_DATA, 0, 0, NULL, NULL, gtkmedia);
 		g_object_unref(gtkmedia->priv->media);
 		gtkmedia->priv->media = NULL;
 	}
@@ -499,6 +508,11 @@ pidgin_media_dispose(GObject *media)
 		g_hash_table_destroy(gtkmedia->priv->remote_videos);
 		gtkmedia->priv->recv_progressbars = NULL;
 		gtkmedia->priv->remote_videos = NULL;
+	}
+
+	if (gtkmedia->priv->screenname) {
+		g_free(gtkmedia->priv->screenname);
+		gtkmedia->priv->screenname = NULL;
 	}
 
 	G_OBJECT_CLASS(parent_class)->dispose(media);
@@ -537,13 +551,26 @@ realize_cb_cb(PidginMediaRealizeData *data)
 	PidginMediaPrivate *priv = data->gtkmedia->priv;
 	GdkWindow *window = NULL;
 
+	if (priv->media == NULL) {
+		/* gtkmedia has been disposed */
+		goto done;
+	}
+
 	if (data->participant == NULL)
+#if GTK_CHECK_VERSION(2, 14, 0)
 		window = gtk_widget_get_window(priv->local_video);
+#else
+		window = (priv->local_video)->window;
+#endif
 	else {
 		GtkWidget *widget = pidgin_media_get_widget(data->gtkmedia,
 				data->session_id, data->participant);
 		if (widget)
+#if GTK_CHECK_VERSION(2, 14, 0)
 			window = gtk_widget_get_window(widget);
+#else
+			window = widget->window;
+#endif
 	}
 
 	if (window) {
@@ -560,8 +587,10 @@ realize_cb_cb(PidginMediaRealizeData *data)
 				data->participant, window_id);
 	}
 
+done:
 	g_free(data->session_id);
 	g_free(data->participant);
+	g_object_unref(data->gtkmedia);
 	g_free(data);
 	return FALSE;
 }
@@ -581,6 +610,9 @@ pidgin_media_error_cb(PidginMedia *media, const char *error, PidginMedia *gtkmed
 	if (conv != NULL)
 		purple_conversation_write(conv, NULL, error,
 				PURPLE_MESSAGE_ERROR, time(NULL));
+	else
+		purple_notify_error(NULL, NULL, _("Media error"), error);
+
 	gtk_statusbar_push(GTK_STATUSBAR(gtkmedia->priv->statusbar),
 			0, error);
 }
@@ -751,6 +783,137 @@ pidgin_media_add_audio_widget(PidginMedia *gtkmedia,
 }
 
 static void
+phone_dtmf_pressed_cb(GtkButton *button, gpointer user_data)
+{
+	PidginMedia *gtkmedia = user_data;
+	gint num;
+	gchar *sid;
+
+	num = GPOINTER_TO_INT(g_object_get_data(G_OBJECT(button), "dtmf-digit"));
+	sid = g_object_get_data(G_OBJECT(button), "session-id");
+
+	purple_media_send_dtmf(gtkmedia->priv->media, sid, num, 25, 50);
+}
+
+static inline GtkWidget *
+phone_create_button(const gchar *text_hi, const gchar *text_lo)
+{
+	GtkWidget *button;
+	GtkWidget *label_hi;
+	GtkWidget *label_lo;
+	GtkWidget *grid;
+	const gchar *text_hi_local;
+
+	if (text_hi)
+		text_hi_local = _(text_hi);
+	else
+		text_hi_local = "";
+
+	grid = gtk_vbox_new(TRUE, 0);
+
+	button = gtk_button_new();
+	label_hi = gtk_label_new(text_hi_local);
+	gtk_misc_set_alignment(GTK_MISC(label_hi), 0.5, 0.5);
+	gtk_box_pack_end(GTK_BOX(grid), label_hi, FALSE, TRUE, 0);
+	label_lo = gtk_label_new(text_lo);
+	gtk_misc_set_alignment(GTK_MISC(label_lo), 0.5, 0.5);
+	gtk_label_set_use_markup(GTK_LABEL(label_lo), TRUE);
+	gtk_box_pack_end(GTK_BOX(grid), label_lo, FALSE, TRUE, 0);
+	gtk_container_add(GTK_CONTAINER(button), grid);
+
+	return button;
+}
+
+static struct phone_label {
+	gchar *subtext;
+	gchar *text;
+	gchar chr;
+} phone_labels[] = {
+	{"<b>1</b>", NULL, '1'},
+	/* Translators note: These are the letters on the keys of a numeric
+	   keypad; translate according to the tables in §7 of ETSI ES 202 130:
+           http://webapp.etsi.org/WorkProgram/Report_WorkItem.asp?WKI_ID=11730
+         */
+	 /* Letters on the '2' key of a numeric keypad */
+	{"<b>2</b>", N_("ABC"), '2'},
+	 /* Letters on the '3' key of a numeric keypad */
+	{"<b>3</b>", N_("DEF"), '3'},
+	 /* Letters on the '4' key of a numeric keypad */
+	{"<b>4</b>", N_("GHI"), '4'},
+	 /* Letters on the '5' key of a numeric keypad */
+	{"<b>5</b>", N_("JKL"), '5'},
+	 /* Letters on the '6' key of a numeric keypad */
+	{"<b>6</b>", N_("MNO"), '6'},
+	 /* Letters on the '7' key of a numeric keypad */
+	{"<b>7</b>", N_("PQRS"), '7'},
+	 /* Letters on the '8' key of a numeric keypad */
+	{"<b>8</b>", N_("TUV"), '8'},
+	 /* Letters on the '9' key of a numeric keypad */
+	{"<b>9</b>", N_("WXYZ"), '9'},
+	{"<b>*</b>", NULL, '*'},
+	{"<b>0</b>", NULL, '0'},
+	{"<b>#</b>", NULL, '#'},
+	{NULL, NULL, 0}
+};
+
+static gboolean
+pidgin_media_dtmf_key_press_event_cb(GtkWidget *widget,
+		GdkEvent *event, gpointer user_data)
+{
+	PidginMedia *gtkmedia = user_data;
+	GdkEventKey *key = (GdkEventKey *) event;
+
+	if (event->type != GDK_KEY_PRESS) {
+		return FALSE;
+	}
+
+	if ((key->keyval >= GDK_KEY_0 && key->keyval <= GDK_KEY_9) ||
+		key->keyval == GDK_KEY_asterisk ||
+		key->keyval == GDK_KEY_numbersign) {
+		gchar *sid = g_object_get_data(G_OBJECT(widget), "session-id");
+
+		purple_media_send_dtmf(gtkmedia->priv->media, sid, key->keyval, 25, 50);
+	}
+
+	return FALSE;
+}
+
+static GtkWidget *
+pidgin_media_add_dtmf_widget(PidginMedia *gtkmedia,
+		PurpleMediaSessionType type, const gchar *_sid)
+{
+	GtkWidget *grid = gtk_table_new(4, 3, TRUE);
+	GtkWidget *button;
+	gint index = 0;
+	GtkWindow *win = &gtkmedia->parent;
+
+	/* Add buttons */
+	for (index = 0; phone_labels[index].subtext != NULL; index++) {
+		button = phone_create_button(phone_labels[index].text,
+				phone_labels[index].subtext);
+		g_signal_connect(button, "pressed",
+				G_CALLBACK(phone_dtmf_pressed_cb), gtkmedia);
+		g_object_set_data(G_OBJECT(button), "dtmf-digit",
+				GINT_TO_POINTER(phone_labels[index].chr));
+		g_object_set_data_full(G_OBJECT(button), "session-id",
+				g_strdup(_sid), g_free);
+		gtk_table_attach(GTK_TABLE(grid), button, index % 3,
+				index % 3 + 1, index / 3, index / 3 + 1,
+				GTK_FILL | GTK_EXPAND, GTK_FILL | GTK_EXPAND,
+				2, 2);
+	}
+
+	g_signal_connect(G_OBJECT(win), "key-press-event",
+		G_CALLBACK(pidgin_media_dtmf_key_press_event_cb), gtkmedia);
+	g_object_set_data_full(G_OBJECT(win), "session-id",
+		g_strdup(_sid), g_free);
+
+	gtk_widget_show_all(grid);
+
+	return grid;
+}
+
+static void
 pidgin_media_ready_cb(PurpleMedia *media, PidginMedia *gtkmedia, const gchar *sid)
 {
 	GtkWidget *send_widget = NULL, *recv_widget = NULL, *button_widget = NULL;
@@ -781,7 +944,7 @@ pidgin_media_ready_cb(PurpleMedia *media, PidginMedia *gtkmedia, const gchar *si
 
 		/* Hold button */
 		gtkmedia->priv->hold =
-				gtk_toggle_button_new_with_mnemonic("_Hold");
+				gtk_toggle_button_new_with_mnemonic(_("_Hold"));
 		gtk_box_pack_end(GTK_BOX(button_widget), gtkmedia->priv->hold,
 				FALSE, FALSE, 0);
 		gtk_widget_show(gtkmedia->priv->hold);
@@ -804,7 +967,7 @@ pidgin_media_ready_cb(PurpleMedia *media, PidginMedia *gtkmedia, const gchar *si
 		gtk_box_pack_start(GTK_BOX(recv_widget), aspect, TRUE, TRUE, 0);
 
 		data = g_new0(PidginMediaRealizeData, 1);
-		data->gtkmedia = gtkmedia;
+		data->gtkmedia = g_object_ref(gtkmedia);
 		data->session_id = g_strdup(sid);
 		data->participant = g_strdup(gtkmedia->priv->screenname);
 
@@ -835,7 +998,7 @@ pidgin_media_ready_cb(PurpleMedia *media, PidginMedia *gtkmedia, const gchar *si
 		gtk_box_pack_start(GTK_BOX(send_widget), aspect, FALSE, TRUE, 0);
 
 		data = g_new0(PidginMediaRealizeData, 1);
-		data->gtkmedia = gtkmedia;
+		data->gtkmedia = g_object_ref(gtkmedia);
 		data->session_id = g_strdup(sid);
 		data->participant = NULL;
 
@@ -870,7 +1033,7 @@ pidgin_media_ready_cb(PurpleMedia *media, PidginMedia *gtkmedia, const gchar *si
 
 	if (type & PURPLE_MEDIA_SEND_AUDIO) {
 		gtkmedia->priv->mute =
-				gtk_toggle_button_new_with_mnemonic("_Mute");
+				gtk_toggle_button_new_with_mnemonic(_("_Mute"));
 		gtk_box_pack_end(GTK_BOX(button_widget), gtkmedia->priv->mute,
 				FALSE, FALSE, 0);
 		gtk_widget_show(gtkmedia->priv->mute);
@@ -880,7 +1043,11 @@ pidgin_media_ready_cb(PurpleMedia *media, PidginMedia *gtkmedia, const gchar *si
 
 		gtk_box_pack_end(GTK_BOX(recv_widget),
 				pidgin_media_add_audio_widget(gtkmedia,
-				PURPLE_MEDIA_SEND_AUDIO, NULL), FALSE, FALSE, 0);
+				PURPLE_MEDIA_SEND_AUDIO, sid), FALSE, FALSE, 0);
+
+		gtk_box_pack_end(GTK_BOX(recv_widget),
+				pidgin_media_add_dtmf_widget(gtkmedia,
+				PURPLE_MEDIA_SEND_AUDIO, sid), FALSE, FALSE, 0);
 	}
 
 	if (type & PURPLE_MEDIA_AUDIO &&
@@ -963,7 +1130,44 @@ pidgin_media_stream_info_cb(PurpleMedia *media, PurpleMediaInfoType type,
 		gtk_statusbar_push(GTK_STATUSBAR(gtkmedia->priv->statusbar),
 				0, _("Call in progress."));
 		gtk_widget_show(GTK_WIDGET(gtkmedia));
+	} else if (type == PURPLE_MEDIA_INFO_MUTE && !local) {
+		gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(gtkmedia->priv->mute), TRUE);
+	} else if (type == PURPLE_MEDIA_INFO_UNMUTE && !local) {
+		gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(gtkmedia->priv->mute), FALSE);
 	}
+}
+
+static void
+pidgin_media_video_caps_cb(PurpleMedia *media, gchar *session, gchar *participant,
+			   GstCaps *caps, PidginMedia *gtkmedia)
+{
+	GtkWidget *widget;
+	GstStructure *str;
+	gint height, width;
+	double aspect;
+
+	if (!gst_caps_is_fixed(caps))
+		return;
+
+	widget = pidgin_media_get_widget(gtkmedia, session, participant);
+	if (!widget)
+		return;
+
+	widget = gtk_widget_get_parent(widget);
+	if (!widget || !GTK_IS_ASPECT_FRAME(widget))
+		return;
+
+	str = gst_caps_get_structure(caps, 0);
+	if (!str)
+		return;
+
+	if (!gst_structure_get_int(str, "height", &height) ||
+	    !gst_structure_get_int(str, "width", &width) ||
+	    height < 1 || width < 1)
+		return;
+
+	aspect = (double)width / (double)height;
+	gtk_aspect_frame_set(GTK_ASPECT_FRAME(widget), 0, 0, aspect, FALSE);
 }
 
 static void
@@ -993,6 +1197,8 @@ pidgin_media_set_property (GObject *object, guint prop_id, const GValue *value, 
 				G_CALLBACK(pidgin_media_state_changed_cb), media);
 			g_signal_connect(G_OBJECT(media->priv->media), "stream-info",
 				G_CALLBACK(pidgin_media_stream_info_cb), media);
+			g_signal_connect(G_OBJECT(media->priv->media), "video-caps",
+				G_CALLBACK(pidgin_media_video_caps_cb), media);
 			break;
 		}
 		case PROP_SCREENNAME:
@@ -1059,6 +1265,28 @@ pidgin_media_new_cb(PurpleMediaManager *manager, PurpleMedia *media,
 	return TRUE;
 }
 
+#if !defined(USE_GSTREAMER) || !GST_CHECK_VERSION(1,4,0)
+
+static void
+videosink_disable_last_sample(GstElement *sink)
+{
+	GObjectClass *klass = G_OBJECT_GET_CLASS(sink);
+
+	if (g_object_class_find_property(klass, "enable-last-sample")) {
+		g_object_set(sink, "enable-last-sample", FALSE, NULL);
+	}
+}
+
+static void
+autovideosink_child_added_cb (GstChildProxy *child_proxy, GObject *object,
+#if GST_CHECK_VERSION(1,0,0)
+		gchar *name,
+#endif
+		gpointer user_data)
+{
+	videosink_disable_last_sample(GST_ELEMENT(object));
+}
+
 static GstElement *
 create_default_video_src(PurpleMedia *media,
 		const gchar *session_id, const gchar *participant)
@@ -1111,6 +1339,9 @@ create_default_video_sink(PurpleMedia *media,
 	if (sink == NULL)
 		purple_debug_error("gtkmedia", "Unable to find a suitable "
 				"element for the default video sink.\n");
+	if (sink != NULL)
+		g_signal_connect(sink, "child-added",
+				G_CALLBACK(autovideosink_child_added_cb), NULL);
 	return sink;
 }
 
@@ -1152,6 +1383,7 @@ create_default_audio_sink(PurpleMedia *media,
 	}
 	return sink;
 }
+#endif /* USE_GSTREAMER >= 1.4 */
 #endif  /* USE_VV */
 
 void
@@ -1159,8 +1391,58 @@ pidgin_medias_init(void)
 {
 #ifdef USE_VV
 	PurpleMediaManager *manager = purple_media_manager_get();
-	PurpleMediaElementInfo *default_video_src =
-			g_object_new(PURPLE_TYPE_MEDIA_ELEMENT_INFO,
+	PurpleMediaElementInfo *video_src;
+	PurpleMediaElementInfo *video_sink;
+	PurpleMediaElementInfo *audio_src;
+	PurpleMediaElementInfo *audio_sink;
+#if defined(USE_GSTREAMER) && GST_CHECK_VERSION(1,4,0)
+	const char *pref;
+
+	pref = purple_prefs_get_string(
+			PIDGIN_PREFS_ROOT "/vvconfig/video/src/device");
+	video_src = purple_media_manager_get_element_info(manager, pref);
+	if (!video_src) {
+		pref = "autovideosrc";
+		purple_prefs_set_string(
+			PIDGIN_PREFS_ROOT "/vvconfig/video/src/device", pref);
+		video_src = purple_media_manager_get_element_info(manager,
+				pref);
+	}
+
+	pref = purple_prefs_get_string(
+			PIDGIN_PREFS_ROOT "/vvconfig/video/sink/device");
+	video_sink = purple_media_manager_get_element_info(manager, pref);
+	if (!video_sink) {
+		pref = "autovideosink";
+		purple_prefs_set_string(
+			PIDGIN_PREFS_ROOT "/vvconfig/video/sink/device", pref);
+		video_sink = purple_media_manager_get_element_info(manager,
+				pref);
+	}
+
+	pref = purple_prefs_get_string(
+			PIDGIN_PREFS_ROOT "/vvconfig/audio/src/device");
+	audio_src = purple_media_manager_get_element_info(manager, pref);
+	if (!audio_src) {
+		pref = "autoaudiosrc";
+		purple_prefs_set_string(
+			PIDGIN_PREFS_ROOT "/vvconfig/audio/src/device", pref);
+		audio_src = purple_media_manager_get_element_info(manager,
+				pref);
+	}
+
+	pref = purple_prefs_get_string(
+			PIDGIN_PREFS_ROOT "/vvconfig/audio/sink/device");
+	audio_sink = purple_media_manager_get_element_info(manager, pref);
+	if (!audio_sink) {
+		pref = "autoaudiosink";
+		purple_prefs_set_string(
+			PIDGIN_PREFS_ROOT "/vvconfig/audio/sink/device", pref);
+		audio_sink = purple_media_manager_get_element_info(manager,
+				pref);
+	}
+#else
+	video_src = g_object_new(PURPLE_TYPE_MEDIA_ELEMENT_INFO,
 			"id", "pidgindefaultvideosrc",
 			"name", "Pidgin Default Video Source",
 			"type", PURPLE_MEDIA_ELEMENT_VIDEO
@@ -1168,16 +1450,14 @@ pidgin_medias_init(void)
 					| PURPLE_MEDIA_ELEMENT_ONE_SRC
 					| PURPLE_MEDIA_ELEMENT_UNIQUE,
 			"create-cb", create_default_video_src, NULL);
-	PurpleMediaElementInfo *default_video_sink =
-			g_object_new(PURPLE_TYPE_MEDIA_ELEMENT_INFO,
+	video_sink = g_object_new(PURPLE_TYPE_MEDIA_ELEMENT_INFO,
 			"id", "pidgindefaultvideosink",
 			"name", "Pidgin Default Video Sink",
 			"type", PURPLE_MEDIA_ELEMENT_VIDEO
 					| PURPLE_MEDIA_ELEMENT_SINK
 					| PURPLE_MEDIA_ELEMENT_ONE_SINK,
 			"create-cb", create_default_video_sink, NULL);
-	PurpleMediaElementInfo *default_audio_src =
-			g_object_new(PURPLE_TYPE_MEDIA_ELEMENT_INFO,
+	audio_src = g_object_new(PURPLE_TYPE_MEDIA_ELEMENT_INFO,
 			"id", "pidgindefaultaudiosrc",
 			"name", "Pidgin Default Audio Source",
 			"type", PURPLE_MEDIA_ELEMENT_AUDIO
@@ -1185,14 +1465,14 @@ pidgin_medias_init(void)
 					| PURPLE_MEDIA_ELEMENT_ONE_SRC
 					| PURPLE_MEDIA_ELEMENT_UNIQUE,
 			"create-cb", create_default_audio_src, NULL);
-	PurpleMediaElementInfo *default_audio_sink =
-			g_object_new(PURPLE_TYPE_MEDIA_ELEMENT_INFO,
+	audio_sink = g_object_new(PURPLE_TYPE_MEDIA_ELEMENT_INFO,
 			"id", "pidgindefaultaudiosink",
 			"name", "Pidgin Default Audio Sink",
 			"type", PURPLE_MEDIA_ELEMENT_AUDIO
 					| PURPLE_MEDIA_ELEMENT_SINK
 					| PURPLE_MEDIA_ELEMENT_ONE_SINK,
 			"create-cb", create_default_audio_sink, NULL);
+#endif /* USE_GSTREAMER */
 
 	g_signal_connect(G_OBJECT(manager), "init-media",
 			 G_CALLBACK(pidgin_media_new_cb), NULL);
@@ -1205,10 +1485,10 @@ pidgin_medias_init(void)
 			PURPLE_MEDIA_CAPS_AUDIO_VIDEO);
 
 	purple_debug_info("gtkmedia", "Registering media element types\n");
-	purple_media_manager_set_active_element(manager, default_video_src);
-	purple_media_manager_set_active_element(manager, default_video_sink);
-	purple_media_manager_set_active_element(manager, default_audio_src);
-	purple_media_manager_set_active_element(manager, default_audio_sink);
+	purple_media_manager_set_active_element(manager, video_src);
+	purple_media_manager_set_active_element(manager, video_sink);
+	purple_media_manager_set_active_element(manager, audio_src);
+	purple_media_manager_set_active_element(manager, audio_sink);
 #endif
 }
 

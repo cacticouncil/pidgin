@@ -21,6 +21,8 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02111-1301  USA
 #
 
+from __future__ import absolute_import, division, print_function
+
 import dbus
 
 bus = dbus.SessionBus()
@@ -32,5 +34,5 @@ while node != 0:
 	if purple.PurpleBlistNodeIsBuddy(node):
 		icon = purple.PurpleBuddyGetIcon(node)
 		if icon != 0:
-			print purple.PurpleBuddyGetAlias(node)
+			print(purple.PurpleBuddyGetAlias(node))
 	node = purple.PurpleBlistNodeNext(node, 0)

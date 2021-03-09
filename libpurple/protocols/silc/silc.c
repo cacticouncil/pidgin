@@ -98,15 +98,15 @@ silcpurple_set_status(PurpleAccount *account, PurpleStatus *status)
 		  SILC_UMODE_INDISPOSED |
 		  SILC_UMODE_PAGE);
 
-	if (!strcmp(state, "hyper"))
+	if (purple_strequal(state, "hyper"))
 		mode |= SILC_UMODE_HYPER;
-	else if (!strcmp(state, "away"))
+	else if (purple_strequal(state, "away"))
 		mode |= SILC_UMODE_GONE;
-	else if (!strcmp(state, "busy"))
+	else if (purple_strequal(state, "busy"))
 		mode |= SILC_UMODE_BUSY;
-	else if (!strcmp(state, "indisposed"))
+	else if (purple_strequal(state, "indisposed"))
 		mode |= SILC_UMODE_INDISPOSED;
-	else if (!strcmp(state, "page"))
+	else if (purple_strequal(state, "page"))
 		mode |= SILC_UMODE_PAGE;
 
 	/* Send UMODE */
@@ -400,7 +400,7 @@ silcpurple_stream_created(SilcSocketStreamStatus status, SilcStream stream,
 	}
 
 	/* Perform SILC Key Exchange. */
-	silc_client_key_exchange(sg->client, &params, sg->public_key,
+	silc_client_key_exchange(client, &params, sg->public_key,
 				 sg->private_key, stream, SILC_CONN_SERVER,
 				 silcpurple_connect_cb, gc);
 
@@ -595,13 +595,13 @@ silcpurple_login(PurpleAccount *account)
 	cipher = purple_account_get_string(account, "cipher",
 					   SILC_DEFAULT_CIPHER);
 	for (i = 0; silc_default_ciphers[i].name; i++)
-		if (!strcmp(silc_default_ciphers[i].name, cipher)) {
+		if (purple_strequal(silc_default_ciphers[i].name, cipher)) {
 			silc_cipher_register(&(silc_default_ciphers[i]));
 			break;
 		}
 	hmac = purple_account_get_string(account, "hmac", SILC_DEFAULT_HMAC);
 	for (i = 0; silc_default_hmacs[i].name; i++)
-		if (!strcmp(silc_default_hmacs[i].name, hmac)) {
+		if (purple_strequal(silc_default_hmacs[i].name, hmac)) {
 			silc_hmac_register(&(silc_default_hmacs[i]));
 			break;
 		}
@@ -1146,7 +1146,7 @@ silcpurple_create_keypair_cb(PurpleConnection *gc, PurpleRequestFields *fields)
 	else
 		pass2 = "";
 
-	if (strcmp(pass1, pass2)) {
+	if (!purple_strequal(pass1, pass2)) {
 		purple_notify_error(
 		     gc, _("Create New SILC Key Pair"), _("Passphrases do not match"), NULL);
 		return;
@@ -1388,8 +1388,7 @@ silcpurple_send_im_resolved(SilcClient client,
 
 	/* Check for images */
 	if (im->gflags & PURPLE_MESSAGE_IMAGES) {
-		list = silcpurple_image_message(im->message,
-						(SilcUInt32 *)(void *)&im->flags);
+		list = silcpurple_image_message(im->message, &im->flags);
 		if (list) {
 			/* Send one or more MIME message.  If more than one, they
 			   are MIME fragments due to over large message */
@@ -1438,7 +1437,7 @@ silcpurple_send_im(PurpleConnection *gc, const char *who, const char *message,
 	SilcClientConnection conn = sg->conn;
 	SilcDList clients;
 	SilcClientEntry client_entry;
-	SilcUInt32 mflags;
+	SilcMessageFlags mflags;
 	char *msg, *tmp;
 	int ret = 0;
 	gboolean sign = purple_account_get_bool(sg->account, "sign-verify", FALSE);
@@ -1799,7 +1798,7 @@ static PurpleCmdRet silcpurple_cmd_cmode(PurpleConversation *conv,
 	}
 
 	silcargs = g_strjoinv(" ", args);
-	silccmd = g_strconcat(cmd, " ", args ? silcargs : NULL, NULL);
+	silccmd = g_strconcat(cmd, " ", silcargs, NULL);
 	g_free(silcargs);
 	if (!silc_client_command_call(sg->client, sg->conn, silccmd)) {
 		g_free(silccmd);
@@ -2125,7 +2124,10 @@ static PurplePluginProtocolInfo prpl_info =
 	NULL,				        /* set_public_alias */
 	NULL,				        /* get_public_alias */
 	NULL,				        /* add_buddy_with_invite */
-	NULL				        /* add_buddies_with_invite */
+	NULL,				        /* add_buddies_with_invite */
+	NULL,				        /* get_cb_alias */
+	NULL,				        /* chat_can_receive_file */
+	NULL,				        /* chat_send_file */
 };
 
 static PurplePluginInfo info =

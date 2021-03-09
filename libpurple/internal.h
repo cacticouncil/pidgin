@@ -124,14 +124,7 @@
 
 #include <glib.h>
 
-/* This wasn't introduced until Glib 2.14 :( */
-#ifndef G_MAXSSIZE
-#	if GLIB_SIZEOF_LONG == 8
-#		define G_MAXSSIZE ((gssize) 0x7fffffffffffffff)
-#	else
-#		define G_MAXSSIZE ((gssize) 0x7fffffff)
-#	endif
-#endif
+#include "glibcompat.h"
 
 #include <glib/gstdio.h>
 
@@ -151,11 +144,27 @@
 
 #include <glib-object.h>
 
+#ifdef __COVERITY__
+
+/* avoid TAINTED_SCALAR warning */
+#undef g_utf8_next_char
+#define g_utf8_next_char(p) (char *)((p) + 1)
+
+#endif
+
 /* Safer ways to work with static buffers. When using non-static
  * buffers, either use g_strdup_* functions (preferred) or use
  * g_strlcpy/g_strlcpy directly. */
 #define purple_strlcpy(dest, src) g_strlcpy(dest, src, sizeof(dest))
 #define purple_strlcat(dest, src) g_strlcat(dest, src, sizeof(dest))
+
+typedef union
+{
+	struct sockaddr sa;
+	struct sockaddr_in in;
+	struct sockaddr_in6 in6;
+	struct sockaddr_storage storage;
+} common_sockaddr_t;
 
 #define PURPLE_WEBSITE "http://pidgin.im/"
 #define PURPLE_DEVEL_WEBSITE "http://developer.pidgin.im/"
@@ -225,5 +234,15 @@ void _purple_connection_new_unregister(PurpleAccount *account, const char *passw
  * @param gc The purple connection to destroy.
  */
 void _purple_connection_destroy(PurpleConnection *gc);
+
+/**
+ * Sets most commonly used socket flags: O_NONBLOCK and FD_CLOEXEC.
+ *
+ * @param fd The file descriptor for the socket.
+ *
+ * @return TRUE if succeeded, FALSE otherwise.
+ */
+gboolean
+_purple_network_set_common_socket_flags(int fd);
 
 #endif /* _PURPLE_INTERNAL_H_ */

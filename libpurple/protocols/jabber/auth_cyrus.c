@@ -167,7 +167,6 @@ static void
 auth_no_pass_cb(PurpleConnection *gc, PurpleRequestFields *fields)
 {
 	PurpleAccount *account;
-	JabberStream *js;
 
 	/* The password prompt dialog doesn't get disposed if the account disconnects */
 	if (!PURPLE_CONNECTION_IS_VALID(gc))
@@ -177,6 +176,25 @@ auth_no_pass_cb(PurpleConnection *gc, PurpleRequestFields *fields)
 
 	/* Disable the account as the user has cancelled connecting */
 	purple_account_set_enabled(account, purple_core_get_ui(), FALSE);
+}
+
+static gboolean remove_current_mech(JabberStream *js) {
+	char *pos;
+	if ((pos = strstr(js->sasl_mechs->str, js->current_mech))) {
+		int len = strlen(js->current_mech);
+		/* Clean up space that separated this Mech from the one before or after it */
+		if (pos > js->sasl_mechs->str && *(pos - 1) == ' ') {
+			/* Handle removing space before when current_mech isn't the first mech in the list */
+			pos--;
+			len++;
+		} else if (strlen(pos) > len && *(pos + len) == ' ') {
+			/* Handle removing space after */
+			len++;
+		}
+		g_string_erase(js->sasl_mechs, pos - js->sasl_mechs->str, len);
+		return TRUE;
+	}
+	return FALSE;
 }
 
 static JabberSaslState
@@ -256,7 +274,7 @@ jabber_auth_start_cyrus(JabberStream *js, xmlnode **reply, char **error)
 					js->auth_fail_count++;
 
 				if (js->auth_fail_count == 1 &&
-					(js->sasl_mechs->str && g_str_equal(js->sasl_mechs->str, "GSSAPI"))) {
+					purple_strequal(js->sasl_mechs->str, "GSSAPI")) {
 					/* If we tried GSSAPI first, it failed, and it was the only method we had to try, try jabber:iq:auth
 					 * for compatibility with iChat 10.5 Server and other jabberd based servers.
 					 *
@@ -300,14 +318,8 @@ jabber_auth_start_cyrus(JabberStream *js, xmlnode **reply, char **error)
 				 * supported mechanisms. This code handles that case
 				 */
 				if (js->current_mech && *js->current_mech) {
-					char *pos;
-					if ((pos = strstr(js->sasl_mechs->str, js->current_mech))) {
-						g_string_erase(js->sasl_mechs, pos-js->sasl_mechs->str, strlen(js->current_mech));
-					}
-					/* Remove space which separated this mech from the next */
-					if ((js->sasl_mechs->str)[0] == ' ') {
-						g_string_erase(js->sasl_mechs, 0, 1);
-					}
+					remove_current_mech(js);
+					/* Should we only try again if we've removed the mech? */
 					again = TRUE;
 				}
 
@@ -412,7 +424,7 @@ jabber_cyrus_start(JabberStream *js, xmlnode *mechanisms,
 		 * mechanisms"...  Easiest just to blacklist it (for now).
 		 */
 		if (!mech_name || !*mech_name ||
-				g_str_equal(mech_name, "EXTERNAL")) {
+				purple_strequal(mech_name, "EXTERNAL")) {
 			g_free(mech_name);
 			continue;
 		}
@@ -546,15 +558,10 @@ jabber_cyrus_handle_failure(JabberStream *js, xmlnode *packet,
 {
 	if (js->auth_fail_count++ < 5) {
 		if (js->current_mech && *js->current_mech) {
-			char *pos;
-			if ((pos = strstr(js->sasl_mechs->str, js->current_mech))) {
-				g_string_erase(js->sasl_mechs, pos-js->sasl_mechs->str, strlen(js->current_mech));
-			}
-			/* Remove space which separated this mech from the next */
-			if ((js->sasl_mechs->str)[0] == ' ') {
-				g_string_erase(js->sasl_mechs, 0, 1);
-			}
+			remove_current_mech(js);
 		}
+
+		/* Should we only try again if we've actually removed a mech? */
 		if (*js->sasl_mechs->str) {
 			/* If we have remaining mechs to try, do so */
 			sasl_dispose(&js->sasl);
@@ -562,7 +569,7 @@ jabber_cyrus_handle_failure(JabberStream *js, xmlnode *packet,
 			return jabber_auth_start_cyrus(js, reply, error);
 
 		} else if ((js->auth_fail_count == 1) &&
-				   (js->current_mech && g_str_equal(js->current_mech, "GSSAPI"))) {
+				   purple_strequal(js->current_mech, "GSSAPI")) {
 			/* If we tried GSSAPI first, it failed, and it was the only method we had to try, try jabber:iq:auth
 			 * for compatibility with iChat 10.5 Server and other jabberd based servers.
 			 *

@@ -10,6 +10,7 @@
  */
 
 #include "internal.h"
+#include "util.h"
 
 static Code_t Z_RetSubs(ZNotice_t *notice, int *nsubs, Z_AuthProc auth_routine);
 
@@ -105,12 +106,12 @@ static Code_t Z_RetSubs(notice, nsubs, auth_routine)
 		}
 		/* non-matching protocol version numbers means the
 		   server is probably an older version--must punt */
-		if (strcmp(notice->z_version,retnotice.z_version)) {
+		if (!purple_strequal(notice->z_version,retnotice.z_version)) {
 			ZFreeNotice(&retnotice);
 			return(ZERR_VERS);
 		}
 		if (retnotice.z_kind == SERVACK &&
-		    !strcmp(retnotice.z_opcode,notice->z_opcode)) {
+		    purple_strequal(retnotice.z_opcode,notice->z_opcode)) {
 			ZFreeNotice(&retnotice);
 			gimmeack = 1;
 			continue;
@@ -132,6 +133,7 @@ static Code_t Z_RetSubs(notice, nsubs, auth_routine)
 
 		__subscriptions_num = __subscriptions_num / 3;
 
+		free(__subscriptions_list);
 		__subscriptions_list = (ZSubscription_t *)
 			malloc((unsigned)(__subscriptions_num*
 					  sizeof(ZSubscription_t)));
@@ -141,32 +143,37 @@ static Code_t Z_RetSubs(notice, nsubs, auth_routine)
 		}
 
 		for (ptr=retnotice.z_message,i = 0; i< __subscriptions_num; i++) {
+			size_t len;
+
+			len = strlen(ptr) + 1;
 			__subscriptions_list[i].zsub_class = (char *)
-				malloc((unsigned)strlen(ptr)+1);
+				malloc(len);
 			if (!__subscriptions_list[i].zsub_class) {
 				ZFreeNotice(&retnotice);
 				return (ENOMEM);
 			}
-			(void) strcpy(__subscriptions_list[i].zsub_class,ptr);
-			ptr += strlen(ptr)+1;
+			g_strlcpy(__subscriptions_list[i].zsub_class,ptr,len);
+			ptr += len;
+			len = strlen(ptr) + 1;
 			__subscriptions_list[i].zsub_classinst = (char *)
-				malloc((unsigned)strlen(ptr)+1);
+				malloc(len);
 			if (!__subscriptions_list[i].zsub_classinst) {
 				ZFreeNotice(&retnotice);
 				return (ENOMEM);
 			}
-			(void) strcpy(__subscriptions_list[i].zsub_classinst,ptr);
-			ptr += strlen(ptr)+1;
+			g_strlcpy(__subscriptions_list[i].zsub_classinst,ptr,len);
+			ptr += len;
 			ptr2 = ptr;
 			if (!*ptr2)
 				ptr2 = "*";
+			len = strlen(ptr2) + 1;
 			__subscriptions_list[i].zsub_recipient = (char *)
-				malloc((unsigned)strlen(ptr2)+1);
+				malloc(len);
 			if (!__subscriptions_list[i].zsub_recipient) {
 				ZFreeNotice(&retnotice);
 				return (ENOMEM);
 			}
-			(void) strcpy(__subscriptions_list[i].zsub_recipient,ptr2);
+			g_strlcpy(__subscriptions_list[i].zsub_recipient,ptr2,len);
 			ptr += strlen(ptr)+1;
 		}
 		ZFreeNotice(&retnotice);

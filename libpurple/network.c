@@ -179,7 +179,7 @@ purple_network_get_local_system_ip(int fd)
 	ifc.ifc_req = (struct ifreq *)buffer;
 	ioctl(source, SIOCGIFCONF, &ifc);
 
-	if (fd < 0)
+	if (fd < 0 && source >= 0)
 		close(source);
 
 	tmp = buffer;
@@ -401,7 +401,6 @@ static PurpleNetworkListenData *
 purple_network_do_listen(unsigned short port, int socket_family, int socket_type, PurpleNetworkListenCallback cb, gpointer cb_data)
 {
 	int listenfd = -1;
-	int flags;
 	const int on = 1;
 	PurpleNetworkListenData *listen_data;
 	unsigned short actual_port;
@@ -486,11 +485,7 @@ purple_network_do_listen(unsigned short port, int socket_family, int socket_type
 		close(listenfd);
 		return NULL;
 	}
-	flags = fcntl(listenfd, F_GETFL);
-	fcntl(listenfd, F_SETFL, flags | O_NONBLOCK);
-#ifndef _WIN32
-	fcntl(listenfd, F_SETFD, FD_CLOEXEC);
-#endif
+	_purple_network_set_common_socket_flags(listenfd);
 	actual_port = purple_network_get_port_from_fd(listenfd);
 
 	purple_debug_info("network", "Listening on port: %hu\n", actual_port);
@@ -629,7 +624,7 @@ wpurple_get_connected_network_count(void)
 	qs.dwSize = sizeof(WSAQUERYSET);
 	qs.dwNameSpace = NS_NLA;
 
-	retval = WSALookupServiceBegin(&qs, LUP_RETURN_ALL, &h);
+	retval = WSALookupServiceBeginA(&qs, LUP_RETURN_ALL, &h);
 	if (retval != ERROR_SUCCESS) {
 		gchar *msg;
 		errorid = WSAGetLastError();
@@ -641,17 +636,34 @@ wpurple_get_connected_network_count(void)
 
 		return -1;
 	} else {
-		char buf[4096];
+		gchar *buf = NULL;
 		WSAQUERYSET *res = (LPWSAQUERYSET) buf;
-		DWORD size = sizeof(buf);
-		while ((retval = WSALookupServiceNext(h, 0, &size, res)) == ERROR_SUCCESS) {
-			net_cnt++;
-			purple_debug_info("network", "found network '%s'\n",
-					res->lpszServiceInstanceName ? res->lpszServiceInstanceName : "(NULL)");
-			size = sizeof(buf);
+		DWORD current_size = 0;
+		int iteration_count = 0;
+		while (iteration_count++ < 100) {
+			DWORD size = current_size;
+			retval = WSALookupServiceNextA(h, 0, &size, res);
+			if (retval == ERROR_SUCCESS) {
+				net_cnt++;
+				purple_debug_info("network", "found network '%s'\n",
+						res->lpszServiceInstanceName ? res->lpszServiceInstanceName : "(NULL)");
+			} else {
+				errorid = WSAGetLastError();
+				if (errorid == WSAEFAULT) {
+					if (size == 0 || size > 102400) {
+						purple_debug_warning("network", "Got unexpected NLA buffer size %" G_GUINT32_FORMAT ".\n", (guint32) size);
+						break;
+					}
+					buf = g_realloc(buf, size);
+					res = (LPWSAQUERYSET) buf;
+					current_size = size;
+				} else {
+					break;
+				}
+			}
 		}
+		g_free(buf);
 
-		errorid = WSAGetLastError();
 		if (!(errorid == WSA_E_NO_MORE || errorid == WSAENOMORE)) {
 			gchar *msg = g_win32_error_message(errorid);
 			purple_debug_error("network", "got unexpected NLA response %s (%d)\n", msg, errorid);
@@ -705,9 +717,9 @@ static gpointer wpurple_network_change_thread(gpointer data)
 	WSAQUERYSET qs;
 	WSAEVENT *nla_event;
 	time_t last_trigger = time(NULL) - 31;
-	char buf[4096];
+	gchar *buf = NULL;
 	WSAQUERYSET *res = (LPWSAQUERYSET) buf;
-	DWORD size;
+	DWORD current_size = 0;
 
 	if ((nla_event = WSACreateEvent()) == WSA_INVALID_EVENT) {
 		int errorid = WSAGetLastError();
@@ -722,6 +734,7 @@ static gpointer wpurple_network_change_thread(gpointer data)
 
 	while (TRUE) {
 		int retval;
+		int iteration_count;
 		DWORD retLen = 0;
 		WSACOMPLETION completion;
 		WSAOVERLAPPED overlapped;
@@ -739,7 +752,7 @@ static gpointer wpurple_network_change_thread(gpointer data)
 			memset(&qs, 0, sizeof(WSAQUERYSET));
 			qs.dwSize = sizeof(WSAQUERYSET);
 			qs.dwNameSpace = NS_NLA;
-			if (WSALookupServiceBegin(&qs, 0, &network_change_handle) == SOCKET_ERROR) {
+			if (WSALookupServiceBeginA(&qs, 0, &network_change_handle) == SOCKET_ERROR) {
 				int errorid = WSAGetLastError();
 				gchar *msg = g_win32_error_message(errorid);
 				purple_timeout_add(0, _print_debug_msg,
@@ -799,13 +812,34 @@ static gpointer wpurple_network_change_thread(gpointer data)
 			return NULL;
 		}
 
-		size = sizeof(buf);
-		while ((retval = WSALookupServiceNext(network_change_handle, 0, &size, res)) == ERROR_SUCCESS) {
-			/*purple_timeout_add(0, _print_debug_msg,
+		iteration_count = 0;
+		while (iteration_count++ < 100) {
+			DWORD size = current_size;
+			retval = WSALookupServiceNextA(network_change_handle, 0, &size, res);
+			if (retval == ERROR_SUCCESS) {
+				/*purple_timeout_add(0, _print_debug_msg,
 							   g_strdup_printf("thread found network '%s'\n",
 											   res->lpszServiceInstanceName ? res->lpszServiceInstanceName : "(NULL)"));*/
-			size = sizeof(buf);
+			} else {
+				int errorid = WSAGetLastError();
+				if (errorid == WSAEFAULT) {
+					if (size == 0 || size > 102400) {
+						purple_timeout_add(0, _print_debug_msg,
+							   g_strdup_printf("Thread got unexpected NLA buffer size %" G_GUINT32_FORMAT ".\n", (guint32) size));
+						break;
+					}
+					buf = g_realloc(buf, size);
+					res = (LPWSAQUERYSET) buf;
+					current_size = size;
+				} else {
+					break;
+				}
+			}
+
 		}
+		g_free(buf);
+		buf = NULL;
+		current_size = 0;
 
 		WSAResetEvent(nla_event);
 		g_static_mutex_unlock(&mutex);
@@ -833,8 +867,20 @@ purple_network_is_available(void)
 			purple_debug_warning("network", "NetworkManager not active. Assuming connection exists.\n");
 	}
 
-	if (nm_state == NM_STATE_UNKNOWN || nm_state == NM_STATE_CONNECTED)
-		return TRUE;
+	switch (nm_state)
+	{
+		case NM_STATE_UNKNOWN:
+#if NM_CHECK_VERSION(0,8,992)
+		case NM_STATE_CONNECTED_LOCAL:
+		case NM_STATE_CONNECTED_SITE:
+		case NM_STATE_CONNECTED_GLOBAL:
+#else
+		case NM_STATE_CONNECTED:
+#endif
+			return TRUE;
+		default:
+			break;
+	}
 
 	return FALSE;
 
@@ -893,8 +939,13 @@ nm_update_state(NMState state)
 #if NM_CHECK_VERSION(0,8,992)
 		case NM_STATE_DISCONNECTING:
 #endif
+#if NM_CHECK_VERSION(1,0,0)
+			if (prev != NM_STATE_CONNECTED_GLOBAL && prev != NM_STATE_UNKNOWN)
+				break;
+#else
 			if (prev != NM_STATE_CONNECTED && prev != NM_STATE_UNKNOWN)
 				break;
+#endif
 			if (ui_ops != NULL && ui_ops->network_disconnected != NULL)
 				ui_ops->network_disconnected();
 			break;
@@ -931,7 +982,7 @@ nm_get_network_state(void)
 static void
 nm_dbus_name_owner_changed_cb(DBusGProxy *proxy, char *service, char *old_owner, char *new_owner, gpointer user_data)
 {
-	if (g_str_equal(service, NM_DBUS_SERVICE)) {
+	if (purple_strequal(service, NM_DBUS_SERVICE)) {
 		gboolean old_owner_good = old_owner && (old_owner[0] != '\0');
 		gboolean new_owner_good = new_owner && (new_owner[0] != '\0');
 
@@ -1122,6 +1173,33 @@ int purple_network_convert_idn_to_ascii(const gchar *in, gchar **out)
 #endif
 }
 
+gboolean
+_purple_network_set_common_socket_flags(int fd)
+{
+	int flags;
+	gboolean succ = TRUE;
+
+	g_return_val_if_fail(fd >= 0, FALSE);
+
+	flags = fcntl(fd, F_GETFL);
+
+	if (fcntl(fd, F_SETFL, flags | O_NONBLOCK) != 0) {
+		purple_debug_warning("network",
+			"Couldn't set O_NONBLOCK flag\n");
+		succ = FALSE;
+	}
+
+#ifndef _WIN32
+	if (fcntl(fd, F_SETFD, FD_CLOEXEC) != 0) {
+		purple_debug_warning("network",
+			"Couldn't set FD_CLOEXEC flag\n");
+		succ = FALSE;
+	}
+#endif
+
+	return succ;
+}
+
 void
 purple_network_init(void)
 {
@@ -1171,8 +1249,13 @@ purple_network_init(void)
 		                                     NM_DBUS_SERVICE,
 		                                     NM_DBUS_PATH,
 		                                     NM_DBUS_INTERFACE);
+		/* NM 0.6 signal */
 		dbus_g_proxy_add_signal(nm_proxy, "StateChange", G_TYPE_UINT, G_TYPE_INVALID);
 		dbus_g_proxy_connect_signal(nm_proxy, "StateChange",
+		                            G_CALLBACK(nm_state_change_cb), NULL, NULL);
+		/* NM 0.7 and later signal */
+		dbus_g_proxy_add_signal(nm_proxy, "StateChanged", G_TYPE_UINT, G_TYPE_INVALID);
+		dbus_g_proxy_connect_signal(nm_proxy, "StateChanged",
 		                            G_CALLBACK(nm_state_change_cb), NULL, NULL);
 
 		dbus_proxy = dbus_g_proxy_new_for_name(nm_conn,
@@ -1208,6 +1291,7 @@ purple_network_uninit(void)
 #ifdef HAVE_NETWORKMANAGER
 	if (nm_proxy) {
 		dbus_g_proxy_disconnect_signal(nm_proxy, "StateChange", G_CALLBACK(nm_state_change_cb), NULL);
+		dbus_g_proxy_disconnect_signal(nm_proxy, "StateChanged", G_CALLBACK(nm_state_change_cb), NULL);
 		g_object_unref(G_OBJECT(nm_proxy));
 	}
 	if (dbus_proxy) {

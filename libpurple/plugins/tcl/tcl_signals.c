@@ -118,7 +118,7 @@ void tcl_signal_disconnect(void *instance, const char *signal, Tcl_Interp *inter
 	for (cur = tcl_callbacks; cur != NULL; cur = g_list_next(cur)) {
 		handler = cur->data;
 		if (handler->interp == interp && handler->instance == instance
-		    && !strcmp(signal, Tcl_GetString(handler->signal))) {
+		    && purple_strequal(signal, Tcl_GetString(handler->signal))) {
 			purple_signal_disconnect(instance, signal, handler->interp,
 					       PURPLE_CALLBACK(tcl_signal_callback));
 			cmd = g_string_sized_new(64);
@@ -188,6 +188,7 @@ static void *tcl_signal_callback(va_list args, struct tcl_signal_handler *handle
 			/* treat this as a pointer, but complain first */
 			purple_debug(PURPLE_DEBUG_ERROR, "tcl", "unknown PurpleValue type %d\n",
 				   purple_value_get_type(handler->argtypes[i]));
+			/* fall through */
 		case PURPLE_TYPE_POINTER:
 		case PURPLE_TYPE_OBJECT:
 		case PURPLE_TYPE_BOXED:
@@ -259,8 +260,9 @@ static void *tcl_signal_callback(va_list args, struct tcl_signal_handler *handle
 					vals[i] = ckalloc(1);
 					*(char *)vals[i] = '\0';
 				} else {
-					vals[i] = ckalloc(strlen(*strs[i]) + 1);
-					strcpy(vals[i], *strs[i]);
+					size_t len = strlen(*strs[i]) + 1;
+					vals[i] = ckalloc(len);
+					g_strlcpy(vals[i], *strs[i], len);
 				}
 				Tcl_LinkVar(handler->interp, name->str,
 					    (char *)&vals[i], TCL_LINK_STRING);
@@ -273,6 +275,7 @@ static void *tcl_signal_callback(va_list args, struct tcl_signal_handler *handle
 			switch (purple_value_get_subtype(handler->argtypes[i])) {
 			case PURPLE_SUBTYPE_UNKNOWN:
 				purple_debug(PURPLE_DEBUG_ERROR, "tcl", "subtype unknown\n");
+				/* fall through */
 			case PURPLE_SUBTYPE_ACCOUNT:
 			case PURPLE_SUBTYPE_CONNECTION:
 			case PURPLE_SUBTYPE_CONVERSATION:

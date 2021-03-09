@@ -81,10 +81,10 @@ jabber_idn_validate(const char *str, const char *at, const char *slash,
 
 		if (slash) {
 			domain_len = slash - str;
-			resource = slash;
+			resource = slash + 1;
 			resource_len = null - (slash + 1);
 		} else {
-			domain_len = null - (str + 1);
+			domain_len = null - str;
 		}
 	}
 
@@ -126,6 +126,8 @@ jabber_idn_validate(const char *str, const char *at, const char *slash,
 			jid = NULL;
 			goto out;
 		}
+
+		jid->domain = g_strndup(domain, domain_len);
 	} else {
 		/* Apply nameprep */
 		if (stringprep_nameprep(idn_buffer, sizeof(idn_buffer)) != STRINGPREP_OK) {
@@ -508,6 +510,25 @@ jabber_id_free(JabberID *jid)
 	}
 }
 
+
+gboolean
+jabber_id_equal(const JabberID *jid1, const JabberID *jid2)
+{
+	if (!jid1 && !jid2) {
+		/* Both are null therefore equal */
+		return TRUE;
+	}
+
+	if (!jid1 || !jid2) {
+		/* One is null, other is non-null, therefore not equal */
+		return FALSE;
+	}
+
+	return purple_strequal(jid1->node, jid2->node) &&
+			purple_strequal(jid1->domain, jid2->domain) &&
+			purple_strequal(jid1->resource, jid2->resource);
+}
+
 char *jabber_get_domain(const char *in)
 {
 	JabberID *jid = jabber_id_new(in);
@@ -536,6 +557,17 @@ char *jabber_get_resource(const char *in)
 	return out;
 }
 
+JabberID *
+jabber_id_to_bare_jid(const JabberID *jid)
+{
+	JabberID *result = g_new0(JabberID, 1);
+
+	result->node = g_strdup(jid->node);
+	result->domain = g_strdup(jid->domain);
+
+	return result;
+}
+
 char *
 jabber_get_bare_jid(const char *in)
 {
@@ -558,6 +590,19 @@ jabber_id_get_bare_jid(const JabberID *jid)
 	return g_strconcat(jid->node ? jid->node : "",
 	                   jid->node ? "@" : "",
 	                   jid->domain,
+	                   NULL);
+}
+
+char *
+jabber_id_get_full_jid(const JabberID *jid)
+{
+	g_return_val_if_fail(jid != NULL, NULL);
+
+	return g_strconcat(jid->node ? jid->node : "",
+	                   jid->node ? "@" : "",
+	                   jid->domain,
+	                   jid->resource ? "/" : "",
+	                   jid->resource ? jid->resource : "",
 	                   NULL);
 }
 
@@ -621,7 +666,7 @@ jabber_is_own_server(JabberStream *js, const char *str)
 		return FALSE;
 
 	equal = (jid->node == NULL &&
-	         g_str_equal(jid->domain, js->user->domain) &&
+	         purple_strequal(jid->domain, js->user->domain) &&
 	         jid->resource == NULL);
 	jabber_id_free(jid);
 	return equal;
@@ -643,9 +688,9 @@ jabber_is_own_account(JabberStream *js, const char *str)
 		return FALSE;
 
 	equal = (purple_strequal(jid->node, js->user->node) &&
-	         g_str_equal(jid->domain, js->user->domain) &&
+	         purple_strequal(jid->domain, js->user->domain) &&
 	         (jid->resource == NULL ||
-	             g_str_equal(jid->resource, js->user->resource)));
+	             purple_strequal(jid->resource, js->user->resource)));
 	jabber_id_free(jid);
 	return equal;
 }
@@ -668,7 +713,7 @@ static const struct {
 const char *
 jabber_buddy_state_get_name(const JabberBuddyState state)
 {
-	int i;
+	gsize i;
 	for (i = 0; i < G_N_ELEMENTS(jabber_statuses); ++i)
 		if (jabber_statuses[i].state == state)
 			return _(jabber_statuses[i].readable);
@@ -679,12 +724,12 @@ jabber_buddy_state_get_name(const JabberBuddyState state)
 JabberBuddyState
 jabber_buddy_status_id_get_state(const char *id)
 {
-	int i;
+	gsize i;
 	if (!id)
 		return JABBER_BUDDY_STATE_UNKNOWN;
 
 	for (i = 0; i < G_N_ELEMENTS(jabber_statuses); ++i)
-		if (g_str_equal(id, jabber_statuses[i].status_id))
+		if (purple_strequal(id, jabber_statuses[i].status_id))
 			return jabber_statuses[i].state;
 
 	return JABBER_BUDDY_STATE_UNKNOWN;
@@ -692,12 +737,12 @@ jabber_buddy_status_id_get_state(const char *id)
 
 JabberBuddyState jabber_buddy_show_get_state(const char *id)
 {
-	int i;
+	gsize i;
 
 	g_return_val_if_fail(id != NULL, JABBER_BUDDY_STATE_UNKNOWN);
 
 	for (i = 0; i < G_N_ELEMENTS(jabber_statuses); ++i)
-		if (jabber_statuses[i].show && g_str_equal(id, jabber_statuses[i].show))
+		if (jabber_statuses[i].show && purple_strequal(id, jabber_statuses[i].show))
 			return jabber_statuses[i].state;
 
 	purple_debug_warning("jabber", "Invalid value of presence <show/> "
@@ -708,7 +753,7 @@ JabberBuddyState jabber_buddy_show_get_state(const char *id)
 const char *
 jabber_buddy_state_get_show(JabberBuddyState state)
 {
-	int i;
+	gsize i;
 	for (i = 0; i < G_N_ELEMENTS(jabber_statuses); ++i)
 		if (state == jabber_statuses[i].state)
 			return jabber_statuses[i].show;
@@ -719,7 +764,7 @@ jabber_buddy_state_get_show(JabberBuddyState state)
 const char *
 jabber_buddy_state_get_status_id(JabberBuddyState state)
 {
-	int i;
+	gsize i;
 	for (i = 0; i < G_N_ELEMENTS(jabber_statuses); ++i)
 		if (state == jabber_statuses[i].state)
 			return jabber_statuses[i].status_id;

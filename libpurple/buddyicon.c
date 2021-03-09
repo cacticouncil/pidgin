@@ -174,8 +174,12 @@ purple_buddy_icon_data_cache(PurpleStoredImage *img)
 		}
 	}
 
-	purple_util_write_data_to_file_absolute(path, purple_imgstore_get_data(img),
-											purple_imgstore_get_size(img));
+	if (!g_file_test(path, G_FILE_TEST_IS_REGULAR))
+	{
+		purple_util_write_data_to_file_absolute(path, purple_imgstore_get_data(img),
+							purple_imgstore_get_size(img));
+	}
+
 	g_free(path);
 }
 
@@ -407,7 +411,7 @@ purple_buddy_icon_update(PurpleBuddyIcon *icon)
 	icon_to_set = icon->img ? icon : NULL;
 
 	/* Ensure that icon remains valid throughout */
-	if (icon) purple_buddy_icon_ref(icon);
+	purple_buddy_icon_ref(icon);
 
 	buddies = purple_find_buddies(account, username);
 	while (buddies != NULL)
@@ -455,7 +459,7 @@ purple_buddy_icon_update(PurpleBuddyIcon *icon)
 		purple_conv_im_set_icon(PURPLE_CONV_IM(conv), icon_to_set);
 
 	/* icon's refcount was incremented above */
-	if (icon) purple_buddy_icon_unref(icon);
+	purple_buddy_icon_unref(icon);
 }
 
 void
@@ -1095,23 +1099,6 @@ migrate_buddy_icon(PurpleBlistNode *node, const char *setting_name,
 				purple_blist_node_set_string(node, "icon_checksum", hash);
 				purple_blist_node_remove_setting(node, "avatar_hash");
 			}
-			else
-			{
-				PurpleAccount *account = purple_buddy_get_account((PurpleBuddy *)node);
-				const char *prpl_id = purple_account_get_protocol_id(account);
-
-				if (g_str_equal(prpl_id, "prpl-yahoo") || g_str_equal(prpl_id, "prpl-yahoojp"))
-				{
-					int checksum = purple_blist_node_get_int(node, "icon_checksum");
-					if (checksum != 0)
-					{
-						char *checksum_str = g_strdup_printf("%i", checksum);
-						purple_blist_node_remove_setting(node, "icon_checksum");
-						purple_blist_node_set_string(node, "icon_checksum", checksum_str);
-						g_free(checksum_str);
-					}
-				}
-			}
 		}
 	}
 	else
@@ -1281,8 +1268,8 @@ purple_buddy_icons_init()
 	                                        g_free, NULL);
 	pointer_icon_cache = g_hash_table_new(g_direct_hash, g_direct_equal);
 
-    if (!cache_dir)
-    	cache_dir = g_build_filename(purple_user_dir(), "icons", NULL);
+	if (!cache_dir)
+		cache_dir = g_build_filename(purple_user_dir(), "icons", NULL);
 
 	purple_signal_connect(purple_imgstore_get_handle(), "image-deleting",
 	                      purple_buddy_icons_get_handle(),

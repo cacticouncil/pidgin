@@ -55,7 +55,7 @@ void *purple_tcl_ref_get(Tcl_Interp *interp, Tcl_Obj *obj, PurpleStringref *type
 		if (Tcl_ConvertToType(interp, obj, &purple_tcl_ref) != TCL_OK)
 			return NULL;
 	}
-	if (strcmp(purple_stringref_value(OBJ_REF_TYPE(obj)),
+	if (!purple_strequal(purple_stringref_value(OBJ_REF_TYPE(obj)),
 		   purple_stringref_value(type))) {
 		if (interp) {
 			Tcl_Obj *error = Tcl_NewStringObj("Bad Purple reference type: expected ", -1);
@@ -92,6 +92,7 @@ static void purple_tcl_ref_dup(Tcl_Obj *obj1, Tcl_Obj *obj2)
 
 static void purple_tcl_ref_update(Tcl_Obj *obj)
 {
+	size_t len;
 	/* This is ugly on memory, but we pretty much have to either
 	 * do this or guesstimate lengths or introduce a varargs
 	 * function in here ... ugh. */
@@ -100,8 +101,9 @@ static void purple_tcl_ref_update(Tcl_Obj *obj)
 				      OBJ_REF_VALUE(obj));
 
 	obj->length = strlen(bytes);
-	obj->bytes = ckalloc(obj->length + 1);
-	strcpy(obj->bytes, bytes);
+	len = obj->length + 1;
+	obj->bytes = ckalloc(len);
+	g_strlcpy(obj->bytes, bytes, len);
 	g_free(bytes);
 }
 
@@ -115,12 +117,12 @@ static int purple_tcl_ref_set(Tcl_Interp *interp, Tcl_Obj *obj)
 	PurpleStringref *type;
 	void *value;
 	static const char prefix[] = "purple-";
-	static const int prefixlen = sizeof(prefix) - 1;
+	static const gsize prefixlen = sizeof(prefix) - 1;
 
 	if (strlen(bytes) < prefixlen
 	    || strncmp(bytes, prefix, prefixlen)
 	    || (ptr = strchr(bytes, ':')) == NULL
-	    || (ptr - bytes) == prefixlen)
+	    || (gsize)(ptr - bytes) == prefixlen)
 		goto badobject;
 
 	/* Bad Ethan */

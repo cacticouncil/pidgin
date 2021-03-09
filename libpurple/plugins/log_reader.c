@@ -35,7 +35,7 @@ static int get_month(const char *month)
 	const char *months[] = {"Jan", "Feb", "Mar", "Apr", "May", "Jun",
 		"Jul", "Aug", "Sep", "Oct", "Nov", "Dec", NULL};
 	for (iter = 0; months[iter]; iter++) {
-		if (strcmp(month, months[iter]) == 0)
+		if (purple_strequal(month, months[iter]))
 			break;
 	}
 	return iter;
@@ -635,7 +635,7 @@ static GList *msn_logger_list(PurpleLogType type, const char *sn, PurpleAccount 
 	g_return_val_if_fail(sn != NULL, NULL);
 	g_return_val_if_fail(account != NULL, NULL);
 
-	if (strcmp(account->protocol_id, "prpl-msn"))
+	if (!purple_strequal(account->protocol_id, "prpl-msn"))
 		return NULL;
 
 	logdir = purple_prefs_get_string("/plugins/core/log_reader/msn/log_directory");
@@ -783,7 +783,7 @@ static GList *msn_logger_list(PurpleLogType type, const char *sn, PurpleAccount 
 				}
 
 				path = g_build_filename(path, name, NULL);
-				if (!strcmp(c, ".xml") &&
+				if (purple_strequal(c, ".xml") &&
 				    g_file_test(path, G_FILE_TEST_EXISTS)) {
 					found = TRUE;
 					g_free(logfile);
@@ -845,7 +845,7 @@ static GList *msn_logger_list(PurpleLogType type, const char *sn, PurpleAccount 
 			continue;
 		}
 
-		if (strcmp(session_id, old_session_id)) {
+		if (!purple_strequal(session_id, old_session_id)) {
 			/*
 			 * The session ID differs from the last message.
 			 * Thus, this is the start of a new conversation.
@@ -921,7 +921,6 @@ static char * msn_logger_read (PurpleLog *log, PurpleLogReadFlags *flags)
 		xmlnode *to;
 		enum name_guesses name_guessed = NAME_GUESS_UNKNOWN;
 		const char *their_name;
-		time_t time_unix;
 		struct tm *tm;
 		char *timestamp;
 		char *tmp;
@@ -936,7 +935,7 @@ static char * msn_logger_read (PurpleLog *log, PurpleLogReadFlags *flags)
 			break;
 		}
 
-		if (strcmp(new_session_id, data->session_id)) {
+		if (!purple_strequal(new_session_id, data->session_id)) {
 			/* The session ID differs from the first message.
 			 * Thus, this is the start of a new conversation.
 			 */
@@ -1104,7 +1103,7 @@ static char * msn_logger_read (PurpleLog *log, PurpleLogReadFlags *flags)
 			text = g_string_append(text, ";\">");
 		}
 
-		time_unix = msn_logger_parse_timestamp(message, &tm);
+		msn_logger_parse_timestamp(message, &tm);
 
 		timestamp = g_strdup_printf("<font size=\"2\">(%02u:%02u:%02u)</font> ",
 				tm->tm_hour, tm->tm_min, tm->tm_sec);
@@ -1423,10 +1422,16 @@ static char * trillian_logger_read (PurpleLog *log, PurpleLogReadFlags *flags)
 
 	purple_debug_info("Trillian log read", "Reading %s\n", data->path);
 
+	file = g_fopen(data->path, "rb");
+	g_return_val_if_fail(file != NULL, g_strdup(""));
+
 	read = g_malloc(data->length + 2);
 
-	file = g_fopen(data->path, "rb");
-	fseek(file, data->offset, SEEK_SET);
+	if (fseek(file, data->offset, SEEK_SET) != 0) {
+		fclose(file);
+		g_free(read);
+		g_return_val_if_reached(g_strdup(""));
+	}
 	data->length = fread(read, 1, data->length, file);
 	fclose(file);
 
@@ -1454,11 +1459,15 @@ static char * trillian_logger_read (PurpleLog *log, PurpleLogReadFlags *flags)
 		const char *footer = NULL;
 		GString *temp = NULL;
 
-		if ((c = strstr(c, "\n")))
-		{
-			*c = '\0';
-			c++;
-		}
+		/* There's always a trailing '\n' at the end of the file (see above), so
+		 * just quit out if we don't find another, because we're at the end.
+		 */
+		c = strchr(c, '\n');
+		if (!c)
+			break;
+
+		*c = '\0';
+		c++;
 
 		/* Convert links.
 		 *
@@ -1482,14 +1491,14 @@ static char * trillian_logger_read (PurpleLog *log, PurpleLogReadFlags *flags)
 				char *end_paren;
 				char *space;
 
-				if (!(end_paren = strstr(link, ")")))
+				if (!(end_paren = strchr(link, ')')))
 				{
 					/* Something is not as we expect.  Bail out. */
 					break;
 				}
 
 				if (!temp)
-					temp = g_string_sized_new(c ? (c - 1 - line) : strlen(line));
+					temp = g_string_sized_new(strlen(line));
 
 				g_string_append_len(temp, line, (tmp - line));
 
@@ -1504,7 +1513,7 @@ static char * trillian_logger_read (PurpleLog *log, PurpleLogReadFlags *flags)
 
 				/* The \r is a bit of a hack to keep there from being a \r in
 				 * the link text, which may not matter. */
-				if ((space = strstr(end_paren, " ")) || (space = strstr(end_paren, "\r")))
+				if ((space = strchr(end_paren, ' ')) || (space = strchr(end_paren, '\r')))
 				{
 					g_string_append_len(temp, end_paren + 1, space - end_paren - 1);
 
@@ -1536,10 +1545,10 @@ static char * trillian_logger_read (PurpleLog *log, PurpleLogReadFlags *flags)
 			line = temp->str;
 		}
 
-		if (*line == '[') {
+		if (line && *line == '[') {
 			const char *timestamp;
 
-			if ((timestamp = strstr(line, "]"))) {
+			if ((timestamp = strchr(line, ']'))) {
 				line++;
 				/* TODO: Parse the timestamp and convert it to Purple's format. */
 				g_string_append(formatted, "<font size=\"2\">(");
@@ -1658,7 +1667,7 @@ static char * trillian_logger_read (PurpleLog *log, PurpleLogReadFlags *flags)
 					}
 				}
 			} else {
-				const char *line2 = strstr(line, ":");
+				const char *line2 = strchr(line, ':');
 				if (line2) {
 					const char *acct_name;
 					line2++;
@@ -1674,7 +1683,8 @@ static char * trillian_logger_read (PurpleLog *log, PurpleLogReadFlags *flags)
 			}
 		}
 
-		g_string_append(formatted, line);
+		if (line)
+			g_string_append(formatted, line);
 
 		line = c;
 		if (temp)
@@ -1776,8 +1786,10 @@ static GList *qip_logger_list(PurpleLogType type, const char *sn, PurpleAccount 
 	g_return_val_if_fail(sn != NULL, NULL);
 	g_return_val_if_fail(account != NULL, NULL);
 
+	memset(&tm, 0, sizeof(tm));
+
 	/* QIP only supports ICQ. */
-	if (strcmp(account->protocol_id, "prpl-icq"))
+	if (!purple_strequal(account->protocol_id, "prpl-icq"))
 		return NULL;
 
 	logdir = purple_prefs_get_string("/plugins/core/log_reader/qip/log_directory");
@@ -1819,7 +1831,7 @@ static GList *qip_logger_list(PurpleLogType type, const char *sn, PurpleAccount 
 
 		gboolean add_new_log = FALSE;
 
-		if (*c) {
+		if (c && *c) {
 			if (purple_str_has_prefix(c, QIP_LOG_IN_MESSAGE) ||
 				purple_str_has_prefix(c, QIP_LOG_OUT_MESSAGE)) {
 
@@ -1828,11 +1840,14 @@ static GList *qip_logger_list(PurpleLogType type, const char *sn, PurpleAccount 
 				new_line = c;
 
 				/* find EOL */
-				c = strstr(c, "\n");
-				c++;
+				c = strchr(c, '\n');
+				if (c)
+					c++;
 
 				/* Find the last '(' character. */
-				if ((tmp = strstr(c, "\n")) != NULL) {
+				if (!c) {
+					/* do nothing */
+				} else if ((tmp = strchr(c, '\n')) != NULL) {
 					while (*tmp && *tmp != '(') --tmp;
 					c = tmp;
 				} else {
@@ -1902,10 +1917,10 @@ static GList *qip_logger_list(PurpleLogType type, const char *sn, PurpleAccount 
 			start_log = new_line;
 		}
 
-		if (*c) {
+		if (c && *c) {
 			/* find EOF */
-			c = strstr(c, "\n");
-			c++;
+			if ((c = strchr(c, '\n')))
+				c++;
 		}
 	}
 
@@ -1941,7 +1956,11 @@ static char *qip_logger_read(PurpleLog *log, PurpleLogReadFlags *flags)
 
 	contents = g_malloc(data->length + 2);
 
-	fseek(file, data->offset, SEEK_SET);
+	if (fseek(file, data->offset, SEEK_SET) != 0) {
+		fclose(file);
+		g_free(contents);
+		g_return_val_if_reached(g_strdup(""));
+	}
 	data->length = fread(contents, 1, data->length, file);
 	fclose(file);
 
@@ -1983,13 +2002,15 @@ static char *qip_logger_read(PurpleLog *log, PurpleLogReadFlags *flags)
 			is_in_message = purple_str_has_prefix(line, QIP_LOG_IN_MESSAGE_ESC);
 
 			/* find EOL */
-			c = strstr(c, "\n");
+			c = strchr(c, '\n');
+			if (!c)
+				break;
 
 			/* XXX: Do we need buddy_name when we have buddy->alias? */
 			buddy_name = ++c;
 
 			/* Find the last '(' character. */
-			if ((tmp = strstr(c, "\n")) != NULL) {
+			if ((tmp = strchr(c, '\n')) != NULL) {
 				while (*tmp && *tmp != '(') --tmp;
 				c = tmp;
 			} else {
@@ -2042,12 +2063,14 @@ static char *qip_logger_read(PurpleLog *log, PurpleLogReadFlags *flags)
 					}
 
 					/* find EOF */
-					c = strstr(c, "\n");
-					line = ++c;
+					c = strchr(c, '\n');
+					if (c)
+						c++;
+					line = c;
 				}
 			}
 		} else {
-			if ((c = strstr(c, "\n")))
+			if ((c = strchr(c, '\n')))
 				*c = '\0';
 
 			if (line[0] != '\n' && line[0] != '\r') {
@@ -2186,8 +2209,9 @@ static GList *amsn_logger_parse_file(char *filename, const char *sn, PurpleAccou
 				                  " length = (%d)\n",
 				                  sn, data->path, data->offset, data->length);
 			}
-			c = strstr(c, "\n");
-			c++;
+			c = strchr(c, '\n');
+			if (c)
+				c++;
 		}
 
 		/* I've seen the file end without the AMSN_LOG_CONV_END bit */
@@ -2237,7 +2261,7 @@ static GList *amsn_logger_list(PurpleLogType type, const char *sn, PurpleAccount
 		return NULL;
 
 	/* aMSN only works with MSN/WLM */
-	if (strcmp(account->protocol_id, "prpl-msn"))
+	if (!purple_strequal(account->protocol_id, "prpl-msn"))
 		return NULL;
 
 	username = g_strdup(purple_normalize(account, account->username));
@@ -2319,12 +2343,16 @@ static char *amsn_logger_read(PurpleLog *log, PurpleLogReadFlags *flags)
 	g_return_val_if_fail(data->path != NULL, g_strdup(""));
 	g_return_val_if_fail(data->length > 0, g_strdup(""));
 
-	contents = g_malloc(data->length + 2);
-
 	file = g_fopen(data->path, "rb");
 	g_return_val_if_fail(file != NULL, g_strdup(""));
 
-	fseek(file, data->offset, SEEK_SET);
+	contents = g_malloc(data->length + 2);
+
+	if (fseek(file, data->offset, SEEK_SET) != 0) {
+		fclose(file);
+		free(contents);
+		g_return_val_if_reached(g_strdup(""));
+	}
 	data->length = fread(contents, 1, data->length, file);
 	fclose(file);
 
@@ -2342,7 +2370,7 @@ static char *amsn_logger_read(PurpleLog *log, PurpleLogReadFlags *flags)
 		char *end;
 		char *old_tag;
 		char *tag;
-		end = strstr(start, "\n");
+		end = strchr(start, '\n');
 		if (!end)
 			break;
 		*end = '\0';

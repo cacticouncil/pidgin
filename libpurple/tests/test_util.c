@@ -156,10 +156,19 @@ END_TEST
 
 START_TEST(test_util_str_to_time)
 {
+	struct tm tm;
+	long tz_off;
+	const char *rest;
+	time_t timestamp;
+
 	fail_unless(377182200 == purple_str_to_time("19811214T12:50:00", TRUE, NULL, NULL, NULL));
 	fail_unless(1175919261 == purple_str_to_time("20070407T04:14:21", TRUE, NULL, NULL, NULL));
 	fail_unless(1282941722 == purple_str_to_time("2010-08-27.204202", TRUE, NULL, NULL, NULL));
-	fail_unless(1282941722 == purple_str_to_time("2010-08-27.134202-0700PDT", FALSE, NULL, NULL, NULL));
+
+	timestamp = purple_str_to_time("2010-08-27.134202-0700PDT", FALSE, &tm, &tz_off, &rest);
+	fail_unless(1282941722 == timestamp);
+	fail_unless((-7 * 60 * 60) == tz_off);
+	assert_string_equal("PDT", rest);
 }
 END_TEST
 
@@ -216,6 +225,31 @@ START_TEST(test_mime_decode_field)
 }
 END_TEST
 
+START_TEST(test_strdup_withhtml)
+{
+	gchar *result = purple_strdup_withhtml("hi\r\nthere\n");
+	assert_string_equal_free("hi<BR>there<BR>", result);
+}
+END_TEST
+
+START_TEST(test_uri_escape_for_open)
+{
+	/* make sure shell stuff is escaped... */
+	gchar *result = purple_uri_escape_for_open("https://$(xterm)");
+	assert_string_equal_free("https://%24%28xterm%29", result);
+
+	result = purple_uri_escape_for_open("https://`xterm`");
+	assert_string_equal_free("https://%60xterm%60", result);
+
+	result = purple_uri_escape_for_open("https://$((25 + 13))");
+	assert_string_equal_free("https://%24%28%2825%20+%2013%29%29", result);
+
+	/* ...but keep brackets so that ipv6 links can be opened. */
+	result = purple_uri_escape_for_open("https://[123:4567:89a::::]");
+	assert_string_equal_free("https://[123:4567:89a::::]", result);
+}
+END_TEST
+
 Suite *
 util_suite(void)
 {
@@ -262,6 +296,14 @@ util_suite(void)
 
 	tc = tcase_create("MIME");
 	tcase_add_test(tc, test_mime_decode_field);
+	suite_add_tcase(s, tc);
+
+	tc = tcase_create("strdup_withhtml");
+	tcase_add_test(tc, test_strdup_withhtml);
+	suite_add_tcase(s, tc);
+
+	tc = tcase_create("escape_uri_for_open");
+	tcase_add_test(tc, test_uri_escape_for_open);
 	suite_add_tcase(s, tc);
 
 	return s;

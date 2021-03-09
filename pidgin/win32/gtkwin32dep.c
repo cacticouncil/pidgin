@@ -22,9 +22,6 @@
  *
  */
 #define _WIN32_IE 0x500
-#ifndef WINVER
-#define WINVER 0x0500 /* W2K */
-#endif
 #include <windows.h>
 #include <io.h>
 #include <stdlib.h>
@@ -171,10 +168,19 @@ void winpidgin_shell_execute(const char *target, const char *verb, const char *c
 }
 
 void winpidgin_notify_uri(const char *uri) {
-	/* We'll allow whatever URI schemes are supported by the
-	 * default http browser.
+	/* Allow a few commonly used and "safe" schemes to go to the specific
+	 * class handlers and send everything else to the default http browser.
+	 * This isn't optimal, but should cover the most common cases. I didn't
+	 * see any better secure solutions when I did some research.
 	 */
-	winpidgin_shell_execute(uri, "open", "http");
+	gchar *scheme = g_uri_parse_scheme(uri);
+	if (scheme && (g_ascii_strcasecmp(scheme, "https") == 0
+			|| g_ascii_strcasecmp(scheme, "ftp") == 0
+			|| g_ascii_strcasecmp(scheme, "mailto") == 0))
+		winpidgin_shell_execute(uri, "open", scheme);
+	else
+		winpidgin_shell_execute(uri, "open", "http");
+	g_free(scheme);
 }
 
 #define PIDGIN_WM_FOCUS_REQUEST (WM_APP + 13)
@@ -377,7 +383,8 @@ winpidgin_conv_im_blink(PurpleAccount *account, const char *who, char **message,
 }
 
 void winpidgin_init(HINSTANCE hint) {
-	FARPROC proc;
+	typedef void (__cdecl* LPFNSETLOGFILE)(const LPCSTR);
+	LPFNSETLOGFILE MySetLogFile;
 	gchar *exchndl_dll_path;
 
 	purple_debug_info("winpidgin", "winpidgin_init start\n");
@@ -385,10 +392,10 @@ void winpidgin_init(HINSTANCE hint) {
 	exe_hInstance = hint;
 
 	exchndl_dll_path = g_build_filename(wpurple_install_dir(), "exchndl.dll", NULL);
-	proc = wpurple_find_and_loadproc(exchndl_dll_path, "SetLogFile");
+	MySetLogFile = (LPFNSETLOGFILE) wpurple_find_and_loadproc(exchndl_dll_path, "SetLogFile");
 	g_free(exchndl_dll_path);
 	exchndl_dll_path = NULL;
-	if (proc) {
+	if (MySetLogFile) {
 		gchar *debug_dir, *locale_debug_dir;
 
 		debug_dir = g_build_filename(purple_user_dir(), "pidgin.RPT", NULL);
@@ -396,7 +403,7 @@ void winpidgin_init(HINSTANCE hint) {
 
 		purple_debug_info("winpidgin", "Setting exchndl.dll LogFile to %s\n", debug_dir);
 
-		(proc)(locale_debug_dir);
+		MySetLogFile(locale_debug_dir);
 
 		g_free(debug_dir);
 		g_free(locale_debug_dir);
@@ -458,12 +465,49 @@ get_WorkingAreaRectForWindow(HWND hwnd, RECT *workingAreaRc) {
 	return TRUE;
 }
 
+typedef HRESULT (WINAPI* DwmIsCompositionEnabledFunction)(BOOL*);
+typedef HRESULT (WINAPI* DwmGetWindowAttributeFunction)(HWND, DWORD, PVOID, DWORD);
+static HMODULE dwmapi_module = NULL;
+static DwmIsCompositionEnabledFunction DwmIsCompositionEnabled = NULL;
+static DwmGetWindowAttributeFunction DwmGetWindowAttribute = NULL;
+#ifndef DWMWA_EXTENDED_FRAME_BOUNDS
+#	define DWMWA_EXTENDED_FRAME_BOUNDS 9
+#endif
+
+static RECT
+get_actualWindowRect(HWND hwnd)
+{
+	RECT winR;
+
+	GetWindowRect(hwnd, &winR);
+
+	if (dwmapi_module == NULL) {
+		dwmapi_module = GetModuleHandleW(L"dwmapi.dll");
+		if (dwmapi_module != NULL) {
+			DwmIsCompositionEnabled = (DwmIsCompositionEnabledFunction) GetProcAddress(dwmapi_module, "DwmIsCompositionEnabled");
+			DwmGetWindowAttribute = (DwmGetWindowAttributeFunction) GetProcAddress(dwmapi_module, "DwmGetWindowAttribute");
+		}
+	}
+
+	if (DwmIsCompositionEnabled != NULL && DwmGetWindowAttribute != NULL) {
+		BOOL pfEnabled;
+		if (SUCCEEDED(DwmIsCompositionEnabled(&pfEnabled))) {
+			RECT tempR;
+			if (SUCCEEDED(DwmGetWindowAttribute(hwnd, DWMWA_EXTENDED_FRAME_BOUNDS, &tempR, sizeof(tempR)))) {
+				winR = tempR;
+			}
+		}
+	}
+
+	return winR;
+}
+
 void winpidgin_ensure_onscreen(GtkWidget *win) {
 	RECT winR, wAR, intR;
 	HWND hwnd = GDK_WINDOW_HWND(win->window);
 
 	g_return_if_fail(hwnd != NULL);
-	GetWindowRect(hwnd, &winR);
+	winR = get_actualWindowRect(hwnd);
 
 	purple_debug_info("win32placement",
 			"Window RECT: L:%ld R:%ld T:%ld B:%ld\n",

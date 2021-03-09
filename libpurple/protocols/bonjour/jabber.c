@@ -149,7 +149,6 @@ _jabber_parse_and_write_message_to_ui(xmlnode *message_node, PurpleBuddy *pb)
 	xmlnode *body_node, *html_node, *events_node;
 	PurpleConnection *gc = purple_account_get_connection(purple_buddy_get_account(pb));
 	gchar *body = NULL;
-	gboolean composing_event = FALSE;
 
 	body_node = xmlnode_get_child(message_node, "body");
 	html_node = xmlnode_get_child(message_node, "html");
@@ -161,8 +160,10 @@ _jabber_parse_and_write_message_to_ui(xmlnode *message_node, PurpleBuddy *pb)
 
 	events_node = xmlnode_get_child_with_namespace(message_node, "x", "jabber:x:event");
 	if (events_node != NULL) {
+#if 0
 		if (xmlnode_get_child(events_node, "composing") != NULL)
 			composing_event = TRUE;
+#endif
 		if (xmlnode_get_child(events_node, "id") != NULL) {
 			/* The user is just typing */
 			/* TODO: Deal with typing notification */
@@ -181,7 +182,7 @@ _jabber_parse_and_write_message_to_ui(xmlnode *message_node, PurpleBuddy *pb)
 			/* Types of messages sent by iChat */
 			if (html_body_font_node != NULL) {
 				gchar *html_body;
-				const char *font_face, *font_size, *font_color,
+				const char *font_face, *font_size,
 					*ichat_balloon_color, *ichat_text_color;
 
 				font_face = xmlnode_get_attrib(html_body_font_node, "face");
@@ -189,7 +190,7 @@ _jabber_parse_and_write_message_to_ui(xmlnode *message_node, PurpleBuddy *pb)
 				font_size = xmlnode_get_attrib(html_body_font_node, "ABSZ");
 				if (font_size != NULL)
 					font_size = _font_size_ichat_to_purple(atoi(font_size));
-				font_color = xmlnode_get_attrib(html_body_font_node, "color");
+				/*font_color = xmlnode_get_attrib(html_body_font_node, "color");*/
 				ichat_balloon_color = xmlnode_get_attrib(html_body_node, "ichatballooncolor");
 				ichat_text_color = xmlnode_get_attrib(html_body_node, "ichattextcolor");
 
@@ -372,12 +373,14 @@ void bonjour_jabber_process_packet(PurpleBuddy *pb, xmlnode *packet) {
 	g_return_if_fail(packet != NULL);
 	g_return_if_fail(pb != NULL);
 
-	if (!strcmp(packet->name, "message"))
+	if (purple_strequal(packet->name, "message"))
 		_jabber_parse_and_write_message_to_ui(packet, pb);
-	else if(!strcmp(packet->name, "iq"))
+	else if (purple_strequal(packet->name, "iq"))
 		xep_iq_parse(packet, pb);
-	else
-		purple_debug_warning("bonjour", "Unknown packet: %s\n", packet->name ? packet->name : "(null)");
+	else {
+		purple_debug_warning("bonjour", "Unknown packet: %s\n",
+			packet->name ? packet->name : "(null)");
+	}
 }
 
 static void bonjour_jabber_stream_ended(BonjourJabberConversation *bconv) {
@@ -411,16 +414,18 @@ static void
 _client_socket_handler(gpointer data, gint socket, PurpleInputCondition condition)
 {
 	BonjourJabberConversation *bconv = data;
-	gint len, message_length;
+	gssize len;
 	static char message[4096];
 
 	/* Read the data from the socket */
-	if ((len = recv(socket, message, sizeof(message) - 1, 0)) == -1) {
+	if ((len = recv(socket, message, sizeof(message) - 1, 0)) < 0) {
 		/* There have been an error reading from the socket */
-		if (errno != EAGAIN) {
+		if (len != -1 || errno != EAGAIN) {
 			const char *err = g_strerror(errno);
 
-			purple_debug_warning("bonjour", "receive error: %s\n", err ? err : "(null)");
+			purple_debug_warning("bonjour",
+					"receive of %" G_GSSIZE_FORMAT " error: %s\n",
+					len, err ? err : "(null)");
 
 			bonjour_jabber_close_conversation(bconv);
 			if (bconv->pb != NULL) {
@@ -439,19 +444,12 @@ _client_socket_handler(gpointer data, gint socket, PurpleInputCondition conditio
 		purple_debug_warning("bonjour", "Connection closed (without stream end) by %s.\n", (name) ? name : "(unknown)");
 		bonjour_jabber_stream_ended(bconv);
 		return;
-	} else {
-		message_length = len;
-		message[message_length] = '\0';
-
-		while (message_length > 0 && g_ascii_iscntrl(message[message_length - 1])) {
-			message[message_length - 1] = '\0';
-			message_length--;
-		}
 	}
 
-	purple_debug_info("bonjour", "Receive: -%s- %d bytes\n", message, len);
+	message[len] = '\0';
 
-	bonjour_parser_process(bconv, message, message_length);
+	purple_debug_info("bonjour", "Receive: -%s- %" G_GSSIZE_FORMAT " bytes\n", message, len);
+	bonjour_parser_process(bconv, message, len);
 }
 
 struct _stream_start_data {
@@ -636,10 +634,9 @@ static void
 _server_socket_handler(gpointer data, int server_socket, PurpleInputCondition condition)
 {
 	BonjourJabber *jdata = data;
-	struct sockaddr_storage their_addr; /* connector's address information */
-	socklen_t sin_size = sizeof(struct sockaddr_storage);
+	common_sockaddr_t their_addr; /* connector's address information */
+	socklen_t sin_size = sizeof(common_sockaddr_t);
 	int client_socket;
-	int flags;
 #ifdef HAVE_INET_NTOP
 	char addrstr[INET6_ADDRSTRLEN];
 #endif
@@ -654,25 +651,23 @@ _server_socket_handler(gpointer data, int server_socket, PurpleInputCondition co
 
 	memset(&their_addr, 0, sin_size);
 
-	if ((client_socket = accept(server_socket, (struct sockaddr*)&their_addr, &sin_size)) == -1)
+	if ((client_socket = accept(server_socket, &their_addr.sa, &sin_size)) == -1)
 		return;
-
-	flags = fcntl(client_socket, F_GETFL);
-	fcntl(client_socket, F_SETFL, flags | O_NONBLOCK);
-#ifndef _WIN32
-	fcntl(client_socket, F_SETFD, FD_CLOEXEC);
-#endif
+	_purple_network_set_common_socket_flags(client_socket);
 
 	/* Look for the buddy that has opened the conversation and fill information */
 #ifdef HAVE_INET_NTOP
-	if (their_addr.ss_family == AF_INET6)
-		address_text = inet_ntop(their_addr.ss_family, &((struct sockaddr_in6 *)&their_addr)->sin6_addr,
-			addrstr, sizeof(addrstr));
-	else
-		address_text = inet_ntop(their_addr.ss_family, &((struct sockaddr_in *)&their_addr)->sin_addr,
-			addrstr, sizeof(addrstr));
+	if (their_addr.sa.sa_family == AF_INET6) {
+		address_text = inet_ntop(their_addr.sa.sa_family,
+			&their_addr.in6.sin6_addr, addrstr, sizeof(addrstr));
+
+		append_iface_if_linklocal(addrstr, their_addr.in6.sin6_scope_id);
+	} else {
+		address_text = inet_ntop(their_addr.sa.sa_family,
+			&their_addr.in.sin_addr, addrstr, sizeof(addrstr));
+	}
 #else
-	address_text = inet_ntoa(((struct sockaddr_in *)&their_addr)->sin_addr);
+	address_text = inet_ntoa(their_addr.in.sin_addr);
 #endif
 	purple_debug_info("bonjour", "Received incoming connection from %s.\n", address_text);
 	mbba = g_new0(struct _match_buddies_by_address_t, 1);
@@ -776,7 +771,10 @@ bonjour_jabber_start(BonjourJabber *jdata)
 		struct sockaddr_in6 addr6;
 #ifdef IPV6_V6ONLY
 		int on = 1;
-		setsockopt(jdata->socket6, IPPROTO_IPV6, IPV6_V6ONLY, &on, sizeof(on));
+		if (setsockopt(jdata->socket6, IPPROTO_IPV6, IPV6_V6ONLY, &on, sizeof(on)) != 0) {
+			purple_debug_error("bonjour", "couldn't force IPv6\n");
+			return -1;
+		}
 #endif
 	        memset(&addr6, 0, sizeof(addr6));
 		addr6.sin6_family = AF_INET6;
@@ -799,7 +797,7 @@ bonjour_jabber_start(BonjourJabber *jdata)
 		memset(&addr4, 0, sizeof(addr4));
 		addr4.sin_family = AF_INET;
 		addr4.sin_port = htons(jdata->port);
-		ipv4_port = start_serversocket_listening(jdata->port, jdata->socket, (struct sockaddr *) &addr4, sizeof(addr4), FALSE, ipv6_port != -1);
+		ipv4_port = start_serversocket_listening(jdata->port, jdata->socket, (struct sockaddr *) &addr4, sizeof(addr4), FALSE, TRUE);
 		/* Open a watcher in the socket we have just opened */
 		if (ipv4_port > 0) {
 			jdata->watcher_id = purple_input_add(jdata->socket, PURPLE_INPUT_READ, _server_socket_handler, jdata);
@@ -1157,7 +1155,7 @@ bonjour_jabber_close_conversation(BonjourJabberConversation *bconv)
 				tmp_next = xfers->next;
 				/* We only need to cancel this if it hasn't actually started transferring. */
 				/* This will change if we ever support IBB transfers. */
-				if (strcmp(xfer->who, purple_buddy_get_name(bconv->pb)) == 0
+				if (purple_strequal(xfer->who, purple_buddy_get_name(bconv->pb))
 						&& (purple_xfer_get_status(xfer) == PURPLE_XFER_STATUS_NOT_STARTED
 							|| purple_xfer_get_status(xfer) == PURPLE_XFER_STATUS_UNKNOWN)) {
 					purple_xfer_cancel_remote(xfer);
@@ -1169,8 +1167,14 @@ bonjour_jabber_close_conversation(BonjourJabberConversation *bconv)
 		/* Close the socket and remove the watcher */
 		if (bconv->socket >= 0) {
 			/* Send the end of the stream to the other end of the conversation */
-			if (bconv->sent_stream_start == FULLY_SENT)
-				send(bconv->socket, STREAM_END, strlen(STREAM_END), 0);
+			if (bconv->sent_stream_start == FULLY_SENT) {
+				size_t len = strlen(STREAM_END);
+				if (send(bconv->socket, STREAM_END, len, 0) != (gssize)len) {
+					purple_debug_error("bonjour",
+						"bonjour_jabber_close_conversation: "
+						"couldn't send data\n");
+				}
+			}
 			/* TODO: We're really supposed to wait for "</stream:stream>" before closing the socket */
 			close(bconv->socket);
 		}
@@ -1316,8 +1320,8 @@ xep_iq_parse(xmlnode *packet, PurpleBuddy *pb)
 	if(check_if_blocked(pb))
 		return;
 
-		account = purple_buddy_get_account(pb);
-		gc = purple_account_get_connection(account);
+	account = purple_buddy_get_account(pb);
+	gc = purple_account_get_connection(account);
 
 	if (xmlnode_get_child(packet, "si") != NULL || xmlnode_get_child(packet, "error") != NULL)
 		xep_si_parse(gc, packet, pb);
@@ -1441,4 +1445,20 @@ bonjour_jabber_get_local_ips(int fd)
 #endif
 
 	return ips;
+}
+
+void
+append_iface_if_linklocal(char *ip, guint32 interface_param) {
+	struct in6_addr in6_addr;
+	int len_remain = INET6_ADDRSTRLEN - strlen(ip);
+
+	if (len_remain <= 1)
+		return;
+
+	if (inet_pton(AF_INET6, ip, &in6_addr) != 1 ||
+	    !IN6_IS_ADDR_LINKLOCAL(&in6_addr))
+		return;
+
+	snprintf(ip + strlen(ip), len_remain, "%%%d",
+		 interface_param);
 }

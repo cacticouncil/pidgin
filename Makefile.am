@@ -6,7 +6,7 @@ EXTRA_DIST = \
 		HACKING \
 		Makefile.mingw \
 		PLUGIN_HOWTO \
-		README.MTN \
+		README.hg \
 		README.mingw \
 		config.h.mingw \
 		doxy2devhelp.xsl \
@@ -19,7 +19,6 @@ EXTRA_DIST = \
 		package_revision.h \
 		pidgin.apspec.in \
 		pidgin.spec.in \
-		pidgin.desktop.in \
 		po/Makefile.mingw \
 		valgrind-suppressions
 
@@ -34,54 +33,38 @@ distcheck-hook: libpurple/plugins/perl/common/Purple.pm pidgin/plugins/perl/comm
 
 commit-check:
 	(cd po ; intltool-update -m 2>&1 | grep -v '^mismatched quotes.*\.py$$' | sed "s|current directory|po directory|" | grep . ; if [ $$? = 0 ] ; then exit 1 ; else exit 0 ; fi)
+
+# Ensure these files are sorted and contain no duplicates:
 	LC_ALL=C sort -c -t/ -u po/POTFILES.in
 	LC_ALL=C sort -c -t/ -u po/POTFILES.skip
+
+# Ensure COPYRIGHT is 100% UTF-8
 	iconv -f utf8 -t utf8 COPYRIGHT | cmp COPYRIGHT -
 
-version-check: commit-check
-# We don't want to release development versions.
+version-check:
+# Ensure our version string does not contain "dev"
 	test x`echo $(PACKAGE_VERSION) | grep dev` = x
 
-# Make sure there is a NEWS entry for this version
-	head NEWS | grep "^$(PACKAGE_VERSION) (`date +%m/%d/%Y`):$$" > /dev/null
-
-# Ensure NEWS has no spaces at the start of a line.
-# Using spaces instead of tabs there is a common mistake.
-	test x`grep "^ " NEWS` = x
-
-# When doing a new minor (or major) release (X.Y.0), there must be a section in
-# ChangeLog.API.
-	echo $(PACKAGE_VERSION) | grep -v "^[0-9]\+\.[0-9]\+\.0$$" >/dev/null || head ChangeLog.API | grep "^version $(PACKAGE_VERSION) (`date +%m/%d/%Y`):$$" >/dev/null
-
-# For all releases, check the ChangeLogs.
-	head ChangeLog | grep "^version $(PACKAGE_VERSION) (`date +%m/%d/%Y`):$$" >/dev/null
-	head po/ChangeLog | grep "^version $(PACKAGE_VERSION)$$" >/dev/null
+# Ensure ChangeLogs have the correct version
+	head ChangeLog     | grep "^version $(PACKAGE_VERSION) (.*):$$" >/dev/null
+	head ChangeLog.API | grep "^version $(PACKAGE_VERSION):$$" >/dev/null
 
 # Ensure we're working from a tag...
-	test x`mtn automate select t:v$(PACKAGE_VERSION)` = x`mtn automate get_base_revision_id`
+	test x`hg log -r "tag(v$(PACKAGE_VERSION))" --template "{node}"` = x`hg log -r . -T '{node}'`
 # ... and have no changes in the working copy.
-	test "x`mtn diff | grep -v '^#'`" = x
+	test "x`hg st -mard`" = x
 
-release: version-check distcheck packages
-
-packages:
+sign-packages: dist
 	gpg -ab pidgin-$(PACKAGE_VERSION).tar.gz
 	gpg -ab pidgin-$(PACKAGE_VERSION).tar.bz2
 	gpg --verify pidgin-$(PACKAGE_VERSION).tar.gz.asc pidgin-$(PACKAGE_VERSION).tar.gz
 	gpg --verify pidgin-$(PACKAGE_VERSION).tar.bz2.asc pidgin-$(PACKAGE_VERSION).tar.bz2
 
+release: commit-check version-check distcheck sign-packages
+
 if INSTALL_I18N
 PO_DIR=po
-DESKTOP_FILE=pidgin.desktop
-
-if ENABLE_GTK
-appsdir = $(datadir)/applications
-apps_in_files = pidgin.desktop.in
-apps_DATA = $(apps_in_files:.desktop.in=.desktop)
-@INTLTOOL_DESKTOP_RULE@
-endif #ENABLE_GTK
-
-endif #INSTALL_I18N
+endif
 
 if ENABLE_GTK
 GTK_DIR=pidgin
@@ -91,24 +74,29 @@ if ENABLE_GNT
 GNT_DIR=finch
 endif
 
-# This is phony, so that we always try to rebuild it.  If it succeeds
-# in calculating changes, it produces its target; otherwise, its
-# target does not exist.
-.PHONY: package_revision_raw.txt
+# We always try to rebuild all objects that depends on this dummy target.
+.FORCE:
+
 # if both attempts fail, then we need to remove the empty file that >
 # creates, and also make sure that the shell command exits
 # successfully; the rm -f ensures both
-package_revision_raw.txt:
+package_revision_raw.txt: .FORCE
 	$(AM_V_GEN)REAL_BLDDIR=$$PWD/$(top_builddir); \
-	(cd $(srcdir) && $$REAL_BLDDIR/mtn --root=. automate get_base_revision_id) 2>/dev/null >$@ \
-	|| (cd $(srcdir) && mtn --root=. automate get_base_revision_id) 2>/dev/null >$@ \
-	|| rm -f $@
+	(hg --cwd $(srcdir) log -r . -T {node}) 2>/dev/null >$@.new \
+	|| rm -f $@.new
+	$(AM_V_at)if test -f $@.new; then \
+		if ! diff $@ $@.new > /dev/null; then \
+			mv $@.new $@; \
+		else \
+			rm $@.new; \
+		fi \
+	fi
 package_revision.h: package_revision_raw.txt
 	$(AM_V_GEN)if test -f $<; then \
-	  echo "#define REVISION \"`cat $<`\"" > $@; \
+		echo "#define REVISION \"`cat $<`\"" > $@; \
 	fi
 	$(AM_V_at)if test ! -f $@ -a -f $(srcdir)/$@; then \
-	  cp $(srcdir)/$@ $@; \
+		cp $(srcdir)/$@ $@; \
 	fi
 	$(AM_V_at)test -f $@ || echo "#define REVISION \"unknown\"" > $@
 
@@ -146,9 +134,10 @@ endif
 
 # perl's MakeMaker uninstall foo doesn't work well with DESTDIR set, which
 # breaks "make distcheck" unless we ignore perl things
+# TODO drop it when we drop perl wrapper
 
 distuninstallcheck_listfiles = \
-	find . -type f -print | grep -v perl | grep -v Purple.3pm
+	find . -type f -print | grep -v perl | grep -v Purple.3pm | grep -v Pidgin.3pm
 
-DISTCLEANFILES= $(DESKTOP_FILE) libpurple/gconf/purple.schemas intltool-extract \
-			intltool-merge intltool-update
+DISTCLEANFILES= intltool-extract intltool-merge intltool-update \
+			package_revision_raw.txt

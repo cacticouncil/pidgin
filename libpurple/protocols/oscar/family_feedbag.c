@@ -80,7 +80,7 @@ aim_ssi_type_to_string(guint16 type)
 		{ 0x0020, "ICQ-MDir" },
 		{ 0x0029, "Facebook" },
 	};
-	int i;
+	size_t i;
 	for (i = 0; i < G_N_ELEMENTS(type_strings); i++) {
 		if (type_strings[i].type == type) {
 			return type_strings[i].string;
@@ -1089,8 +1089,8 @@ int aim_ssi_seticon(OscarData *od, const guint8 *iconsum, guint8 iconsumlen)
 
 	/* Need to add the 0x00d5 TLV to the TLV chain */
 	csumdata = (guint8 *)g_malloc((iconsumlen+2)*sizeof(guint8));
-	aimutil_put8(&csumdata[0], 0x00);
-	aimutil_put8(&csumdata[1], iconsumlen);
+	(void)aimutil_put8(&csumdata[0], 0x00);
+	(void)aimutil_put8(&csumdata[1], iconsumlen);
 	memcpy(&csumdata[2], iconsum, iconsumlen);
 	aim_tlvlist_replace_raw(&tmp->data, 0x00d5, (iconsumlen+2) * sizeof(guint8), csumdata);
 	g_free(csumdata);
@@ -1650,18 +1650,35 @@ static int receiveauthgrant(OscarData *od, FlapConnection *conn, aim_module_t *m
 	int ret = 0;
 	aim_rxcallback_t userfunc;
 	guint16 tmp;
-	char *bn, *msg;
+	char *bn, *msg, *tmpstr;
 
 	/* Read buddy name */
-	if ((tmp = byte_stream_get8(bs)))
-		bn = byte_stream_getstr(bs, tmp);
-	else
-		bn = NULL;
+	tmp = byte_stream_get8(bs);
+	if (!tmp) {
+		purple_debug_warning("oscar", "Dropping auth grant SNAC "
+				"because username was empty\n");
+		return 0;
+	}
+	bn = byte_stream_getstr(bs, tmp);
+	if (!g_utf8_validate(bn, -1, NULL)) {
+		purple_debug_warning("oscar", "Dropping auth grant SNAC "
+				"because the username was not valid UTF-8\n");
+		g_free(bn);
+	}
 
-	/* Read message (null terminated) */
-	if ((tmp = byte_stream_get16(bs)))
+	/* Read message */
+	tmp = byte_stream_get16(bs);
+	if (tmp) {
 		msg = byte_stream_getstr(bs, tmp);
-	else
+		if (!g_utf8_validate(msg, -1, NULL)) {
+			/* Ugh, msg isn't UTF8.  Let's salvage. */
+			purple_debug_warning("oscar", "Got non-UTF8 message in auth "
+					"grant from %s\n", bn);
+			tmpstr = purple_utf8_salvage(msg);
+			g_free(msg);
+			msg = tmpstr;
+		}
+	} else
 		msg = NULL;
 
 	/* Unknown */
@@ -1724,18 +1741,35 @@ static int receiveauthrequest(OscarData *od, FlapConnection *conn, aim_module_t 
 	int ret = 0;
 	aim_rxcallback_t userfunc;
 	guint16 tmp;
-	char *bn, *msg;
+	char *bn, *msg, *tmpstr;
 
 	/* Read buddy name */
-	if ((tmp = byte_stream_get8(bs)))
-		bn = byte_stream_getstr(bs, tmp);
-	else
-		bn = NULL;
+	tmp = byte_stream_get8(bs);
+	if (!tmp) {
+		purple_debug_warning("oscar", "Dropping auth request SNAC "
+				"because username was empty\n");
+		return 0;
+	}
+	bn = byte_stream_getstr(bs, tmp);
+	if (!g_utf8_validate(bn, -1, NULL)) {
+		purple_debug_warning("oscar", "Dropping auth request SNAC "
+				"because the username was not valid UTF-8\n");
+		g_free(bn);
+	}
 
-	/* Read message (null terminated) */
-	if ((tmp = byte_stream_get16(bs)))
+	/* Read message */
+	tmp = byte_stream_get16(bs);
+	if (tmp) {
 		msg = byte_stream_getstr(bs, tmp);
-	else
+		if (!g_utf8_validate(msg, -1, NULL)) {
+			/* Ugh, msg isn't UTF8.  Let's salvage. */
+			purple_debug_warning("oscar", "Got non-UTF8 message in auth "
+					"request from %s\n", bn);
+			tmpstr = purple_utf8_salvage(msg);
+			g_free(msg);
+			msg = tmpstr;
+		}
+	} else
 		msg = NULL;
 
 	/* Unknown */
@@ -1808,21 +1842,38 @@ static int receiveauthreply(OscarData *od, FlapConnection *conn, aim_module_t *m
 	aim_rxcallback_t userfunc;
 	guint16 tmp;
 	guint8 reply;
-	char *bn, *msg;
+	char *bn, *msg, *tmpstr;
 
 	/* Read buddy name */
-	if ((tmp = byte_stream_get8(bs)))
-		bn = byte_stream_getstr(bs, tmp);
-	else
-		bn = NULL;
+	tmp = byte_stream_get8(bs);
+	if (!tmp) {
+		purple_debug_warning("oscar", "Dropping auth reply SNAC "
+				"because username was empty\n");
+		return 0;
+	}
+	bn = byte_stream_getstr(bs, tmp);
+	if (!g_utf8_validate(bn, -1, NULL)) {
+		purple_debug_warning("oscar", "Dropping auth reply SNAC "
+				"because the username was not valid UTF-8\n");
+		g_free(bn);
+	}
 
 	/* Read reply */
 	reply = byte_stream_get8(bs);
 
-	/* Read message (null terminated) */
-	if ((tmp = byte_stream_get16(bs)))
+	/* Read message */
+	tmp = byte_stream_get16(bs);
+	if (tmp) {
 		msg = byte_stream_getstr(bs, tmp);
-	else
+		if (!g_utf8_validate(msg, -1, NULL)) {
+			/* Ugh, msg isn't UTF8.  Let's salvage. */
+			purple_debug_warning("oscar", "Got non-UTF8 message in auth "
+					"reply from %s\n", bn);
+			tmpstr = purple_utf8_salvage(msg);
+			g_free(msg);
+			msg = tmpstr;
+		}
+	} else
 		msg = NULL;
 
 	/* Unknown */
@@ -1848,10 +1899,18 @@ static int receiveadded(OscarData *od, FlapConnection *conn, aim_module_t *mod, 
 	char *bn;
 
 	/* Read buddy name */
-	if ((tmp = byte_stream_get8(bs)))
-		bn = byte_stream_getstr(bs, tmp);
-	else
-		bn = NULL;
+	tmp = byte_stream_get8(bs);
+	if (!tmp) {
+		purple_debug_warning("oscar", "Dropping 'you were added' SNAC "
+				"because username was empty\n");
+		return 0;
+	}
+	bn = byte_stream_getstr(bs, tmp);
+	if (!g_utf8_validate(bn, -1, NULL)) {
+		purple_debug_warning("oscar", "Dropping 'you were added' SNAC "
+				"because the username was not valid UTF-8\n");
+		g_free(bn);
+	}
 
 	if ((userfunc = aim_callhandler(od, snac->family, snac->subtype)))
 		ret = userfunc(od, conn, frame, bn);

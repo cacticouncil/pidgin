@@ -60,6 +60,7 @@
 #include "gtkstatusbox.h"
 #include "gtkscrollbook.h"
 #include "gtksmiley.h"
+#include "gtkstyle.h"
 #include "gtkblist-theme.h"
 #include "gtkblist-theme-loader.h"
 #include "gtkutils.h"
@@ -119,6 +120,8 @@ typedef struct
 	PidginMiniDialog *signed_on_elsewhere;
 
 	PidginBlistTheme *current_theme;
+
+	guint select_page_timeout;       /**< The timeout for pidgin_blist_select_notebook_page_cb */
 } PidginBuddyListPrivate;
 
 #define PIDGIN_BUDDY_LIST_GET_PRIVATE(list) \
@@ -932,6 +935,17 @@ pidgin_blist_update_privacy_cb(PurpleBuddy *buddy)
 }
 
 static gboolean
+add_buddy_account_filter_func(PurpleAccount *account)
+{
+	PurpleConnection *gc = purple_account_get_connection(account);
+	PurplePluginProtocolInfo *prpl_info = NULL;
+
+	prpl_info = PURPLE_PLUGIN_PROTOCOL_INFO(gc->prpl);
+
+	return (prpl_info->add_buddy != NULL);
+}
+
+static gboolean
 chat_account_filter_func(PurpleAccount *account)
 {
 	PurpleConnection *gc = purple_account_get_connection(account);
@@ -1113,8 +1127,8 @@ static void
 chat_select_account_cb(GObject *w, PurpleAccount *account,
                        PidginChatData *data)
 {
-	if (strcmp(purple_account_get_protocol_id(data->rq_data.account),
-	           purple_account_get_protocol_id(account)) == 0)
+	if (purple_strequal(purple_account_get_protocol_id(data->rq_data.account),
+	                    purple_account_get_protocol_id(account)))
 	{
 		data->rq_data.account = account;
 	}
@@ -2078,7 +2092,7 @@ pidgin_blist_sound_method_pref_cb(const char *name, PurplePrefType type,
 {
 	gboolean sensitive = TRUE;
 
-	if(!strcmp(value, "none"))
+	if(purple_strequal(value, "none"))
 		sensitive = FALSE;
 
 	gtk_widget_set_sensitive(gtk_item_factory_get_widget(gtkblist->ift, N_("/Tools/Mute Sounds")), sensitive);
@@ -2100,7 +2114,7 @@ add_buddies_from_vcard(const char *prpl_id, PurpleGroup *group, GList *list,
 		gc = (PurpleConnection *)l->data;
 		account = purple_connection_get_account(gc);
 
-		if (!strcmp(purple_account_get_protocol_id(account), prpl_id))
+		if (purple_strequal(purple_account_get_protocol_id(account), prpl_id))
 			break;
 
 		account = NULL;
@@ -2128,8 +2142,6 @@ parse_vcard(const char *vcard, PurpleGroup *group)
 	char *alias    = NULL;
 	GList *aims    = NULL;
 	GList *icqs    = NULL;
-	GList *yahoos  = NULL;
-	GList *msns    = NULL;
 	GList *jabbers = NULL;
 
 	s = temp_vcard = g_strdup(vcard);
@@ -2166,26 +2178,21 @@ parse_vcard(const char *vcard, PurpleGroup *group)
 		if (*s == '\n') *s++ = '\0';
 
 		/* We only want to worry about a few fields here. */
-		if (!strcmp(field, "FN"))
+		if (purple_strequal(field, "FN"))
 			alias = g_strdup(value);
-		else if (!strcmp(field, "X-AIM") || !strcmp(field, "X-ICQ") ||
-				 !strcmp(field, "X-YAHOO") || !strcmp(field, "X-MSN") ||
-				 !strcmp(field, "X-JABBER"))
+		else if (purple_strequal(field, "X-AIM") || purple_strequal(field, "X-ICQ") ||
+				 purple_strequal(field, "X-JABBER"))
 		{
 			char **values = g_strsplit(value, ":", 0);
 			char **im;
 
 			for (im = values; *im != NULL; im++)
 			{
-				if (!strcmp(field, "X-AIM"))
+				if (purple_strequal(field, "X-AIM"))
 					aims = g_list_append(aims, g_strdup(*im));
-				else if (!strcmp(field, "X-ICQ"))
+				else if (purple_strequal(field, "X-ICQ"))
 					icqs = g_list_append(icqs, g_strdup(*im));
-				else if (!strcmp(field, "X-YAHOO"))
-					yahoos = g_list_append(yahoos, g_strdup(*im));
-				else if (!strcmp(field, "X-MSN"))
-					msns = g_list_append(msns, g_strdup(*im));
-				else if (!strcmp(field, "X-JABBER"))
+				else if (purple_strequal(field, "X-JABBER"))
 					jabbers = g_list_append(jabbers, g_strdup(*im));
 			}
 
@@ -2195,8 +2202,7 @@ parse_vcard(const char *vcard, PurpleGroup *group)
 
 	g_free(temp_vcard);
 
-	if (aims == NULL && icqs == NULL && yahoos == NULL &&
-		msns == NULL && jabbers == NULL)
+	if (aims == NULL && icqs == NULL && jabbers == NULL)
 	{
 		g_free(alias);
 
@@ -2205,8 +2211,6 @@ parse_vcard(const char *vcard, PurpleGroup *group)
 
 	add_buddies_from_vcard("prpl-aim",    group, aims,    alias);
 	add_buddies_from_vcard("prpl-icq",    group, icqs,    alias);
-	add_buddies_from_vcard("prpl-yahoo",  group, yahoos,  alias);
-	add_buddies_from_vcard("prpl-msn",    group, msns,    alias);
 	add_buddies_from_vcard("prpl-jabber", group, jabbers, alias);
 
 	g_free(alias);
@@ -3198,7 +3202,7 @@ static gboolean buddy_is_displayable(PurpleBuddy *buddy)
 {
 	struct _pidgin_blist_node *gtknode;
 
-	if(!buddy)
+	if(!buddy || !PURPLE_BLIST_NODE_IS_VISIBLE(buddy))
 		return FALSE;
 
 	gtknode = ((PurpleBlistNode*)buddy)->ui_data;
@@ -3331,10 +3335,10 @@ static char *get_mood_icon_path(const char *mood)
 {
 	char *path;
 
-	if (!strcmp(mood, "busy")) {
+	if (purple_strequal(mood, "busy")) {
 		path = g_build_filename(DATADIR, "pixmaps", "pidgin",
 		                        "status", "16", "busy.png", NULL);
-	} else if (!strcmp(mood, "hiptop")) {
+	} else if (purple_strequal(mood, "hiptop")) {
 		path = g_build_filename(DATADIR, "pixmaps", "pidgin",
 		                        "emblems", "16", "hiptop.png", NULL);
 	} else {
@@ -3560,7 +3564,7 @@ set_mood_cb(GtkWidget *widget, PurpleAccount *account)
 				path, (gpointer)mood->mood);
 		g_free(path);
 
-		if (current_mood && !strcmp(current_mood, mood->mood))
+		if (current_mood && purple_strequal(current_mood, mood->mood))
 			purple_request_field_list_add_selected(f, _(mood->description));
 	}
 	purple_request_field_group_add_field(g, f);
@@ -3647,6 +3651,7 @@ static GtkItemFactoryEntry blist_menu[] =
 	{ N_("/Help/_Build Information"), NULL, pidgin_dialogs_buildinfo, 0, "<Item>", NULL },
 	{ N_("/Help/_Debug Window"), NULL, toggle_debug, 0, "<Item>", NULL },
 	{ N_("/Help/De_veloper Information"), NULL, pidgin_dialogs_developers, 0, "<Item>", NULL },
+	{ N_("/Help/_Plugin Information"), NULL, pidgin_dialogs_plugins_info, 0, "<Item>", NULL },
 	{ N_("/Help/_Translator Information"), NULL, pidgin_dialogs_translators, 0, "<Item>", NULL },
 	{ "/Help/sep2", NULL, NULL, 0, "<Separator>", NULL },
 	{ N_("/Help/_About"), NULL, pidgin_dialogs_about, 4,  "<StockItem>", GTK_STOCK_ABOUT },
@@ -3784,7 +3789,7 @@ static char *pidgin_get_tooltip_text(PurpleBlistNode *node, gboolean full)
 		 * this alias, so there's no point in showing it in the tooltip. */
 		if (full && c && b->alias != NULL && b->alias[0] != '\0' &&
 		    (c->alias != NULL && c->alias[0] != '\0') &&
-		    strcmp(c->alias, b->alias) != 0)
+		    !purple_strequal(c->alias, b->alias))
 		{
 			tmp = g_markup_escape_text(b->alias, -1);
 			purple_notify_user_info_add_pair(user_info, _("Buddy Alias"), tmp);
@@ -3793,7 +3798,7 @@ static char *pidgin_get_tooltip_text(PurpleBlistNode *node, gboolean full)
 
 		/* Nickname/Server Alias */
 		/* I'd like to only show this if there's a contact or buddy
-		 * alias, but many people on MSN set long nicknames, which
+		 * alias, but people often set long nicknames, which
 		 * get ellipsized, so the only way to see the whole thing is
 		 * to look at the tooltip. */
 		if (full && b->server_alias != NULL && b->server_alias[0] != '\0')
@@ -4019,14 +4024,12 @@ pidgin_blist_get_emblem(PurpleBlistNode *node)
 
 	tune = purple_presence_get_status(p, "tune");
 	if (tune && purple_status_is_active(tune)) {
-		/* Only in MSN.
-		 * TODO: Replace "Tune" with generalized "Media" in 3.0. */
+		/* TODO: Replace "Tune" with generalized "Media" in 3.0. */
 		if (purple_status_get_attr_string(tune, "game") != NULL) {
 			path = g_build_filename(DATADIR, "pixmaps", "pidgin", "emblems", "16", "game.png", NULL);
 			return _pidgin_blist_get_cached_emblem(path);
 		}
-		/* Only in MSN.
-		 * TODO: Replace "Tune" with generalized "Media" in 3.0. */
+		/* TODO: Replace "Tune" with generalized "Media" in 3.0. */
 		if (purple_status_get_attr_string(tune, "office") != NULL) {
 			path = g_build_filename(DATADIR, "pixmaps", "pidgin", "emblems", "16", "office.png", NULL);
 			return _pidgin_blist_get_cached_emblem(path);
@@ -4187,7 +4190,7 @@ theme_font_get_face_default(PidginThemeFont *font, const char *def)
 gchar *
 pidgin_blist_get_name_markup(PurpleBuddy *b, gboolean selected, gboolean aliased)
 {
-	const char *name, *name_color, *name_font, *status_color, *status_font;
+	const char *name, *name_color, *name_font, *status_color, *status_font, *dim_grey;
 	char *text = NULL;
 	PurplePlugin *prpl;
 	PurplePluginProtocolInfo *prpl_info = NULL;
@@ -4290,13 +4293,15 @@ pidgin_blist_get_name_markup(PurpleBuddy *b, gboolean selected, gboolean aliased
 	theme = pidgin_blist_get_theme();
 	name_color = NULL;
 
+	dim_grey = pidgin_style_is_dark(NULL) ? "light slate grey" : "dim grey";
+
 	if (theme) {
 		if (purple_presence_is_idle(presence)) {
 			namefont = statusfont = pidgin_blist_theme_get_idle_text_info(theme);
-			name_color = "dim grey";
+			name_color = dim_grey;
 		} else if (!purple_presence_is_online(presence)) {
 			namefont = pidgin_blist_theme_get_offline_text_info(theme);
-			name_color = "dim grey";
+			name_color = dim_grey;
 			statusfont = pidgin_blist_theme_get_status_text_info(theme);
 		} else if (purple_presence_is_available(presence)) {
 			namefont = pidgin_blist_theme_get_online_text_info(theme);
@@ -4310,14 +4315,14 @@ pidgin_blist_get_name_markup(PurpleBuddy *b, gboolean selected, gboolean aliased
 				&& (purple_presence_is_idle(presence)
 							|| !purple_presence_is_online(presence)))
 		{
-			name_color = "dim grey";
+			name_color = dim_grey;
 		}
 	}
 
 	name_color = theme_font_get_color_default(namefont, name_color);
 	name_font = theme_font_get_face_default(namefont, "");
 
-	status_color = theme_font_get_color_default(statusfont, "dim grey");
+	status_color = theme_font_get_color_default(statusfont, dim_grey);
 	status_font = theme_font_get_face_default(statusfont, "");
 
 	if (aliased && selected) {
@@ -4735,6 +4740,15 @@ conversation_created_cb(PurpleConversation *conv, PidginBuddyList *gtkblist)
 				}
 			}
 			break;
+		default:
+			break;
+	}
+}
+
+static void
+chat_joined_cb(PurpleConversation *conv, PidginBuddyList *gtkblist)
+{
+	switch (conv->type) {
 		case PURPLE_CONV_TYPE_CHAT:
 			{
 				PurpleChat *chat = purple_blist_find_chat(conv->account, conv->name);
@@ -4861,7 +4875,7 @@ static void _prefs_change_redo_list(const char *name, PurplePrefType type,
 static void _prefs_change_sort_method(const char *pref_name, PurplePrefType type,
 									  gconstpointer val, gpointer data)
 {
-	if(!strcmp(pref_name, PIDGIN_PREFS_ROOT "/blist/sort_type"))
+	if(purple_strequal(pref_name, PIDGIN_PREFS_ROOT "/blist/sort_type"))
 		pidgin_blist_sort_method_set(val);
 }
 
@@ -4873,6 +4887,8 @@ static gboolean pidgin_blist_select_notebook_page_cb(gpointer user_data)
 	PidginBuddyListPrivate *priv;
 
 	priv = PIDGIN_BUDDY_LIST_GET_PRIVATE(gtkblist);
+
+	priv->select_page_timeout = 0;
 
 	/* this is far too ugly thanks to me not wanting to fix #3989 properly right now */
 	if (priv->error_scrollbook != NULL) {
@@ -4889,7 +4905,11 @@ static gboolean pidgin_blist_select_notebook_page_cb(gpointer user_data)
 
 static void pidgin_blist_select_notebook_page(PidginBuddyList *gtkblist)
 {
-	purple_timeout_add(0, pidgin_blist_select_notebook_page_cb, gtkblist);
+	PidginBuddyListPrivate *priv;
+
+	priv = PIDGIN_BUDDY_LIST_GET_PRIVATE(gtkblist);
+
+	priv->select_page_timeout = purple_timeout_add(0, pidgin_blist_select_notebook_page_cb, gtkblist);
 }
 
 static void account_modified(PurpleAccount *account, PidginBuddyList *gtkblist)
@@ -5093,7 +5113,7 @@ generic_error_destroy_cb(GtkObject *dialog,
 		purple_account_clear_current_error(account);
 }
 
-#define SSL_FAQ_URI "http://d.pidgin.im/wiki/FAQssl"
+#define SSL_FAQ_URI "https://developer.pidgin.im/wiki/FAQssl"
 
 static void
 ssl_faq_clicked_cb(PidginMiniDialog *mini_dialog,
@@ -5382,7 +5402,7 @@ update_account_error_state(PurpleAccount *account,
 
 	/* else, new and old are both non-NULL */
 
-	descriptions_differ = strcmp(old->description, new->description);
+	descriptions_differ = !purple_strequal(old->description, new->description);
 	desc = new->description;
 
 	switch (new->type) {
@@ -5958,8 +5978,8 @@ static void pidgin_blist_show(PurpleBuddyList *list)
 	gtk_tree_view_set_search_equal_func(GTK_TREE_VIEW(gtkblist->treeview),
 			pidgin_blist_search_equal_func, NULL, NULL);
 
-	gtk_box_pack_start(GTK_BOX(gtkblist->vbox), 
-		pidgin_make_scrollable(gtkblist->treeview, GTK_POLICY_AUTOMATIC, GTK_POLICY_AUTOMATIC, GTK_SHADOW_NONE, -1, -1), 
+	gtk_box_pack_start(GTK_BOX(gtkblist->vbox),
+		pidgin_make_scrollable(gtkblist->treeview, GTK_POLICY_AUTOMATIC, GTK_POLICY_AUTOMATIC, GTK_SHADOW_NONE, -1, -1),
 		TRUE, TRUE, 0);
 
 	sep = gtk_hseparator_new();
@@ -6009,7 +6029,7 @@ static void pidgin_blist_show(PurpleBuddyList *list)
 	gtk_check_menu_item_set_active(GTK_CHECK_MENU_ITEM(gtk_item_factory_get_item (gtkblist->ift, N_("/Buddies/Show/Protocol Icons"))),
 			purple_prefs_get_bool(PIDGIN_PREFS_ROOT "/blist/show_protocol_icons"));
 
-	if(!strcmp(purple_prefs_get_string(PIDGIN_PREFS_ROOT "/sound/method"), "none"))
+	if(purple_strequal(purple_prefs_get_string(PIDGIN_PREFS_ROOT "/sound/method"), "none"))
 		gtk_widget_set_sensitive(gtk_item_factory_get_widget(gtkblist->ift, N_("/Tools/Mute Sounds")), FALSE);
 
 	/* Update some dynamic things */
@@ -6094,6 +6114,9 @@ static void pidgin_blist_show(PurpleBuddyList *list)
 	                      gtkblist);
 	purple_signal_connect(handle, "conversation-created", gtkblist,
 	                      PURPLE_CALLBACK(conversation_created_cb),
+	                      gtkblist);
+	purple_signal_connect(handle, "chat-joined", gtkblist,
+	                      PURPLE_CALLBACK(chat_joined_cb),
 	                      gtkblist);
 
 	gtk_widget_hide(gtkblist->headline_hbox);
@@ -6256,6 +6279,9 @@ static gboolean insert_node(PurpleBuddyList *list, PurpleBlistNode *node, GtkTre
 	if(!iter)
 		return FALSE;
 
+	/* XXX: it's not necessary, but let's silence a warning*/
+	memset(&parent_iter, 0, sizeof(parent_iter));
+
 	if(node->parent && !get_iter_from_node(node->parent, &parent_iter))
 		return FALSE;
 
@@ -6360,14 +6386,15 @@ static void pidgin_blist_update_group(PurpleBuddyList *list,
 	else
 		count = purple_blist_get_group_online_count(group);
 
-	if (count > 0 || purple_prefs_get_bool(PIDGIN_PREFS_ROOT "/blist/show_empty_groups"))
+	if (!PURPLE_BLIST_NODE_IS_VISIBLE(gnode) || !PURPLE_BLIST_NODE_IS_VISIBLE(node))
+		show = FALSE;
+	else if (count > 0 || purple_prefs_get_bool(PIDGIN_PREFS_ROOT "/blist/show_empty_groups"))
 		show = TRUE;
 	else if (PURPLE_BLIST_NODE_IS_BUDDY(node) && buddy_is_displayable((PurpleBuddy*)node)) { /* Or chat? */
 		show = TRUE;
 	} else if (!show_offline) {
 		show = pidgin_blist_group_has_show_offline_buddy(group);
 	}
-
 	if (show) {
 		gchar *title;
 		gboolean biglist;
@@ -6535,7 +6562,7 @@ static void buddy_node(PurpleBuddy *buddy, GtkTreeIter *iter, PurpleBlistNode *n
 				textcolor = pidgin_theme_font_get_color_describe(pair);
 			else
 				/* If no theme them default to making idle buddy names grey */
-				textcolor = "dim grey";
+				textcolor = pidgin_style_is_dark(NULL) ? "light slate grey" : "dim grey";
 
 			if (textcolor) {
 				idle = g_strdup_printf("<span color='%s' font_desc='%s'>%d:%02d</span>",
@@ -6867,7 +6894,7 @@ static void pidgin_blist_destroy(PurpleBuddyList *list)
 	purple_signals_disconnect_by_handle(gtkblist);
 
 	if (gtkblist->headline_close)
-		gdk_pixbuf_unref(gtkblist->headline_close);
+		g_object_unref(gtkblist->headline_close);
 
 	gtk_widget_destroy(gtkblist->window);
 
@@ -6898,6 +6925,8 @@ static void pidgin_blist_destroy(PurpleBuddyList *list)
 	priv = PIDGIN_BUDDY_LIST_GET_PRIVATE(gtkblist);
 	if (priv->current_theme)
 		g_object_unref(priv->current_theme);
+	if (priv->select_page_timeout)
+		purple_timeout_remove(priv->select_page_timeout);
 	g_free(priv);
 
 	g_free(gtkblist);
@@ -7081,7 +7110,7 @@ pidgin_blist_request_add_buddy(PurpleAccount *account, const char *username,
 		account,
 		_("Add Buddy"), "add_buddy",
 		_("Add a buddy.\n"),
-		G_CALLBACK(add_buddy_select_account_cb), NULL,
+		G_CALLBACK(add_buddy_select_account_cb), add_buddy_account_filter_func,
 		G_CALLBACK(add_buddy_cb));
 	gtk_dialog_add_buttons(GTK_DIALOG(data->rq_data.window),
 			GTK_STOCK_CANCEL, GTK_RESPONSE_CANCEL,
@@ -7290,8 +7319,8 @@ pidgin_blist_request_add_chat(PurpleAccount *account, PurpleGroup *group,
 	                          data->chat_data.rq_data.sg, data->group_combo,
 	                          TRUE, NULL);
 
-	data->autojoin = gtk_check_button_new_with_mnemonic(_("Auto_join when account connects."));
-	data->persistent = gtk_check_button_new_with_mnemonic(_("_Remain in chat after window is closed."));
+	data->autojoin = gtk_check_button_new_with_mnemonic(_("Automatically _join when account connects"));
+	data->persistent = gtk_check_button_new_with_mnemonic(_("_Remain in chat after window is closed"));
 	gtk_box_pack_start(GTK_BOX(vbox), data->autojoin, FALSE, FALSE, 0);
 	gtk_box_pack_start(GTK_BOX(vbox), data->persistent, FALSE, FALSE, 0);
 
@@ -7632,7 +7661,7 @@ void pidgin_blist_sort_method_unreg(const char *id)
 
 	while(l) {
 		struct pidgin_blist_sort_method *method = l->data;
-		if(!strcmp(method->id, id)) {
+		if(purple_strequal(method->id, id)) {
 			pidgin_blist_sort_methods = g_list_delete_link(pidgin_blist_sort_methods, l);
 			g_free(method->id);
 			g_free(method->name);
@@ -7650,7 +7679,7 @@ void pidgin_blist_sort_method_set(const char *id){
 	if(!id)
 		id = "none";
 
-	while (l && strcmp(((struct pidgin_blist_sort_method*)l->data)->id, id))
+	while (l && !purple_strequal(((struct pidgin_blist_sort_method*)l->data)->id, id))
 		l = l->next;
 
 	if (l) {
@@ -7659,7 +7688,7 @@ void pidgin_blist_sort_method_set(const char *id){
 		pidgin_blist_sort_method_set("none");
 		return;
 	}
-	if (!strcmp(id, "none")) {
+	if (purple_strequal(id, "none")) {
 		redo_buddy_list(purple_get_blist(), TRUE, FALSE);
 	} else {
 		redo_buddy_list(purple_get_blist(), FALSE, FALSE);
@@ -8236,7 +8265,7 @@ pidgin_blist_update_sort_methods(void)
 	for (l = pidgin_blist_sort_methods; l; l = l->next) {
 		method = (PidginBlistSortMethod *) l->data;
 		menuitem = gtk_radio_menu_item_new_with_label(sl, _(method->name));
-		if (g_str_equal(m, method->id))
+		if (purple_strequal(m, method->id))
 			activeitem = menuitem;
 		sl = gtk_radio_menu_item_get_group(GTK_RADIO_MENU_ITEM(menuitem));
 		gtk_menu_shell_append(GTK_MENU_SHELL(sortmenu), menuitem);

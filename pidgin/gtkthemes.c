@@ -44,7 +44,7 @@ gboolean pidgin_themes_smileys_disabled()
 	if (!current_smiley_theme)
 		return 1;
 
-	return strcmp(current_smiley_theme->name, "none") == 0;
+	return purple_strequal(current_smiley_theme->name, "none");
 }
 
 static void
@@ -99,7 +99,7 @@ void pidgin_themes_remove_smiley_theme(const char *file)
 		/* Find theme in themes list and remove it */
 		for (iter = smiley_themes ; iter ; iter = iter->next) {
 			theme = ((struct smiley_theme *)(iter->data));
-			if (!strcmp(theme->path, file))
+			if (purple_strequal(theme->path, file))
 				break ;
 		}
 		if (iter) {
@@ -129,7 +129,7 @@ static void _pidgin_themes_smiley_themeize(GtkWidget *imhtml, gboolean custom)
 	gtk_imhtml_remove_smileys(GTK_IMHTML(imhtml));
 	list = current_smiley_theme->list;
 	while (list) {
-		char *sml = !strcmp(list->sml, "default") ? NULL : list->sml;
+		char *sml = purple_strequal(list->sml, "default") ? NULL : list->sml;
 		GSList *icons = list->smileys;
 		while (icons) {
 			gtk_imhtml_associate_smiley(GTK_IMHTML(imhtml), sml, icons->data);
@@ -222,9 +222,10 @@ pidgin_smiley_themes_remove_non_existing(void)
 
 void pidgin_themes_load_smiley_theme(const char *file, gboolean load)
 {
-	FILE *f = g_fopen(file, "r");
+	FILE *f = g_fopen(file, "rb");
 	char buf[256];
 	char *i;
+	gsize line_nbr = 0;
 	struct smiley_theme *theme=NULL;
 	struct smiley_list *list = NULL;
 	GSList *lst = smiley_themes;
@@ -235,7 +236,7 @@ void pidgin_themes_load_smiley_theme(const char *file, gboolean load)
 
 	while (lst) {
 		struct smiley_theme *thm = lst->data;
-		if (!strcmp(thm->path, file)) {
+		if (purple_strequal(thm->path, file)) {
 			theme = thm;
 			break;
 		}
@@ -260,6 +261,7 @@ void pidgin_themes_load_smiley_theme(const char *file, gboolean load)
 		if (!fgets(buf, sizeof(buf), f)) {
 			break;
 		}
+		line_nbr++;
 
 		if (buf[0] == '#' || buf[0] == '\0')
 			continue;
@@ -271,6 +273,11 @@ void pidgin_themes_load_smiley_theme(const char *file, gboolean load)
 				continue;
 		}
 
+		if (! g_utf8_validate(buf, -1, NULL)) {
+			purple_debug_error("gtkthemes", "%s:%" G_GSIZE_FORMAT " is invalid UTF-8\n", file, line_nbr);
+			continue;
+		}
+
 		i = buf;
 		while (isspace(*i))
 			i++;
@@ -278,7 +285,7 @@ void pidgin_themes_load_smiley_theme(const char *file, gboolean load)
 		if (*i == '[' && strchr(i, ']') && load) {
 			struct smiley_list *child = g_new0(struct smiley_list, 1);
 			child->sml = g_strndup(i+1, strchr(i, ']') - i - 1);
-			if (theme->list)
+			if (list)
 				list->next = child;
 			else
 				theme->list = child;
@@ -308,11 +315,18 @@ void pidgin_themes_load_smiley_theme(const char *file, gboolean load)
 			}
 			while  (*i) {
 				char l[64];
-				int li = 0;
+				size_t li = 0;
+				char *next;
 				while (*i && !isspace(*i) && li < sizeof(l) - 1) {
 					if (*i == '\\' && *(i+1) != '\0')
 						i++;
-					l[li++] = *(i++);
+					/* coverity[tainted_data] */
+					next = g_utf8_next_char(i);
+					if ((size_t)(next - i) > (sizeof(l) - li -1)) {
+						break;
+					}
+					while (i != next)
+						l[li++] = *(i++);
 				}
 				l[li] = 0;
 				if (!sfile) {
@@ -397,7 +411,10 @@ void pidgin_themes_smiley_theme_probe()
 			}
 			g_dir_close(dir);
 		} else if (l == 1) {
-			g_mkdir(probedirs[l], S_IRUSR | S_IWUSR | S_IXUSR);
+			if (g_mkdir(probedirs[l], S_IRUSR | S_IWUSR | S_IXUSR) != 0) {
+				purple_debug_error("gtkthemes",
+					"couldn't create smileys dir\n");
+			}
 		}
 		g_free(probedirs[l]);
 	}
@@ -423,9 +440,9 @@ GSList *pidgin_themes_get_proto_smileys(const char *id) {
 	proto = purple_find_prpl(id);
 
 	while (list) {
-		if (!strcmp(list->sml, "default"))
+		if (purple_strequal(list->sml, "default"))
 			def = list;
-		else if (proto && !strcmp(proto->info->name, list->sml))
+		else if (proto && purple_strequal(proto->info->name, list->sml))
 			break;
 
 		list = list->next;
@@ -444,7 +461,7 @@ void pidgin_themes_init()
 
 	for (l = smiley_themes; l; l = l->next) {
 		struct smiley_theme *smile = l->data;
-		if (smile->name && strcmp(current_theme, smile->name) == 0) {
+		if (smile->name && purple_strequal(current_theme, smile->name)) {
 			pidgin_themes_load_smiley_theme(smile->path, TRUE);
 			break;
 		}

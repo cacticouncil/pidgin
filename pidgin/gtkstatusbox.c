@@ -319,9 +319,9 @@ icon_box_press_cb(GtkWidget *widget, GdkEventButton *event, PidginStatusBox *box
 
 		box->icon_box_menu = gtk_menu_new();
 
-		menu_item = pidgin_new_item_from_stock(box->icon_box_menu, _("Select Buddy Icon"), GTK_STOCK_ADD,
-						     G_CALLBACK(choose_buddy_icon_cb),
-						     box, 0, 0, NULL);
+		pidgin_new_item_from_stock(box->icon_box_menu,
+			_("Select Buddy Icon"), GTK_STOCK_ADD,
+			G_CALLBACK(choose_buddy_icon_cb), box, 0, 0, NULL);
 
 		menu_item = pidgin_new_item_from_stock(box->icon_box_menu, _("Remove"), GTK_STOCK_REMOVE,
 						     G_CALLBACK(remove_buddy_icon_cb),
@@ -574,7 +574,7 @@ static void
 pidgin_status_box_finalize(GObject *obj)
 {
 	PidginStatusBox *statusbox = PIDGIN_STATUS_BOX(obj);
-	int i;
+	gsize i;
 
 	purple_signals_disconnect_by_handle(statusbox);
 	purple_prefs_disconnect_by_handle(statusbox);
@@ -873,7 +873,7 @@ status_menu_refresh_iter(PidginStatusBox *status_box, gboolean status_changed)
 				/* This is a special case because Primitives for the token_status_account are actually
 				 * saved statuses with substatuses for the enabled accounts */
 				if (status_box->token_status_account && purple_savedstatus_is_transient(saved_status)
-					&& type == PIDGIN_STATUS_BOX_TYPE_PRIMITIVE && primitive == GPOINTER_TO_INT(data))
+					&& type == PIDGIN_STATUS_BOX_TYPE_PRIMITIVE && primitive == (PurpleStatusPrimitive)GPOINTER_TO_INT(data))
 				{
 					char *name;
 					const char *acct_status_name = purple_status_get_name(
@@ -883,7 +883,7 @@ status_menu_refresh_iter(PidginStatusBox *status_box, gboolean status_changed)
 							TEXT_COLUMN, &name, -1);
 
 					if (!purple_savedstatus_has_substatuses(saved_status)
-						|| !strcmp(name, acct_status_name))
+						|| purple_strequal(name, acct_status_name))
 					{
 						/* Found! */
 						path = gtk_tree_model_get_path(GTK_TREE_MODEL(status_box->dropdown_store), &iter);
@@ -1019,7 +1019,7 @@ static PurpleAccount* check_active_accounts_for_identical_statuses(void)
 		PurpleAccount *acct2 = iter->data;
 		GList *s1, *s2;
 
-		if (!g_str_equal(prpl1, purple_account_get_protocol_id(acct2))) {
+		if (!purple_strequal(prpl1, purple_account_get_protocol_id(acct2))) {
 			acct1 = NULL;
 			break;
 		}
@@ -1030,8 +1030,8 @@ static PurpleAccount* check_active_accounts_for_identical_statuses(void)
 			PurpleStatusType *st1 = s1->data, *st2 = s2->data;
 			/* TODO: Are these enough to consider the statuses identical? */
 			if (purple_status_type_get_primitive(st1) != purple_status_type_get_primitive(st2)
-				|| strcmp(purple_status_type_get_id(st1), purple_status_type_get_id(st2))
-				|| strcmp(purple_status_type_get_name(st1), purple_status_type_get_name(st2))) {
+				|| !purple_strequal(purple_status_type_get_id(st1), purple_status_type_get_id(st2))
+				|| !purple_strequal(purple_status_type_get_name(st1), purple_status_type_get_name(st2))) {
 				acct1 = NULL;
 				break;
 			}
@@ -1189,7 +1189,7 @@ static void
 cache_pixbufs(PidginStatusBox *status_box)
 {
 	GtkIconSize icon_size;
-	int i;
+	gsize i;
 
 	g_object_set(G_OBJECT(status_box->icon_rend), "xpad", 3, NULL);
 	icon_size = gtk_icon_size_from_name(PIDGIN_ICON_SIZE_TANGO_EXTRA_SMALL);
@@ -2020,7 +2020,7 @@ pidgin_status_box_size_allocate(GtkWidget *widget,
 		icon_alc = parent_alc;
 		icon_alc.height = MAX(1, icon_alc.height) - 2;
 		icon_alc.width = icon_alc.height;
-		icon_alc.x = allocation->width - (icon_alc.width + border_width + 1);
+		icon_alc.x += allocation->width - (icon_alc.width + border_width + 1);
 		icon_alc.y += 1;
 
 		if (status_box->icon_size != icon_alc.height)
@@ -2383,7 +2383,7 @@ activate_currently_selected_status(PidginStatusBox *status_box)
 			acct_status_type = find_status_type_by_index(status_box->token_status_account, active);
 			id = purple_status_type_get_id(acct_status_type);
 
-			if (g_str_equal(id, purple_status_get_id(status)) &&
+			if (purple_strequal(id, purple_status_get_id(status)) &&
 				purple_strequal(message, purple_status_get_attr_string(status, "message")))
 			{
 				/* Selected status and previous status is the same */
@@ -2483,7 +2483,7 @@ activate_currently_selected_status(PidginStatusBox *status_box)
 		status_type = find_status_type_by_index(status_box->account, active);
 		id = purple_status_type_get_id(status_type);
 
-		if (g_str_equal(id, purple_status_get_id(status)) &&
+		if (purple_strequal(id, purple_status_get_id(status)) &&
 			purple_strequal(message, purple_status_get_attr_string(status, "message")))
 		{
 			/* Selected status and previous status is the same */
@@ -2724,12 +2724,16 @@ get_statusbox_index(PidginStatusBox *box, PurpleSavedStatus *saved_status)
 		/* In reverse order */
 		case PURPLE_STATUS_OFFLINE:
 			index++;
+			/* fall through */
 		case PURPLE_STATUS_INVISIBLE:
 			index++;
+			/* fall through */
 		case PURPLE_STATUS_UNAVAILABLE:
 			index++;
+			/* fall through */
 		case PURPLE_STATUS_AWAY:
 			index++;
+			/* fall through */
 		case PURPLE_STATUS_AVAILABLE:
 			index++;
 			break;

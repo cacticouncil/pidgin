@@ -107,7 +107,8 @@ my %localeNames = (
   "es" =>	["Spanish", "WINDOWS-1252", "1034"],
   "et" =>	["Estonian", "WINDOWS-1257", "1061"],
   "eu" =>	["Basque", "WINDOWS-1252", "1069"],
-  "fa" =>	["Farsi", "WINDOWS-1256", "1065"],
+#Some values in the farsi translation can't be represented in what iconv thinks is WINDOWS-1256, so we disable it
+#  "fa" =>	["Farsi", "WINDOWS-1256", "1065"],
   "fi" =>	["Finnish", "WINDOWS-1252", "1035"],
   "fr" =>	["French", "WINDOWS-1252", "1036"],
   "ga" =>	["Irish", "WINDOWS-1252", "2108"],
@@ -174,19 +175,29 @@ my %result;
 open (MYFILE, $translations);
 while (<MYFILE>) {
     chomp $_;
-    if ($_ =~ /Encoding=UTF-8/)
+    if ($_ =~ /^Encoding=UTF-8/ || $_ =~ /^\s*$/ || $_ =~ /^\[Desktop Entry\]/ || $_ =~ /^#/)
     {
-	next;
+        next;
     }
     elsif ($_ =~ /^(\w+)=(.*)/)
     {
-	my $line = "!define $1 \"$2\"\n";
-	$result{"en"}{"$1"} = $line;
+        my $key = $1;
+        my $lang = "en";
+        my $value = $2;
+        $value =~ s/["]/\$\\"/g;
+        $result{"$lang"}{"$key"} = "!define $key \"$value\"\n";
     }
-    elsif ($_ =~ /^(\w+)\[(\w+)\]=(.*)/)
+    elsif ($_ =~ /^(\w+)\[([\w@]+)\]=(.*)/)
     {
-	my $line = "!define $1 \"$3\"\n";
-	$result{"$2"}{"$1"} = $line;
+        my $key = $1;
+        my $lang = $2;
+        my $value = $3;
+        $value =~ s/["]/\$\\"/g;
+        $result{"$lang"}{"$key"} = "!define $key \"$value\"\n";
+    }
+    else
+    {
+        print "Found unrecognized line: '$_'\n";
     }
 }
 close (MYFILE);
@@ -265,7 +276,11 @@ $gcomprisLanguages .= '
 $gcomprisLanguages .= '
 !macro GCOMPRIS_MACRO_INCLUDE_LANGFILE LANG FILE
   !insertmacro GCOMPRIS_MACRO_LANGUAGEFILE_BEGIN "${LANG}"
-  !include "${FILE}"
+  !if /FileExists "${FILE}.utf8"
+    !include /CHARSET=UTF8 "${FILE}.utf8"
+  !else
+    !include /CHARSET=ACP "${FILE}"
+  !endif
   !insertmacro GCOMPRIS_MACRO_LANGUAGEFILE_END
 !macroend
 ';

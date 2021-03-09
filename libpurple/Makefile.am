@@ -9,10 +9,10 @@ EXTRA_DIST = \
 		purple-send-async \
 		purple-url-handler \
 		purple.h.in \
-		purple.pc.in \
-		purple-uninstalled.pc.in \
 		version.h.in \
 		Makefile.mingw \
+		data/purple.pc.in \
+		data/purple-uninstalled.pc.in \
 		win32/global.mak \
 		win32/libc_interface.c \
 		win32/libc_interface.h \
@@ -26,11 +26,8 @@ EXTRA_DIST = \
 		win32/win32dep.h
 
 if USE_GCONFTOOL
-GCONF_DIR=gconf
+GCONF_DIR=data/gconf
 endif
-
-pkgconfigdir = $(libdir)/pkgconfig
-pkgconfig_DATA = purple.pc
 
 SUBDIRS = $(GCONF_DIR) plugins protocols ciphers . tests example
 
@@ -50,6 +47,7 @@ purple_coresources = \
 	desktopitem.c \
 	eventloop.c \
 	ft.c \
+	glibcompat.c \
 	idle.c \
 	imgstore.c \
 	log.c \
@@ -118,6 +116,7 @@ purple_coreheaders = \
 	eventloop.h \
 	ft.h \
 	gaim-compat.h \
+	glibcompat.h \
 	idle.h \
 	imgstore.h \
 	log.h \
@@ -156,7 +155,6 @@ purple_coreheaders = \
 	theme-manager.h \
 	upnp.h \
 	util.h \
-	valgrind.h \
 	value.h \
 	xmlnode.h \
 	whiteboard.h
@@ -298,6 +296,9 @@ mediaincludedir=$(includedir)/libpurple/media
 mediainclude_HEADERS = \
 	$(addprefix $(srcdir)/media/, $(purple_mediaheaders))
 
+pkgconfigdir = $(libdir)/pkgconfig
+pkgconfig_DATA = data/purple.pc
+
 libpurple_la_DEPENDENCIES = $(STATIC_LINK_LIBS)
 libpurple_la_LDFLAGS = -export-dynamic -version-info $(PURPLE_LT_VERSION_INFO) -no-undefined
 libpurple_la_LIBADD = \
@@ -307,8 +308,10 @@ libpurple_la_LIBADD = \
 	$(LIBXML_LIBS) \
 	$(NETWORKMANAGER_LIBS) \
 	$(INTLLIBS) \
-	$(FARSIGHT_LIBS) \
+	$(FARSTREAM_LIBS) \
 	$(GSTREAMER_LIBS) \
+	$(GSTVIDEO_LIBS) \
+	$(GSTAPP_LIBS) \
 	$(GSTINTERFACES_LIBS) \
 	$(IDN_LIBS) \
 	ciphers/libpurple-ciphers.la \
@@ -323,8 +326,10 @@ AM_CPPFLAGS = \
 	$(DEBUG_CFLAGS) \
 	$(DBUS_CFLAGS) \
 	$(LIBXML_CFLAGS) \
-	$(FARSIGHT_CFLAGS) \
+	$(FARSTREAM_CFLAGS) \
 	$(GSTREAMER_CFLAGS) \
+	$(GSTVIDEO_CFLAGS) \
+	$(GSTAPP_CFLAGS) \
 	$(GSTINTERFACES_CFLAGS) \
 	$(IDN_CFLAGS) \
 	$(NETWORKMANAGER_CFLAGS)

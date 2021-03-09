@@ -62,7 +62,7 @@ new_node(const char *name, XMLNodeType type)
 xmlnode*
 xmlnode_new(const char *name)
 {
-	g_return_val_if_fail(name != NULL, NULL);
+	g_return_val_if_fail(name != NULL && *name != '\0', NULL);
 
 	return new_node(name, XMLNODE_TYPE_TAG);
 }
@@ -73,7 +73,7 @@ xmlnode_new_child(xmlnode *parent, const char *name)
 	xmlnode *node;
 
 	g_return_val_if_fail(parent != NULL, NULL);
-	g_return_val_if_fail(name != NULL, NULL);
+	g_return_val_if_fail(name != NULL && *name != '\0', NULL);
 
 	node = new_node(name, XMLNODE_TYPE_TAG);
 
@@ -109,7 +109,7 @@ xmlnode_insert_data(xmlnode *node, const char *data, gssize size)
 	g_return_if_fail(data != NULL);
 	g_return_if_fail(size != 0);
 
-	real_size = size == -1 ? strlen(data) : size;
+	real_size = size == -1 ? strlen(data) : (gsize)size;
 
 	child = new_node(NULL, XMLNODE_TYPE_DATA);
 
@@ -711,7 +711,7 @@ xmlnode_from_str(const char *str, gssize size)
 
 	g_return_val_if_fail(str != NULL, NULL);
 
-	real_size = size < 0 ? strlen(str) : size;
+	real_size = size < 0 ? strlen(str) : (gsize)size;
 	xpd = g_new0(struct _xmlnode_parser_data, 1);
 
 	if (xmlSAXUserParseMemory(&xmlnode_parser_libxml, xpd, str, real_size) < 0) {
@@ -842,8 +842,7 @@ xmlnode_copy(const xmlnode *src)
 			sibling->next = xmlnode_copy(child);
 			sibling = sibling->next;
 		} else {
-			ret->child = xmlnode_copy(child);
-			sibling = ret->child;
+			ret->child = sibling = xmlnode_copy(child);
 		}
 		sibling->parent = ret;
 	}

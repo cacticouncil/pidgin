@@ -39,7 +39,7 @@
 #include "iq.h"
 #include "si.h"
 
-#define STREAMHOST_CONNECT_TIMEOUT 15
+#define STREAMHOST_CONNECT_TIMEOUT 5
 #define ENABLE_FT_THUMBNAILS 0
 
 typedef struct _JabberSIXfer {
@@ -58,7 +58,7 @@ typedef struct _JabberSIXfer {
 		STREAM_METHOD_UNKNOWN     = 0,
 		STREAM_METHOD_BYTESTREAMS = 2 << 1,
 		STREAM_METHOD_IBB         = 2 << 2,
-		STREAM_METHOD_UNSUPPORTED = 2 << 31
+		STREAM_METHOD_UNSUPPORTED = 2 << 30
 	} stream_method;
 
 	GList *streamhosts;
@@ -89,7 +89,7 @@ jabber_si_xfer_find(JabberStream *js, const char *sid, const char *from)
 		PurpleXfer *xfer = xfers->data;
 		JabberSIXfer *jsx = xfer->data;
 		if(jsx->stream_id && xfer->who &&
-				!strcmp(jsx->stream_id, sid) && !strcmp(xfer->who, from))
+				purple_strequal(jsx->stream_id, sid) && purple_strequal(xfer->who, from))
 			return xfer;
 	}
 
@@ -356,13 +356,17 @@ void jabber_bytestreams_parse(JabberStream *js, const char *from,
 				((host = xmlnode_get_attrib(streamhost, "host")) &&
 				(port = xmlnode_get_attrib(streamhost, "port")) &&
 				(portnum = atoi(port))))) {
-			JabberBytestreamsStreamhost *sh = g_new0(JabberBytestreamsStreamhost, 1);
-			sh->jid = g_strdup(jid);
-			sh->host = g_strdup(host);
-			sh->port = portnum;
-			sh->zeroconf = g_strdup(zeroconf);
-			/* If there were a lot of these, it'd be worthwhile to prepend and reverse. */
-			jsx->streamhosts = g_list_append(jsx->streamhosts, sh);
+			/* ignore 0.0.0.0 */
+			if(purple_strequal(host, "0.0.0.0") == FALSE) {
+				JabberBytestreamsStreamhost *sh = g_new0(JabberBytestreamsStreamhost, 1);
+				sh->jid = g_strdup(jid);
+				sh->host = g_strdup(host);
+				sh->port = portnum;
+				sh->zeroconf = g_strdup(zeroconf);
+
+				/* If there were a lot of these, it'd be worthwhile to prepend and reverse. */
+				jsx->streamhosts = g_list_append(jsx->streamhosts, sh);
+			}
 		}
 	}
 
@@ -446,7 +450,7 @@ jabber_si_xfer_bytestreams_send_read_again_cb(gpointer data, gint source,
 		close(source);
 		purple_xfer_cancel_remote(xfer);
 		return;
-	} else if(jsx->rxlen - 5 <  jsx->rxqueue[4] + 2) {
+	} else if(jsx->rxlen - 5 < (size_t)jsx->rxqueue[4] + 2) {
 		/* Upper-bound of 257 (jsx->rxlen = 5, jsx->rxqueue[4] = 0xFF) */
 		unsigned short to_read = jsx->rxqueue[4] + 2 - (jsx->rxlen - 5);
 		purple_debug_info("jabber", "reading %u bytes for DST.ADDR + port num (trying to read %hu now)\n",
@@ -467,7 +471,7 @@ jabber_si_xfer_bytestreams_send_read_again_cb(gpointer data, gint source,
 	}
 
 	/* Have we not read all of DST.ADDR and the following 2-byte port number? */
-	if(jsx->rxlen - 5 < jsx->rxqueue[4] + 2)
+	if(jsx->rxlen - 5 < (size_t)jsx->rxqueue[4] + 2)
 		return;
 
 	purple_input_remove(xfer->watcher);
@@ -594,7 +598,7 @@ jabber_si_xfer_bytestreams_send_read_cb(gpointer data, gint source,
 		memcpy(jsx->rxqueue + jsx->rxlen, buffer, len);
 		jsx->rxlen += len;
 		return;
-	} else if(jsx->rxlen - 2 < jsx->rxqueue[1]) {
+	} else if(jsx->rxlen - 2 < (size_t)jsx->rxqueue[1]) {
 		/* Has a maximum value of 255 (jsx->rxlen = 2, jsx->rxqueue[1] = 0xFF) */
 		unsigned short to_read = jsx->rxqueue[1] - (jsx->rxlen - 2);
 		purple_debug_info("jabber", "reading %u bytes for auth methods (trying to read %hu now)\n",
@@ -615,7 +619,7 @@ jabber_si_xfer_bytestreams_send_read_cb(gpointer data, gint source,
 	}
 
 	/* Have we not read all the auth. method bytes? */
-	if(jsx->rxlen -2 < jsx->rxqueue[1])
+	if(jsx->rxlen -2 < (size_t)jsx->rxqueue[1])
 		return;
 
 	purple_input_remove(xfer->watcher);
@@ -681,7 +685,7 @@ jabber_si_xfer_bytestreams_send_connected_cb(gpointer data, gint source,
 {
 	PurpleXfer *xfer = data;
 	JabberSIXfer *jsx = xfer->data;
-	int acceptfd, flags;
+	int acceptfd;
 
 	purple_debug_info("jabber", "in jabber_si_xfer_bytestreams_send_connected_cb\n");
 
@@ -698,11 +702,7 @@ jabber_si_xfer_bytestreams_send_connected_cb(gpointer data, gint source,
 	close(source);
 	jsx->local_streamhost_fd = -1;
 
-	flags = fcntl(acceptfd, F_GETFL);
-	fcntl(acceptfd, F_SETFL, flags | O_NONBLOCK);
-#ifndef _WIN32
-	fcntl(acceptfd, F_SETFD, FD_CLOEXEC);
-#endif
+	_purple_network_set_common_socket_flags(acceptfd);
 
 	xfer->watcher = purple_input_add(acceptfd, PURPLE_INPUT_READ,
 					 jabber_si_xfer_bytestreams_send_read_cb, xfer);
@@ -779,7 +779,7 @@ jabber_si_connect_proxy_cb(JabberStream *js, const char *from,
 	{
 		gchar *my_jid = g_strdup_printf("%s@%s/%s", jsx->js->user->node,
 			jsx->js->user->domain, jsx->js->user->resource);
-		if (!strcmp(jid, my_jid)) {
+		if (purple_strequal(jid, my_jid)) {
 			purple_debug_info("jabber", "Got local SOCKS5 streamhost-used.\n");
 			purple_xfer_start(xfer, xfer->fd, NULL, -1);
 		} else {
@@ -866,7 +866,7 @@ jabber_si_xfer_bytestreams_listen_cb(int sock, gpointer data)
 		jid = g_strdup_printf("%s@%s/%s", jsx->js->user->node,
 			jsx->js->user->domain, jsx->js->user->resource);
 		xfer->local_port = purple_network_get_port_from_fd(sock);
-		g_snprintf(port, sizeof(port), "%hu", xfer->local_port);
+		g_snprintf(port, sizeof(port), "%hu", (guint16)xfer->local_port);
 
 		public_ip = purple_network_get_my_ip(jsx->js->fd);
 
@@ -885,7 +885,7 @@ jabber_si_xfer_bytestreams_listen_cb(int sock, gpointer data)
 		}
 
 		/* Include the public IP (assuming that there is a port mapped somehow) */
-		if (!has_public_ip && strcmp(public_ip, "0.0.0.0") != 0) {
+		if (!has_public_ip && !purple_strequal(public_ip, "0.0.0.0")) {
 			streamhost_count++;
 			streamhost = xmlnode_new_child(query, "streamhost");
 			xmlnode_set_attrib(streamhost, "jid", jid);
@@ -917,7 +917,7 @@ jabber_si_xfer_bytestreams_listen_cb(int sock, gpointer data)
 		streamhost = xmlnode_new_child(query, "streamhost");
 		xmlnode_set_attrib(streamhost, "jid", sh->jid);
 		xmlnode_set_attrib(streamhost, "host", sh->host);
-		g_snprintf(port, sizeof(port), "%hu", sh->port);
+		g_snprintf(port, sizeof(port), "%hu", (guint16)sh->port);
 		xmlnode_set_attrib(streamhost, "port", port);
 
 		sh2 = g_new0(JabberBytestreamsStreamhost, 1);
@@ -1208,14 +1208,14 @@ static void jabber_si_xfer_send_method_cb(JabberStream *js, const char *from,
 		const char *var = xmlnode_get_attrib(field, "var");
 		JabberSIXfer *jsx = (JabberSIXfer *) xfer->data;
 
-		if(var && !strcmp(var, "stream-method")) {
+		if(purple_strequal(var, "stream-method")) {
 			if((value = xmlnode_get_child(field, "value"))) {
 				char *val = xmlnode_get_data(value);
-				if(val && !strcmp(val, NS_BYTESTREAMS)) {
+				if(purple_strequal(val, NS_BYTESTREAMS)) {
 					jabber_si_xfer_bytestreams_send_init(xfer);
 					jsx->stream_method |= STREAM_METHOD_BYTESTREAMS;
 					found_method = TRUE;
-				} else if (val && !strcmp(val, NS_IBB)) {
+				} else if (purple_strequal(val, NS_IBB)) {
 					jsx->stream_method |= STREAM_METHOD_IBB;
 					if (!found_method) {
 						/* we haven't tried to init a bytestream session, yet
@@ -1700,7 +1700,7 @@ void jabber_si_parse(JabberStream *js, const char *from, JabberIqType type,
 	size_t filesize = 0;
 
 	if(!(profile = xmlnode_get_attrib(si, "profile")) ||
-			strcmp(profile, NS_SI_FILE_TRANSFER))
+			!purple_strequal(profile, NS_SI_FILE_TRANSFER))
 		return;
 
 	if(!(stream_id = xmlnode_get_attrib(si, "id")))
@@ -1714,8 +1714,13 @@ void jabber_si_parse(JabberStream *js, const char *from, JabberIqType type,
 
 	if((filesize_c = xmlnode_get_attrib(file, "size")))
 		filesize_64 = g_ascii_strtoull(filesize_c, NULL, 10);
+
+#ifndef __COVERITY__
 	/* TODO 3.0.0: When the core uses a guint64, this is redundant.
 	 * See #8477.
+	 *
+	 * It may not be necessary on 64-bit machine.
+	 * It raises result_independent_of_operands coverity false positive.
 	 */
 	if (filesize_64 > G_MAXSIZE) {
 		/* Should this pop up a warning? */
@@ -1723,6 +1728,7 @@ void jabber_si_parse(JabberStream *js, const char *from, JabberIqType type,
 		                     " -- see #8477 for more details.");
 		return;
 	}
+#endif
 	filesize = filesize_64;
 
 	if(!(feature = xmlnode_get_child(si, "feature")))
@@ -1747,15 +1753,15 @@ void jabber_si_parse(JabberStream *js, const char *from, JabberIqType type,
 
 	for(field = xmlnode_get_child(x, "field"); field; field = xmlnode_get_next_twin(field)) {
 		const char *var = xmlnode_get_attrib(field, "var");
-		if(var && !strcmp(var, "stream-method")) {
+		if(purple_strequal(var, "stream-method")) {
 			for(option = xmlnode_get_child(field, "option"); option;
 					option = xmlnode_get_next_twin(option)) {
 				if((value = xmlnode_get_child(option, "value"))) {
 					char *val;
 					if((val = xmlnode_get_data(value))) {
-						if(!strcmp(val, NS_BYTESTREAMS)) {
+						if(purple_strequal(val, NS_BYTESTREAMS)) {
 							jsx->stream_method |= STREAM_METHOD_BYTESTREAMS;
-						} else if(!strcmp(val, NS_IBB)) {
+						} else if(purple_strequal(val, NS_IBB)) {
 							jsx->stream_method |= STREAM_METHOD_IBB;
 						}
 						g_free(val);

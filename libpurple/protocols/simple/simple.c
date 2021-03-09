@@ -72,7 +72,12 @@ static void simple_keep_alive(PurpleConnection *gc) {
 			 remain in the NAT table */
 		gchar buf[2] = {0, 0};
 		purple_debug_info("simple", "sending keep alive\n");
-		sendto(sip->fd, buf, 1, 0, (struct sockaddr*)&sip->serveraddr, sizeof(struct sockaddr_in));
+		if (sendto(sip->fd, buf, 1, 0,
+			(struct sockaddr*)&sip->serveraddr,
+			sizeof(struct sockaddr_in)) != 1)
+		{
+			purple_debug_error("simple", "failed sending keep alive\n");
+		}
 	}
 	return;
 }
@@ -138,7 +143,7 @@ static struct simple_watcher *watcher_find(struct simple_account_data *sip,
 	GSList *entry = sip->watcher;
 	while(entry) {
 		watcher = entry->data;
-		if(!strcmp(name, watcher->name)) return watcher;
+		if(purple_strequal(name, watcher->name)) return watcher;
 		entry = entry->next;
 	}
 	return NULL;
@@ -614,7 +619,7 @@ static struct transaction *transactions_find(struct simple_account_data *sip, st
 	if (cseq) {
 		while(transactions) {
 			trans = transactions->data;
-			if(!strcmp(trans->cseq, cseq)) {
+			if(purple_strequal(trans->cseq, cseq)) {
 				return trans;
 			}
 			transactions = transactions->next;
@@ -637,7 +642,7 @@ static void send_sip_request(PurpleConnection *gc, const gchar *method,
 	gchar *tag = NULL;
 	char *buf;
 
-	if(!strcmp(method, "REGISTER")) {
+	if(purple_strequal(method, "REGISTER")) {
 		if(sip->regcallid) {
 			g_free(callid);
 			callid = g_strdup(sip->regcallid);
@@ -646,12 +651,12 @@ static void send_sip_request(PurpleConnection *gc, const gchar *method,
 	}
 
 	if(addheaders) addh = addheaders;
-	if(sip->registrar.type && !strcmp(method, "REGISTER")) {
+	if(sip->registrar.type && purple_strequal(method, "REGISTER")) {
 		buf = auth_header(sip, &sip->registrar, method, url);
 		auth = g_strdup_printf("Authorization: %s\r\n", buf);
 		g_free(buf);
 		purple_debug(PURPLE_DEBUG_MISC, "simple", "header %s", auth);
-	} else if(sip->proxy.type && strcmp(method, "REGISTER")) {
+	} else if(sip->proxy.type && !purple_strequal(method, "REGISTER")) {
 		buf = auth_header(sip, &sip->proxy, method, url);
 		auth = g_strdup_printf("Proxy-Authorization: %s\r\n", buf);
 		g_free(buf);
@@ -901,11 +906,11 @@ static gboolean simple_add_lcs_contacts(struct simple_account_data *sip, struct 
 
 		for(item = xmlnode_get_child(isc, "contact"); item; item = xmlnode_get_next_twin(item))
 		{
-			const char *uri, *name, *groups;
+			const char *uri;
 			char *buddy_name;
 			uri = xmlnode_get_attrib(item, "uri");
-			name = xmlnode_get_attrib(item, "name");
-			groups = xmlnode_get_attrib(item, "groups");
+			/*name = xmlnode_get_attrib(item, "name");
+			groups = xmlnode_get_attrib(item, "groups");*/
 			purple_debug_info("simple", "URI->%s\n", uri);
 
 			buddy_name = g_strdup_printf("sip:%s", uri);
@@ -1169,9 +1174,9 @@ static gboolean dialog_match(struct sip_dialog *dialog, struct sipmsg *msg)
 	theirtag = find_tag(fromhdr);
 
 	if (ourtag && theirtag &&
-			!strcmp(dialog->callid, callid) &&
-			!strcmp(dialog->ourtag, ourtag) &&
-			!strcmp(dialog->theirtag, theirtag))
+			purple_strequal(dialog->callid, callid) &&
+			purple_strequal(dialog->ourtag, ourtag) &&
+			purple_strequal(dialog->theirtag, theirtag))
 		match = TRUE;
 
 	g_free(ourtag);
@@ -1503,13 +1508,13 @@ privend:
 static void process_input_message(struct simple_account_data *sip, struct sipmsg *msg) {
 	gboolean found = FALSE;
 	if(msg->response == 0) { /* request */
-		if(!strcmp(msg->method, "MESSAGE")) {
+		if(purple_strequal(msg->method, "MESSAGE")) {
 			process_incoming_message(sip, msg);
 			found = TRUE;
-		} else if(!strcmp(msg->method, "NOTIFY")) {
+		} else if(purple_strequal(msg->method, "NOTIFY")) {
 			process_incoming_notify(sip, msg);
 			found = TRUE;
-		} else if(!strcmp(msg->method, "SUBSCRIBE")) {
+		} else if(purple_strequal(msg->method, "SUBSCRIBE")) {
 			process_incoming_subscribe(sip, msg);
 			found = TRUE;
 		} else {
@@ -1543,7 +1548,7 @@ static void process_input_message(struct simple_account_data *sip, struct sipmsg
 					purple_debug_info("simple", "got trying response\n");
 				} else {
 					sip->proxy.retries = 0;
-					if(!strcmp(trans->msg->method, "REGISTER")) {
+					if(purple_strequal(trans->msg->method, "REGISTER")) {
 
 						/* This is encountered when a REGISTER request was ...
 						 */
@@ -1640,7 +1645,7 @@ static void process_input(struct simple_account_data *sip, struct sip_connection
 		cur += 2;
 		restlen = conn->inbufused - (cur - conn->inbuf);
 		if(restlen >= msg->bodylen) {
-			dummy = g_malloc(msg->bodylen + 1);
+			dummy = g_new(char, msg->bodylen + 1);
 			memcpy(dummy, cur, msg->bodylen);
 			dummy[msg->bodylen] = '\0';
 			msg->body = dummy;
@@ -1716,15 +1721,12 @@ static void simple_newconn_cb(gpointer data, gint source, PurpleInputCondition c
 	PurpleConnection *gc = data;
 	struct simple_account_data *sip = gc->proto_data;
 	struct sip_connection *conn;
-	int newfd, flags;
+	int newfd;
 
 	newfd = accept(source, NULL, NULL);
+	g_return_if_fail(newfd >= 0);
 
-	flags = fcntl(newfd, F_GETFL);
-	fcntl(newfd, F_SETFL, flags | O_NONBLOCK);
-#ifndef _WIN32
-	fcntl(newfd, F_SETFD, FD_CLOEXEC);
-#endif
+	_purple_network_set_common_socket_flags(newfd);
 
 	conn = connection_create(sip, newfd);
 
@@ -1932,6 +1934,8 @@ static void simple_login(PurpleAccount *account)
 
 	gc->proto_data = sip = g_new0(struct simple_account_data, 1);
 	sip->gc = gc;
+	sip->fd = -1;
+	sip->listenfd = -1;
 	sip->account = account;
 	sip->registerexpire = 900;
 	sip->udp = purple_account_get_bool(account, "udp", FALSE);
@@ -2115,7 +2119,10 @@ static PurplePluginProtocolInfo prpl_info =
 	NULL,					/* set_public_alias */
 	NULL,					/* get_public_alias */
 	NULL,					/* add_buddy_with_invite */
-	NULL					/* add_buddies_with_invite */
+	NULL,					/* add_buddies_with_invite */
+	NULL,					/* get_cb_alias */
+	NULL,					/* chat_can_receive_file */
+	NULL,					/* chat_send_file */
 };
 
 

@@ -174,6 +174,8 @@ static void
 jingle_rawudp_set_property (GObject *object, guint prop_id, const GValue *value, GParamSpec *pspec)
 {
 	JingleRawUdp *rawudp;
+
+	g_return_if_fail(object != NULL);
 	g_return_if_fail(JINGLE_IS_RAWUDP(object));
 
 	rawudp = JINGLE_RAWUDP(object);
@@ -197,6 +199,8 @@ static void
 jingle_rawudp_get_property (GObject *object, guint prop_id, GValue *value, GParamSpec *pspec)
 {
 	JingleRawUdp *rawudp;
+
+	g_return_if_fail(object != NULL);
 	g_return_if_fail(JINGLE_IS_RAWUDP(object));
 
 	rawudp = JINGLE_RAWUDP(object);
@@ -221,7 +225,7 @@ jingle_rawudp_add_local_candidate(JingleRawUdp *rawudp, JingleRawUdpCandidate *c
 
 	for (; iter; iter = g_list_next(iter)) {
 		JingleRawUdpCandidate *c = iter->data;
-		if (!strcmp(c->id, candidate->id)) {
+		if (purple_strequal(c->id, candidate->id)) {
 			guint generation = c->generation + 1;
 
 			g_boxed_free(JINGLE_TYPE_RAWUDP_CANDIDATE, c);
@@ -252,7 +256,7 @@ jingle_rawudp_get_remote_candidate_by_id(JingleRawUdp *rawudp, gchar *id)
 	GList *iter = rawudp->priv->remote_candidates;
 	for (; iter; iter = g_list_next(iter)) {
 		JingleRawUdpCandidate *candidate = iter->data;
-		if (!strcmp(candidate->id, id)) {
+		if (purple_strequal(candidate->id, id)) {
 			return candidate;
 		}
 	}

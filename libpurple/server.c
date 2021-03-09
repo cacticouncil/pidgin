@@ -567,6 +567,14 @@ void serv_got_im(PurpleConnection *gc, const char *who, const char *msg,
 
 	account  = purple_connection_get_account(gc);
 
+	if (mtime < 0) {
+		purple_debug_error("server",
+				"serv_got_im ignoring negative timestamp\n");
+		/* TODO: Would be more appropriate to use a value that indicates
+		   that the timestamp is unknown, and surface that in the UI. */
+		mtime = time(NULL);
+	}
+
 	/*
 	 * XXX: Should we be setting this here, or relying on prpls to set it?
 	 */
@@ -782,7 +790,6 @@ void serv_got_chat_invite(PurpleConnection *gc, const char *name,
 						  const char *who, const char *message, GHashTable *data)
 {
 	PurpleAccount *account;
-	char buf2[BUF_LONG];
 	struct chat_invite_data *cid;
 	int plugin_return;
 
@@ -807,14 +814,16 @@ void serv_got_chat_invite(PurpleConnection *gc, const char *name,
 
 	if (plugin_return == 0)
 	{
+		char *buf2;
+
 		if (message != NULL)
 		{
-			g_snprintf(buf2, sizeof(buf2),
+			buf2 = g_strdup_printf(
 				   _("%s has invited %s to the chat room %s:\n%s"),
 				   who, purple_account_get_username(account), name, message);
 		}
 		else
-			g_snprintf(buf2, sizeof(buf2),
+			buf2 = g_strdup_printf(
 				   _("%s has invited %s to the chat room %s\n"),
 				   who, purple_account_get_username(account), name);
 
@@ -823,6 +832,8 @@ void serv_got_chat_invite(PurpleConnection *gc, const char *name,
 							   PURPLE_DEFAULT_ACTION_NONE, account, who, NULL,
 							   cid, G_CALLBACK(chat_invite_accept),
 							   G_CALLBACK(chat_invite_reject));
+
+		g_free(buf2);
 	}
 	else if (plugin_return > 0)
 		chat_invite_accept(cid);
@@ -905,6 +916,14 @@ void serv_got_chat_in(PurpleConnection *g, int id, const char *who,
 	g_return_if_fail(who != NULL);
 	g_return_if_fail(message != NULL);
 
+	if (mtime < 0) {
+		purple_debug_error("server",
+				"serv_got_chat_in ignoring negative timestamp\n");
+		/* TODO: Would be more appropriate to use a value that indicates
+		   that the timestamp is unknown, and surface that in the UI. */
+		mtime = time(NULL);
+	}
+
 	for (bcs = g->buddy_chats; bcs != NULL; bcs = bcs->next) {
 		conv = (PurpleConversation *)bcs->data;
 
@@ -963,13 +982,30 @@ void serv_send_file(PurpleConnection *gc, const char *who, const char *file)
 	PurplePlugin *prpl;
 	PurplePluginProtocolInfo *prpl_info;
 
-	if (gc) {
-		prpl = purple_connection_get_prpl(gc);
-		prpl_info = PURPLE_PLUGIN_PROTOCOL_INFO(prpl);
+	g_return_if_fail(gc != NULL);
 
-		if (prpl_info->send_file &&
-				(!prpl_info->can_receive_file
-						|| prpl_info->can_receive_file(gc, who)))
-			prpl_info->send_file(gc, who, file);
+	prpl = purple_connection_get_prpl(gc);
+	prpl_info = PURPLE_PLUGIN_PROTOCOL_INFO(prpl);
+
+	if (prpl_info->send_file && (!prpl_info->can_receive_file
+				     || prpl_info->can_receive_file(gc, who))) {
+		prpl_info->send_file(gc, who, file);
+	}
+}
+
+void serv_chat_send_file(PurpleConnection *gc, int id, const char *file)
+{
+	PurplePlugin *prpl;
+	PurplePluginProtocolInfo *prpl_info;
+
+	g_return_if_fail(gc != NULL);
+
+	prpl = purple_connection_get_prpl(gc);
+	prpl_info = PURPLE_PLUGIN_PROTOCOL_INFO(prpl);
+
+	if (PURPLE_PROTOCOL_PLUGIN_HAS_FUNC(prpl_info, chat_send_file) &&
+	    (!PURPLE_PROTOCOL_PLUGIN_HAS_FUNC(prpl_info, chat_can_receive_file)
+	     || prpl_info->chat_can_receive_file(gc, id))) {
+		prpl_info->chat_send_file(gc, id, file);
 	}
 }

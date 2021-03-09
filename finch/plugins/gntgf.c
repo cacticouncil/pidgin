@@ -179,8 +179,8 @@ notify(PurpleConversation *conv, const char *fmt, ...)
 #endif
 
 	window = gnt_vbox_new(FALSE);
-	GNT_WIDGET_SET_FLAGS(window, GNT_WIDGET_TRANSIENT);
-	GNT_WIDGET_UNSET_FLAGS(window, GNT_WIDGET_NO_BORDER);
+	gnt_widget_set_transient(window, TRUE);
+	gnt_widget_set_has_border(window, TRUE);
 
 	va_start(args, fmt);
 	str = g_strdup_vprintf(fmt, args);
@@ -334,6 +334,7 @@ config_frame(void)
 	gnt_box_set_fill(GNT_BOX(window), TRUE);
 
 	gnt_box_add_widget(GNT_BOX(window),
+			/* Translators: "toaster" here means "pop-up". */
 			gnt_label_new(_("Notify with a toaster when")));
 
 	tree = gnt_tree_new();
@@ -377,7 +378,9 @@ static PurplePluginInfo info =
 	"gntgf",
 	N_("GntGf"),
 	DISPLAY_VERSION,
+	/* Translators: "toaster" here means "pop-up". */
 	N_("Toaster plugin"),
+	/* Translators: "toaster" here means "pop-up". */
 	N_("Toaster plugin"),
 	"Sadrul H Chowdhury <sadrul@users.sourceforge.net>",
 	PURPLE_WEBSITE,

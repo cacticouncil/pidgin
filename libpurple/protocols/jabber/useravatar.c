@@ -113,6 +113,7 @@ void jabber_avatar_set(JabberStream *js, PurpleStoredImage *img)
 		 *       and width.
 		 */
 		/* A PNG header, including the IHDR, but nothing else */
+		/* ATTN: this is in network byte order! */
 		const struct {
 			guchar signature[8]; /* must be hex 89 50 4E 47 0D 0A 1A 0A */
 			struct {
@@ -126,10 +127,13 @@ void jabber_avatar_set(JabberStream *js, PurpleStoredImage *img)
 				guchar filter;
 				guchar interlace;
 			} ihdr;
-		} *png = purple_imgstore_get_data(img); /* ATTN: this is in network byte order! */
+		} *png = NULL;
+
+		if (purple_imgstore_get_size(img) > sizeof(*png))
+			png = purple_imgstore_get_data(img);
 
 		/* check if the data is a valid png file (well, at least to some extent) */
-		if(png->signature[0] == 0x89 &&
+		if(png && png->signature[0] == 0x89 &&
 		   png->signature[1] == 0x50 &&
 		   png->signature[2] == 0x4e &&
 		   png->signature[3] == 0x47 &&
@@ -348,17 +352,17 @@ update_buddy_metadata(JabberStream *js, const char *from, xmlnode *items)
 		for(info = metadata->child; info; info = info->next) {
 			if(info->type == XMLNODE_TYPE_TAG)
 				has_children = TRUE;
-			if(info->type == XMLNODE_TYPE_TAG && !strcmp(info->name,"info")) {
+			if(info->type == XMLNODE_TYPE_TAG && purple_strequal(info->name,"info")) {
 				const char *type = xmlnode_get_attrib(info,"type");
 				const char *id = xmlnode_get_attrib(info,"id");
 
-				if(checksum && id && !strcmp(id, checksum)) {
+				if(checksum && id && purple_strequal(id, checksum)) {
 					/* we already have that avatar, so we don't have to do anything */
 					goodinfo = NULL;
 					break;
 				}
 				/* We'll only pick the png one for now. It's a very nice image format anyways. */
-				if(type && id && !goodinfo && !strcmp(type, "image/png"))
+				if(id && !goodinfo && purple_strequal(type, "image/png"))
 					goodinfo = info;
 			}
 		}

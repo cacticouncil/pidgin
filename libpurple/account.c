@@ -44,6 +44,11 @@
 typedef struct
 {
 	PurpleConnectionErrorInfo *current_error;
+
+	/* libpurple 3.0.0 compatibility */
+	char *password_keyring;
+	char *password_mode;
+	char *password_ciphertext;
 } PurpleAccountPrivate;
 
 #define PURPLE_ACCOUNT_GET_PRIVATE(account) \
@@ -79,6 +84,7 @@ typedef struct
 } PurpleAccountRequestInfo;
 
 static PurpleAccountUiOps *account_ui_ops = NULL;
+static PurpleAccountPrefsUiOps *account_prefs_ui_ops = NULL;
 
 static GList   *accounts = NULL;
 static guint    save_timer = 0;
@@ -88,6 +94,15 @@ static GList *handles = NULL;
 
 static void set_current_error(PurpleAccount *account,
 	PurpleConnectionErrorInfo *new_err);
+
+static void
+_purple_account_set_encrypted_password(PurpleAccount *account, const char *keyring,
+	const char *mode, const char *ciphertext);
+static gboolean
+_purple_account_get_encrypted_password(PurpleAccount *account, const char **keyring,
+	const char **mode, const char **ciphertext);
+static gboolean
+_purple_account_is_password_encrypted(PurpleAccount *account);
 
 /*********************************************************************
  * Writing to disk                                                   *
@@ -381,6 +396,26 @@ account_to_xmlnode(PurpleAccount *account)
 	{
 		child = xmlnode_new_child(node, "password");
 		xmlnode_insert_data(child, tmp, -1);
+	} else if (_purple_account_is_password_encrypted(account)) {
+		const char *keyring = NULL;
+		const char *mode = NULL;
+		const char *ciphertext = NULL;
+		gboolean success;
+
+		purple_debug_warning("account", "saving libpurple3-compatible "
+			"encrypted password\n");
+
+		success = _purple_account_get_encrypted_password(account,
+			&keyring, &mode, &ciphertext);
+		g_warn_if_fail(success);
+
+		child = xmlnode_new_child(node, "password");
+		if (keyring != NULL)
+			xmlnode_set_attrib(child, "keyring_id", keyring);
+		if (mode != NULL)
+			xmlnode_set_attrib(child, "mode", mode);
+		if (ciphertext != NULL)
+			xmlnode_insert_data(child, ciphertext, -1);
 	}
 
 	if ((tmp = purple_account_get_alias(account)) != NULL)
@@ -446,6 +481,7 @@ accounts_to_xmlnode(void)
 static void
 sync_accounts(void)
 {
+	PurpleAccountPrefsUiOps *ui_ops;
 	xmlnode *node;
 	char *data;
 
@@ -453,6 +489,13 @@ sync_accounts(void)
 	{
 		purple_debug_error("account", "Attempted to save accounts before "
 						 "they were read!\n");
+		return;
+	}
+
+	ui_ops = purple_account_prefs_get_ui_ops();
+
+	if (ui_ops != NULL && ui_ops->save != NULL) {
+		ui_ops->save();
 		return;
 	}
 
@@ -474,6 +517,15 @@ save_cb(gpointer data)
 static void
 schedule_accounts_save(void)
 {
+	PurpleAccountPrefsUiOps *ui_ops;
+
+	ui_ops = purple_account_prefs_get_ui_ops();
+
+	if (ui_ops != NULL && ui_ops->schedule_save != NULL) {
+		ui_ops->schedule_save();
+		return;
+	}
+
 	if (save_timer == 0)
 		save_timer = purple_timeout_add_seconds(5, save_cb, NULL);
 }
@@ -482,35 +534,6 @@ schedule_accounts_save(void)
 /*********************************************************************
  * Reading from disk                                                 *
  *********************************************************************/
-static void
-migrate_yahoo_japan(PurpleAccount *account)
-{
-	/* detect a Yahoo! JAPAN account that existed prior to 2.6.0 and convert it
-	 * to use the new prpl-yahoojp.  Also remove the account-specific settings
-	 * we no longer need */
-
-	if(purple_strequal(purple_account_get_protocol_id(account), "prpl-yahoo")) {
-		if(purple_account_get_bool(account, "yahoojp", FALSE)) {
-			const char *serverjp = purple_account_get_string(account, "serverjp", NULL);
-			const char *xferjp_host = purple_account_get_string(account, "xferjp_host", NULL);
-
-			g_return_if_fail(serverjp != NULL);
-			g_return_if_fail(xferjp_host != NULL);
-
-			purple_account_set_string(account, "server", serverjp);
-			purple_account_set_string(account, "xfer_host", xferjp_host);
-
-			purple_account_set_protocol_id(account, "prpl-yahoojp");
-		}
-
-		/* these should always be nuked */
-		purple_account_remove_setting(account, "yahoojp");
-		purple_account_remove_setting(account, "serverjp");
-		purple_account_remove_setting(account, "xferjp_host");
-
-	}
-}
-
 static void
 migrate_icq_server(PurpleAccount *account)
 {
@@ -536,10 +559,10 @@ static void
 migrate_xmpp_encryption(PurpleAccount *account)
 {
 	/* When this is removed, nuke the "old_ssl" and "require_tls" settings */
-	if (g_str_equal(purple_account_get_protocol_id(account), "prpl-jabber")) {
+	if (purple_strequal(purple_account_get_protocol_id(account), "prpl-jabber")) {
 		const char *sec = purple_account_get_string(account, "connection_security", "");
 
-		if (g_str_equal("", sec)) {
+		if (purple_strequal("", sec)) {
 			const char *val = "require_tls";
 			if (purple_account_get_bool(account, "old_ssl", FALSE))
 				val = "old_ssl";
@@ -615,9 +638,6 @@ parse_settings(xmlnode *node, PurpleAccount *account)
 		g_free(data);
 	}
 
-	/* we do this here because we need access to account settings to determine
-	 * if we can/should migrate an old Yahoo! JAPAN account */
-	migrate_yahoo_japan(account);
 	/* we do this here because we need access to account settings to determine
 	 * if we can/should migrate an ICQ account's server setting */
 	migrate_icq_server(account);
@@ -880,10 +900,30 @@ parse_account(xmlnode *node)
 
 	/* Read the password */
 	child = xmlnode_get_child(node, "password");
-	if ((child != NULL) && ((data = xmlnode_get_data(child)) != NULL))
-	{
-		purple_account_set_remember_password(ret, TRUE);
-		purple_account_set_password(ret, data);
+	if (child != NULL) {
+		const char *keyring_id = xmlnode_get_attrib(child, "keyring_id");
+		const char *mode = xmlnode_get_attrib(child, "mode");
+		gboolean is_plaintext;
+
+		data = xmlnode_get_data(child);
+
+		if (keyring_id == NULL || keyring_id[0] == '\0')
+			is_plaintext = TRUE;
+		else if (!purple_strequal(keyring_id, "keyring-internal"))
+			is_plaintext = FALSE;
+		else if (mode == NULL || mode[0] == '\0' || purple_strequal(mode, "cleartext"))
+			is_plaintext = TRUE;
+		else
+			is_plaintext = FALSE;
+
+		if (is_plaintext) {
+			purple_account_set_remember_password(ret, TRUE);
+			purple_account_set_password(ret, data);
+		} else {
+			purple_debug_warning("account", "found encrypted password, "
+				"but it's not supported in 2.x.y\n");
+			_purple_account_set_encrypted_password(ret, keyring_id, mode, data);
+		}
 		g_free(data);
 	}
 
@@ -965,9 +1005,18 @@ parse_account(xmlnode *node)
 static void
 load_accounts(void)
 {
+	PurpleAccountPrefsUiOps *ui_ops;
 	xmlnode *node, *child;
 
 	accounts_loaded = TRUE;
+
+	ui_ops = purple_account_prefs_get_ui_ops();
+
+	if (ui_ops != NULL && ui_ops->load != NULL) {
+		ui_ops->load();
+		_purple_buddy_icons_account_loaded_cb();
+		return;
+	}
 
 	node = purple_util_read_xml_from_file("accounts.xml", _("accounts"));
 
@@ -1116,6 +1165,11 @@ purple_account_destroy(PurpleAccount *account)
 		g_free(priv->current_error->description);
 		g_free(priv->current_error);
 	}
+
+	g_free(priv->password_keyring);
+	g_free(priv->password_mode);
+	g_free(priv->password_ciphertext);
+
 	g_free(priv);
 
 	PURPLE_DBUS_UNREGISTER_POINTER(account);
@@ -1550,7 +1604,7 @@ purple_account_request_change_password(PurpleAccount *account)
 	field = purple_request_field_string_new("password", _("Original password"),
 										  NULL, FALSE);
 	purple_request_field_string_set_masked(field, TRUE);
-	if (!(prpl_info && (prpl_info->options | OPT_PROTO_PASSWORD_OPTIONAL)))
+	if (!prpl_info || !(prpl_info->options & OPT_PROTO_PASSWORD_OPTIONAL))
 		purple_request_field_set_required(field, TRUE);
 	purple_request_field_group_add_field(group, field);
 
@@ -1558,7 +1612,7 @@ purple_account_request_change_password(PurpleAccount *account)
 										  _("New password"),
 										  NULL, FALSE);
 	purple_request_field_string_set_masked(field, TRUE);
-	if (!(prpl_info && (prpl_info->options | OPT_PROTO_PASSWORD_OPTIONAL)))
+	if (!prpl_info || !(prpl_info->options & OPT_PROTO_PASSWORD_OPTIONAL))
 		purple_request_field_set_required(field, TRUE);
 	purple_request_field_group_add_field(group, field);
 
@@ -1566,7 +1620,7 @@ purple_account_request_change_password(PurpleAccount *account)
 										  _("New password (again)"),
 										  NULL, FALSE);
 	purple_request_field_string_set_masked(field, TRUE);
-	if (!(prpl_info && (prpl_info->options | OPT_PROTO_PASSWORD_OPTIONAL)))
+	if (!prpl_info || !(prpl_info->options & OPT_PROTO_PASSWORD_OPTIONAL))
 		purple_request_field_set_required(field, TRUE);
 	purple_request_field_group_add_field(group, field);
 
@@ -1977,6 +2031,7 @@ void
 purple_account_set_int(PurpleAccount *account, const char *name, int value)
 {
 	PurpleAccountSetting *setting;
+	PurpleAccountPrefsUiOps *ui_ops;
 
 	g_return_if_fail(account != NULL);
 	g_return_if_fail(name    != NULL);
@@ -1988,6 +2043,12 @@ purple_account_set_int(PurpleAccount *account, const char *name, int value)
 
 	g_hash_table_insert(account->settings, g_strdup(name), setting);
 
+	ui_ops = purple_account_prefs_get_ui_ops();
+
+	if (ui_ops != NULL && ui_ops->set_int != NULL) {
+		ui_ops->set_int(account, name, value);
+	}
+
 	schedule_accounts_save();
 }
 
@@ -1996,6 +2057,7 @@ purple_account_set_string(PurpleAccount *account, const char *name,
 						const char *value)
 {
 	PurpleAccountSetting *setting;
+	PurpleAccountPrefsUiOps *ui_ops;
 
 	g_return_if_fail(account != NULL);
 	g_return_if_fail(name    != NULL);
@@ -2007,6 +2069,12 @@ purple_account_set_string(PurpleAccount *account, const char *name,
 
 	g_hash_table_insert(account->settings, g_strdup(name), setting);
 
+	ui_ops = purple_account_prefs_get_ui_ops();
+
+	if (ui_ops != NULL && ui_ops->set_string != NULL) {
+		ui_ops->set_string(account, name, value);
+	}
+
 	schedule_accounts_save();
 }
 
@@ -2014,6 +2082,7 @@ void
 purple_account_set_bool(PurpleAccount *account, const char *name, gboolean value)
 {
 	PurpleAccountSetting *setting;
+	PurpleAccountPrefsUiOps *ui_ops;
 
 	g_return_if_fail(account != NULL);
 	g_return_if_fail(name    != NULL);
@@ -2024,6 +2093,12 @@ purple_account_set_bool(PurpleAccount *account, const char *name, gboolean value
 	setting->value.boolean = value;
 
 	g_hash_table_insert(account->settings, g_strdup(name), setting);
+
+	ui_ops = purple_account_prefs_get_ui_ops();
+
+	if (ui_ops != NULL && ui_ops->set_bool != NULL) {
+		ui_ops->set_bool(account, name, value);
+	}
 
 	schedule_accounts_save();
 }
@@ -2979,7 +3054,8 @@ purple_accounts_reorder(PurpleAccount *account, gint new_index)
 	GList *l;
 
 	g_return_if_fail(account != NULL);
-	g_return_if_fail(new_index <= g_list_length(accounts));
+	g_return_if_fail(new_index >= 0);
+	g_return_if_fail((guint)new_index <= g_list_length(accounts));
 
 	index = g_list_index(accounts, account);
 
@@ -3090,6 +3166,18 @@ purple_accounts_get_ui_ops(void)
 	return account_ui_ops;
 }
 
+void
+purple_account_prefs_set_ui_ops(PurpleAccountPrefsUiOps *ops)
+{
+	account_prefs_ui_ops = ops;
+}
+
+PurpleAccountPrefsUiOps *
+purple_account_prefs_get_ui_ops(void)
+{
+	return account_prefs_ui_ops;
+}
+
 void *
 purple_accounts_get_handle(void)
 {
@@ -3146,6 +3234,15 @@ purple_accounts_init(void)
 	purple_signal_register(handle, "account-removed",
 						 purple_marshal_VOID__POINTER, NULL, 1,
 						 purple_value_new(PURPLE_TYPE_SUBTYPE, PURPLE_SUBTYPE_ACCOUNT));
+
+	purple_signal_register(handle, "account-status-changing",
+						 purple_marshal_VOID__POINTER_POINTER_POINTER, NULL, 3,
+						 purple_value_new(PURPLE_TYPE_SUBTYPE,
+										PURPLE_SUBTYPE_ACCOUNT),
+						 purple_value_new(PURPLE_TYPE_SUBTYPE,
+										PURPLE_SUBTYPE_STATUS),
+						 purple_value_new(PURPLE_TYPE_SUBTYPE,
+										PURPLE_SUBTYPE_STATUS));
 
 	purple_signal_register(handle, "account-status-changed",
 						 purple_marshal_VOID__POINTER_POINTER_POINTER, NULL, 3,
@@ -3244,4 +3341,49 @@ purple_accounts_uninit(void)
 
 	purple_signals_disconnect_by_handle(handle);
 	purple_signals_unregister_by_instance(handle);
+}
+
+/* libpurple 3.0.0 compatibility */
+
+static void
+_purple_account_set_encrypted_password(PurpleAccount *account, const char *keyring,
+	const char *mode, const char *ciphertext)
+{
+	PurpleAccountPrivate *priv = PURPLE_ACCOUNT_GET_PRIVATE(account);
+
+	g_free(priv->password_keyring);
+	g_free(priv->password_mode);
+	g_free(priv->password_ciphertext);
+
+	priv->password_keyring = g_strdup(keyring);
+	priv->password_mode = g_strdup(mode);
+	priv->password_ciphertext = g_strdup(ciphertext);
+}
+
+static gboolean
+_purple_account_get_encrypted_password(PurpleAccount *account, const char **keyring,
+	const char **mode, const char **ciphertext)
+{
+	PurpleAccountPrivate *priv = PURPLE_ACCOUNT_GET_PRIVATE(account);
+
+	g_return_val_if_fail(keyring != NULL, FALSE);
+	g_return_val_if_fail(mode != NULL, FALSE);
+	g_return_val_if_fail(ciphertext != NULL, FALSE);
+
+	if (!_purple_account_is_password_encrypted(account))
+		return FALSE;
+
+	*keyring = priv->password_keyring;
+	*mode = priv->password_mode;
+	*ciphertext = priv->password_ciphertext;
+
+	return TRUE;
+}
+
+static gboolean
+_purple_account_is_password_encrypted(PurpleAccount *account)
+{
+	PurpleAccountPrivate *priv = PURPLE_ACCOUNT_GET_PRIVATE(account);
+
+	return (priv->password_keyring != NULL);
 }

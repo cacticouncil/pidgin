@@ -98,7 +98,7 @@ purple_xfer_status_type_to_string(PurpleXferStatusType type)
 		{ PURPLE_XFER_STATUS_CANCEL_LOCAL, "cancelled locally" },
 		{ PURPLE_XFER_STATUS_CANCEL_REMOTE, "cancelled remotely" }
 	};
-	int i;
+	gsize i;
 
 	for (i = 0; i < G_N_ELEMENTS(type_names); ++i)
 		if (type_names[i].type == type)
@@ -289,7 +289,7 @@ purple_xfer_conversation_write_internal(PurpleXfer *xfer,
 
 	thumbnail_data = purple_xfer_get_thumbnail(xfer, &size);
 
-	conv = purple_find_conversation_with_account(PURPLE_CONV_TYPE_IM, xfer->who,
+	conv = purple_find_conversation_with_account(PURPLE_CONV_TYPE_ANY, xfer->who,
 											   purple_xfer_get_account(xfer));
 
 	if (conv == NULL)
@@ -640,6 +640,8 @@ purple_xfer_request_accepted(PurpleXfer *xfer, const char *filename)
 		xfer->status = PURPLE_XFER_STATUS_ACCEPTED;
 		xfer->ops.init(xfer);
 		return;
+	} else {
+		g_return_if_fail(filename != NULL);
 	}
 
 	buddy = purple_find_buddy(account, xfer->who);
@@ -896,7 +898,7 @@ purple_xfer_set_completed(PurpleXfer *xfer, gboolean completed)
 		else
 			msg = g_strdup(_("File transfer complete"));
 
-		conv = purple_find_conversation_with_account(PURPLE_CONV_TYPE_IM, xfer->who,
+		conv = purple_find_conversation_with_account(PURPLE_CONV_TYPE_ANY, xfer->who,
 		                                             purple_xfer_get_account(xfer));
 
 		if (conv != NULL)
@@ -914,9 +916,10 @@ void
 purple_xfer_set_message(PurpleXfer *xfer, const char *message)
 {
 	g_return_if_fail(xfer != NULL);
-
-	g_free(xfer->message);
-	xfer->message = g_strdup(message);
+	if (message != xfer->message) {
+		g_free(xfer->message);
+		xfer->message = g_strdup(message);
+	}
 }
 
 void
@@ -924,8 +927,10 @@ purple_xfer_set_filename(PurpleXfer *xfer, const char *filename)
 {
 	g_return_if_fail(xfer != NULL);
 
-	g_free(xfer->filename);
-	xfer->filename = g_strdup(filename);
+	if (filename != xfer->filename) {
+		g_free(xfer->filename);
+		xfer->filename = g_strdup(filename);
+	}
 }
 
 void
@@ -933,8 +938,10 @@ purple_xfer_set_local_filename(PurpleXfer *xfer, const char *filename)
 {
 	g_return_if_fail(xfer != NULL);
 
-	g_free(xfer->local_filename);
-	xfer->local_filename = g_strdup(filename);
+	if (filename != xfer->local_filename) {
+		g_free(xfer->local_filename);
+		xfer->local_filename = g_strdup(filename);
+	}
 }
 
 void
@@ -1071,7 +1078,7 @@ purple_xfer_read(PurpleXfer *xfer, guchar **buffer)
 			r = -1;
 	}
 
-	if (r == xfer->current_buffer_size)
+	if (r >= 0 && (gsize)r == xfer->current_buffer_size)
 		/*
 		 * We managed to read the entire buffer.  This means our this
 		 * network is fast and our buffer is too small, so make it
@@ -1107,6 +1114,101 @@ purple_xfer_write(PurpleXfer *xfer, const guchar *buffer, gsize size)
 
 	return r;
 }
+gboolean
+purple_xfer_write_file(PurpleXfer *xfer, const guchar *buffer, gsize size)
+{
+	PurpleXferUiOps *ui_ops;
+	gsize wc;
+	gboolean fs_known;
+
+	g_return_val_if_fail(buffer != NULL, FALSE);
+
+	ui_ops = purple_xfer_get_ui_ops(xfer);
+	fs_known = (purple_xfer_get_size(xfer) > 0);
+
+	if (fs_known && size > purple_xfer_get_bytes_remaining(xfer)) {
+		purple_debug_warning("xfer",
+			"Got too much data (truncating at %" G_GSIZE_FORMAT
+			").\n", purple_xfer_get_size(xfer));
+		size = purple_xfer_get_bytes_remaining(xfer);
+	}
+
+	if (ui_ops && ui_ops->ui_write)
+		wc = ui_ops->ui_write(xfer, buffer, size);
+	else {
+		if (xfer->dest_fp == NULL) {
+			purple_debug_error("xfer",
+				"File is not opened for writing\n");
+			purple_xfer_cancel_local(xfer);
+			return FALSE;
+		}
+		wc = fwrite(buffer, 1, size, xfer->dest_fp);
+	}
+
+	if (wc != size) {
+		purple_debug_error("xfer",
+			"Unable to write whole buffer.\n");
+		purple_xfer_cancel_local(xfer);
+		return FALSE;
+	}
+
+	purple_xfer_set_bytes_sent(xfer, purple_xfer_get_bytes_sent(xfer) +
+		size);
+
+	return TRUE;
+}
+
+gssize
+purple_xfer_read_file(PurpleXfer *xfer, guchar *buffer, gsize size)
+{
+	PurpleXferUiOps *ui_ops;
+	gssize got_len;
+
+	g_return_val_if_fail(buffer != NULL, FALSE);
+
+	ui_ops = purple_xfer_get_ui_ops(xfer);
+
+	if (ui_ops && ui_ops->ui_read) {
+		guchar *buffer_got = NULL;
+
+		got_len = ui_ops->ui_read(xfer, &buffer_got, size);
+
+		if (got_len >= 0 && (gsize)got_len > size) {
+			g_free(buffer_got);
+			purple_debug_error("xfer",
+				"Got too much data from UI.\n");
+			purple_xfer_cancel_local(xfer);
+			return -1;
+		}
+
+		if (got_len > 0)
+			memcpy(buffer, buffer_got, got_len);
+		g_free(buffer_got);
+	} else {
+		if (xfer->dest_fp == NULL) {
+			purple_debug_error("xfer",
+				"File is not opened for reading\n");
+			purple_xfer_cancel_local(xfer);
+			return -1;
+		}
+		got_len = fread(buffer, 1, size, xfer->dest_fp);
+		if ((got_len < 0 || (gsize)got_len != size) &&
+			ferror(xfer->dest_fp))
+		{
+			purple_debug_error("xfer",
+				"Unable to read file.\n");
+			purple_xfer_cancel_local(xfer);
+			return -1;
+		}
+	}
+
+	if (got_len > 0) {
+		purple_xfer_set_bytes_sent(xfer,
+			purple_xfer_get_bytes_sent(xfer) + got_len);
+	}
+
+	return got_len;
+}
 
 static void
 do_transfer(PurpleXfer *xfer)
@@ -1126,7 +1228,7 @@ do_transfer(PurpleXfer *xfer)
 			else
 				wc = fwrite(buffer, 1, r, xfer->dest_fp);
 
-			if (wc != r) {
+			if (wc != (gsize)r) {
 				purple_debug_error("filetransfer", "Unable to write whole buffer.\n");
 				purple_xfer_cancel_local(xfer);
 				g_free(buffer);
@@ -1219,7 +1321,7 @@ do_transfer(PurpleXfer *xfer)
 				   that case buffer doesn't belong to us. */
 				g_free(buffer);
 			return;
-		} else if (r == result) {
+		} else if (r >= 0 && (gsize)r == result) {
 			/*
 			 * We managed to write the entire buffer.  This means our
 			 * network is fast and our buffer is too small, so make it
@@ -1307,7 +1409,12 @@ begin_transfer(PurpleXfer *xfer, PurpleInputCondition cond)
 			return;
 		}
 
-		fseek(xfer->dest_fp, xfer->bytes_sent, SEEK_SET);
+		if (fseek(xfer->dest_fp, xfer->bytes_sent, SEEK_SET) != 0) {
+			purple_debug_error("xfer", "couldn't seek\n");
+			purple_xfer_show_file_error(xfer, purple_xfer_get_local_filename(xfer));
+			purple_xfer_cancel_local(xfer);
+			return;
+		}
 	}
 
 	if (xfer->fd != -1)
@@ -1679,8 +1786,9 @@ purple_xfer_set_thumbnail(PurpleXfer *xfer, gconstpointer thumbnail,
 {
 	PurpleXferPrivData *priv = g_hash_table_lookup(xfers_data, xfer);
 
-	g_free(priv->thumbnail_data);
-	g_free(priv->thumbnail_mimetype);
+	/* Hold onto these in case they are equal to passed-in pointers */
+	gpointer *old_thumbnail_data = priv->thumbnail_data;
+	gchar *old_mimetype = priv->thumbnail_mimetype;
 
 	if (thumbnail && size > 0) {
 		priv->thumbnail_data = g_memdup(thumbnail, size);
@@ -1691,6 +1799,10 @@ purple_xfer_set_thumbnail(PurpleXfer *xfer, gconstpointer thumbnail,
 		priv->thumbnail_size = 0;
 		priv->thumbnail_mimetype = NULL;
 	}
+
+	/* Now it's safe to free the pointers */
+	g_free(old_thumbnail_data);
+	g_free(old_mimetype);
 }
 
 void

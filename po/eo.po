@@ -1,23 +1,23 @@
-# translation of eo.po to Esperanto
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
 #
-# Copyright (C) 2006, Stéphane Fillod <fillods@users.sourceforge.net>
-#
-# Stéphane Fillod <fillods@users.sourceforge.net>, 2006, 2007, 2008, 2009.
-# This file is distributed under the same license as the Pidgin package.
+# Translators:
+# Stéphane Fillod <fillods@users.sourceforge.net>, 2006-2009
 msgid ""
 msgstr ""
-"Project-Id-Version: eo\n"
+"Project-Id-Version: Pidgin\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2010-12-19 13:33-0500\n"
-"PO-Revision-Date: 2009-08-16 20:26+0200\n"
-"Last-Translator: Stéphane Fillod <fillods@users.sourceforge.net>\n"
-"Language-Team: Esperanto <kde-i18n-eo@kde.org>\n"
+"POT-Creation-Date: 2020-06-09 22:09-0500\n"
+"PO-Revision-Date: 2020-06-06 08:16+0000\n"
+"Last-Translator: Gary Kramlich <grim@reaperworld.com>\n"
+"Language-Team: Esperanto (http://www.transifex.com/pidgin/pidgin/language/"
+"eo/)\n"
 "Language: eo\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Plural-Forms:  nplurals=2; plural=(n != 1);\n"
-"X-Generator: gtranslator 1.9.4\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
 #. Translators may want to transliterate the name.
 #. It is not to be translated.
@@ -55,13 +55,11 @@ msgid ""
 "http://developer.pidgin.im"
 msgstr ""
 
-#. the user did not fill in the captcha
 msgid "Error"
 msgstr "Eraro"
 
-#, fuzzy
 msgid "Account was not modified"
-msgstr "Konto ne estis aldonita"
+msgstr ""
 
 msgid "Account was not added"
 msgstr "Konto ne estis aldonita"
@@ -210,6 +208,9 @@ msgstr "Uzantonomo"
 msgid "Alias (optional)"
 msgstr "Alinomo (nedeviga)"
 
+msgid "Invite message (optional)"
+msgstr ""
+
 msgid "Add in group"
 msgstr "Aldonu en grupon"
 
@@ -225,7 +226,6 @@ msgstr "Bonvolu enigi kunul informon."
 msgid "Chats"
 msgstr "Babilejoj"
 
-#. Extract their Name and put it in
 msgid "Name"
 msgstr "Nomo"
 
@@ -332,11 +332,9 @@ msgstr "Inversiga Etikedo"
 msgid "View Log"
 msgstr "Montru Protokolon"
 
-#. General
 msgid "Nickname"
 msgstr "Karesnomo"
 
-#. Never know what those translations might end up like...
 #. Idle stuff
 msgid "Idle"
 msgstr "Senfara"
@@ -619,9 +617,8 @@ msgstr "Ŝaltu Protokoladon"
 msgid "Enable Sounds"
 msgstr "Ŝaltu Sonojn"
 
-#, fuzzy
 msgid "You are not connected."
-msgstr "Servilo fermis la konekton"
+msgstr ""
 
 msgid "<AUTO-REPLY> "
 msgstr "<AŬTO-RESPONDO> "
@@ -632,9 +629,8 @@ msgid_plural "List of %d users:\n"
 msgstr[0] "Listo de %d uzanto:\n"
 msgstr[1] "Listo de %d uzantoj:\n"
 
-#, fuzzy
 msgid "Supported debug options are: plugins version"
-msgstr "Subtenitaj sencimigopcioj estas:  versio"
+msgstr ""
 
 msgid "No such command (in this context)."
 msgstr "Nenia komando (en tiu kunteksto)."
@@ -749,7 +745,6 @@ msgid "Remaining"
 msgstr "Restanta"
 
 #. XXX: Use of ggp_str_to_uin() is an ugly hack!
-#. presence
 msgid "Status"
 msgstr "Stato"
 
@@ -994,7 +989,8 @@ msgstr "Nova Kunul Atentigo"
 msgid "Edit Buddy Pounce"
 msgstr "Redaktu Kunul Atentigo"
 
-msgid "Pounce Who"
+#. Create the "Pounce on Whom" frame.
+msgid "Pounce on Whom"
 msgstr "Atentigi Kiun"
 
 #. Account:
@@ -1228,9 +1224,8 @@ msgstr "Aliaj parolas en babilejo"
 msgid "Someone says your username in chat"
 msgstr "Iun diras vian uzantnomon en babilejo"
 
-#, fuzzy
 msgid "Attention received"
-msgstr "Registrado postulita"
+msgstr ""
 
 msgid "GStreamer Failure"
 msgstr "GStreamer Malsukceso"
@@ -1241,8 +1236,8 @@ msgstr "GStreamer malsukcesis ekon."
 msgid "(default)"
 msgstr "(apriora)"
 
-msgid "Select Sound File ..."
-msgstr "Elektu Sonan Dosieron ..."
+msgid "Select Sound File..."
+msgstr ""
 
 msgid "Sound Preferences"
 msgstr "Sonaj Agordoj"
@@ -1324,21 +1319,12 @@ msgstr "Forigu Staton"
 msgid "Saved Statuses"
 msgstr "Konservitaj Statoj"
 
-#. title
 msgid "Title"
 msgstr "Titolon"
 
 msgid "Type"
 msgstr "Tipo"
 
-#. Statuses are almost all the same. Define a macro to reduce code repetition.
-#. PurpleStatusPrimitive
-#. id - use default
-#. name - use default
-#. saveable
-#. user_settable
-#. not independent
-#. Attributes - each status can have a message.
 msgid "Message"
 msgstr "Mesaĝo"
 
@@ -1370,12 +1356,12 @@ msgstr "Mesaĝo:"
 msgid "Edit Status"
 msgstr "Redaktu Staton"
 
-msgid "Use different status for following accounts"
-msgstr "Uzu malsimilan staton por jenaj kontoj"
+msgid "Use a different status for some accounts"
+msgstr ""
 
-#. Save & Use
-msgid "Save & Use"
-msgstr "Konservu & Uzu"
+#. Save and Use
+msgid "Save and Use"
+msgstr ""
 
 msgid "Certificates"
 msgstr "Atestiloj"
@@ -1441,6 +1427,7 @@ msgstr "Iun babilas en babilejo"
 msgid "Someone says your name in a chat"
 msgstr "Iun diras vian nomon en babilejo"
 
+#. Translators: "toaster" here means "pop-up".
 msgid "Notify with a toaster when"
 msgstr "Avizu per panrostilo kiam"
 
@@ -1453,6 +1440,7 @@ msgstr "Difini URĜAN por la terminalfenestro."
 msgid "GntGf"
 msgstr "GntGf"
 
+#. Translators: "toaster" here means "pop-up".
 msgid "Toaster plugin"
 msgstr "Panrostilo kromaĵo"
 
@@ -1493,7 +1481,7 @@ msgstr ""
 msgid "TinyURL for above: %s"
 msgstr ""
 
-msgid "Please wait while TinyURL fetches a shorter URL ..."
+msgid "Please wait while TinyURL fetches a shorter URL..."
 msgstr ""
 
 msgid "Only create TinyURL for URLs of this length or greater"
@@ -1508,13 +1496,12 @@ msgstr "TinyURL"
 msgid "TinyURL plugin"
 msgstr ""
 
-msgid "When receiving a message with URL(s), use TinyURL for easier copying"
+msgid "Shorten URLs in messages using TinyURL"
 msgstr ""
 
 msgid "Online"
 msgstr "Enrete"
 
-#. primitive,						no,							id,			name
 msgid "Offline"
 msgstr "Senkonekta"
 
@@ -1649,16 +1636,14 @@ msgid ""
 "validated."
 msgstr ""
 
-#, fuzzy
 msgid "The certificate chain presented is invalid."
-msgstr "La enigita uzantnomo malvalidas."
+msgstr ""
 
 msgid "The certificate has been revoked."
 msgstr ""
 
-#, fuzzy
 msgid "An unknown certificate error occurred."
-msgstr "Nekonata ensaluteraro okazis: %s."
+msgstr ""
 
 msgid "(DOES NOT MATCH)"
 msgstr "(NE KONGRUAS)"
@@ -1708,9 +1693,8 @@ msgstr ""
 msgid "SSL Certificate Error"
 msgstr ""
 
-#, fuzzy
 msgid "Unable to validate certificate"
-msgstr "Ne eblas aldoni uzanton"
+msgstr ""
 
 #, c-format
 msgid ""
@@ -1718,10 +1702,19 @@ msgid ""
 "are not connecting to the service you believe you are."
 msgstr ""
 
+#. TODO: Find what the handle ought to be
+msgid "Certificate Information"
+msgstr "Atestilo Informo"
+
+msgid "Unable to find Issuer Certificate"
+msgstr ""
+
 #. Make messages
 #, c-format
 msgid ""
 "Common name: %s\n"
+"\n"
+"Issued By: %s\n"
 "\n"
 "Fingerprint (SHA1): %s\n"
 "\n"
@@ -1729,11 +1722,12 @@ msgid ""
 "Expiration date: %s\n"
 msgstr ""
 
-#. TODO: Find what the handle ought to be
-msgid "Certificate Information"
-msgstr "Atestilo Informo"
+msgid "(self-signed)"
+msgstr ""
 
-#. show error to user
+msgid "View Issuer Certificate"
+msgstr ""
+
 msgid "Registration Error"
 msgstr "Registra Eraro"
 
@@ -1749,7 +1743,6 @@ msgid "+++ %s signed off"
 msgstr "+++ %s malsalutis"
 
 #. Undocumented
-#. Unknown error
 msgid "Unknown error"
 msgstr "Nekonata eraro"
 
@@ -1764,6 +1757,10 @@ msgid "The message is too large."
 msgstr ""
 
 msgid "Unable to send message."
+msgstr ""
+
+#. Meaningful name in case a UI doesn't actually honour the INVISIBLE flag
+msgid "(internal) Temporary IM peers"
 msgstr ""
 
 msgid "Send Message"
@@ -1806,6 +1803,112 @@ msgid ""
 msgstr ""
 "Bonvolu enigi la nomon de uzanto kiun vi deziras inviti, kun fakultativan "
 "invitmesaĝon."
+
+msgid "Whether the specified command should handle \"aim\" URLs"
+msgstr "Ĉu la donita komando devu trakti \"aim\" URL-ojn"
+
+msgid ""
+"True if the command specified in the \"command\" key should handle \"aim\" "
+"URLs."
+msgstr ""
+"Vera se la komando donita en la \"komando\" ŝlosilo devu trakti \"aim\" URL-"
+"ojn."
+
+msgid "The handler for \"aim\" URLs"
+msgstr "La traktilo por \"aim\" URL-oj"
+
+msgid "The command used to handle \"aim\" URLs, if enabled."
+msgstr "La uzata komando por trakti \"aim\" URL-ojn, se enŝaltita."
+
+msgid "Run the command in a terminal"
+msgstr "Eku komandon en terminalo"
+
+msgid ""
+"True if the command used to handle this type of URL should be run in a "
+"terminal."
+msgstr ""
+"Vera se la komando uzata por trakti tiun tipon de URL-o devu esti lanĉita en "
+"terminalo."
+
+msgid "Whether the specified command should handle \"gg\" URLs"
+msgstr "Ĉu la donita komando devu trakti \"gg\" URL-ojn"
+
+msgid ""
+"True if the command specified in the \"command\" key should handle \"gg\" "
+"URLs."
+msgstr ""
+"Vera se la komando donita en la \"komando\" ŝlosilo devu trakti \"gg\" URL-"
+"ojn."
+
+msgid "The handler for \"gg\" URLs"
+msgstr "La traktilo por \"gg\" URL-oj"
+
+msgid "The command used to handle \"gg\" URLs, if enabled."
+msgstr "La uzata komando por trakti \"gg\" URL-ojn, se enŝaltita."
+
+msgid "Whether the specified command should handle \"icq\" URLs"
+msgstr "Ĉu la donita komando devu trakti \"icq\" URL-ojn"
+
+msgid ""
+"True if the command specified in the \"command\" key should handle \"icq\" "
+"URLs."
+msgstr ""
+"Vera se la komando donita en la \"komando\" ŝlosilo devu trakti \"icq\" URL-"
+"ojn."
+
+msgid "The handler for \"icq\" URLs"
+msgstr "La traktilo por \"icq\" URL-oj"
+
+msgid "The command used to handle \"icq\" URLs, if enabled."
+msgstr "La uzata komando por trakti \"icq\" URL-ojn, se enŝaltita."
+
+msgid "Whether the specified command should handle \"irc\" URLs"
+msgstr "Ĉu la donita komando devu trakti \"irc\" URL-ojn"
+
+msgid ""
+"True if the command specified in the \"command\" key should handle \"irc\" "
+"URLs."
+msgstr ""
+"Vera se la komando donita en la \"komando\" ŝlosilo devu trakti \"irc\" URL-"
+"ojn."
+
+msgid "The handler for \"irc\" URLs"
+msgstr "La traktilo por \"irc\" URL-oj"
+
+msgid "The command used to handle \"irc\" URLs, if enabled."
+msgstr "La uzata komando por trakti \"irc\" URL-ojn, se enŝaltita."
+
+msgid "Whether the specified command should handle \"sip\" URLs"
+msgstr "Ĉu la donita komando devu trakti \"sip\" URL-ojn"
+
+msgid ""
+"True if the command specified in the \"command\" key should handle \"sip\" "
+"URLs."
+msgstr ""
+"Vera se la komando donita en la \"komando\" ŝlosilo devu trakti \"sip\" URL-"
+"ojn."
+
+msgid "The handler for \"sip\" URLs"
+msgstr "La traktilo por \"sip\" URL-oj"
+
+msgid "The command used to handle \"sip\" URLs, if enabled."
+msgstr "La uzata komando por trakti \"sip\" URL-ojn, se enŝaltita."
+
+msgid "Whether the specified command should handle \"xmpp\" URLs"
+msgstr "Ĉu la donita komando devu trakti \"xmpp\" URL-ojn"
+
+msgid ""
+"True if the command specified in the \"command\" key should handle \"xmpp\" "
+"URLs."
+msgstr ""
+"Vera se la komando donita en la \"komando\" ŝlosilo devu trakti \"xmpp\" URL-"
+"ojn."
+
+msgid "The handler for \"xmpp\" URLs"
+msgstr "La traktilo por \"xmpp\" URL-oj"
+
+msgid "The command used to handle \"xmpp\" URLs, if enabled."
+msgstr "La uzata komando por trakti \"xmpp\" URL-ojn, se enŝaltita."
 
 #, c-format
 msgid "Failed to get connection: %s"
@@ -1851,9 +1954,9 @@ msgstr ""
 msgid "Resolver process exited without answering our request"
 msgstr ""
 
-#, fuzzy, c-format
+#, c-format
 msgid "Error converting %s to punycode: %d"
-msgstr "Eraro kreante konekto"
+msgstr ""
 
 #, c-format
 msgid "Thread creation failure: %s"
@@ -1861,6 +1964,9 @@ msgstr ""
 
 msgid "Unknown reason"
 msgstr "Nekonata kialo"
+
+msgid "Aborting DNS lookup in Tor Proxy mode."
+msgstr ""
 
 #, c-format
 msgid ""
@@ -1942,20 +2048,20 @@ msgstr ""
 msgid "File transfer complete"
 msgstr "Dosiero alŝuto kompleta"
 
-#, fuzzy, c-format
+#, c-format
 msgid "You cancelled the transfer of %s"
-msgstr "Vi rezignis la alŝuton de %s"
+msgstr ""
 
 msgid "File transfer cancelled"
 msgstr "Dosiero alŝuto rezignita"
 
-#, fuzzy, c-format
+#, c-format
 msgid "%s cancelled the transfer of %s"
-msgstr "%s rezignis la alŝuton de %s"
+msgstr ""
 
-#, fuzzy, c-format
+#, c-format
 msgid "%s cancelled the file transfer"
-msgstr "%s rezignis la dosiero-alŝuton"
+msgstr ""
 
 #, c-format
 msgid "File transfer to %s failed."
@@ -1964,144 +2070,6 @@ msgstr "Dosiero alŝuto al %s malsukcesis."
 #, c-format
 msgid "File transfer from %s failed."
 msgstr "Dosiero elŝuto de %s malsukcesis."
-
-msgid "Run the command in a terminal"
-msgstr "Eku komandon en terminalo"
-
-msgid "The command used to handle \"aim\" URLs, if enabled."
-msgstr "La uzata komando por trakti \"aim\" URL-ojn, se enŝaltita."
-
-msgid "The command used to handle \"gg\" URLs, if enabled."
-msgstr "La uzata komando por trakti \"gg\" URL-ojn, se enŝaltita."
-
-msgid "The command used to handle \"icq\" URLs, if enabled."
-msgstr "La uzata komando por trakti \"icq\" URL-ojn, se enŝaltita."
-
-msgid "The command used to handle \"irc\" URLs, if enabled."
-msgstr "La uzata komando por trakti \"irc\" URL-ojn, se enŝaltita."
-
-msgid "The command used to handle \"msnim\" URLs, if enabled."
-msgstr "La uzata komando por trakti \"msnim\" URL-ojn, se enŝaltita."
-
-msgid "The command used to handle \"sip\" URLs, if enabled."
-msgstr "La uzata komando por trakti \"sip\" URL-ojn, se enŝaltita."
-
-msgid "The command used to handle \"xmpp\" URLs, if enabled."
-msgstr "La uzata komando por trakti \"xmpp\" URL-ojn, se enŝaltita."
-
-msgid "The command used to handle \"ymsgr\" URLs, if enabled."
-msgstr "La uzata komando por trakti \"ymsgr\" URL-ojn, se enŝaltita."
-
-msgid "The handler for \"aim\" URLs"
-msgstr "La traktilo por \"aim\" URL-oj"
-
-msgid "The handler for \"gg\" URLs"
-msgstr "La traktilo por \"gg\" URL-oj"
-
-msgid "The handler for \"icq\" URLs"
-msgstr "La traktilo por \"icq\" URL-oj"
-
-msgid "The handler for \"irc\" URLs"
-msgstr "La traktilo por \"irc\" URL-oj"
-
-msgid "The handler for \"msnim\" URLs"
-msgstr "La traktilo por \"msnim\" URL-oj"
-
-msgid "The handler for \"sip\" URLs"
-msgstr "La traktilo por \"sip\" URL-oj"
-
-msgid "The handler for \"xmpp\" URLs"
-msgstr "La traktilo por \"xmpp\" URL-oj"
-
-msgid "The handler for \"ymsgr\" URLs"
-msgstr "La traktilo por \"ymsgr\" URL-oj"
-
-msgid ""
-"True if the command specified in the \"command\" key should handle \"aim\" "
-"URLs."
-msgstr ""
-"Vera se la komando donita en la \"komando\" ŝlosilo devu trakti \"aim\" URL-"
-"ojn."
-
-msgid ""
-"True if the command specified in the \"command\" key should handle \"gg\" "
-"URLs."
-msgstr ""
-"Vera se la komando donita en la \"komando\" ŝlosilo devu trakti \"gg\" URL-"
-"ojn."
-
-msgid ""
-"True if the command specified in the \"command\" key should handle \"icq\" "
-"URLs."
-msgstr ""
-"Vera se la komando donita en la \"komando\" ŝlosilo devu trakti \"icq\" URL-"
-"ojn."
-
-msgid ""
-"True if the command specified in the \"command\" key should handle \"irc\" "
-"URLs."
-msgstr ""
-"Vera se la komando donita en la \"komando\" ŝlosilo devu trakti \"irc\" URL-"
-"ojn."
-
-msgid ""
-"True if the command specified in the \"command\" key should handle \"msnim\" "
-"URLs."
-msgstr ""
-"Vera se la komando donita en la \"komando\" ŝlosilo devu trakti \"msnim\" "
-"URL-ojn."
-
-msgid ""
-"True if the command specified in the \"command\" key should handle \"sip\" "
-"URLs."
-msgstr ""
-"Vera se la komando donita en la \"komando\" ŝlosilo devu trakti \"sip\" URL-"
-"ojn."
-
-msgid ""
-"True if the command specified in the \"command\" key should handle \"xmpp\" "
-"URLs."
-msgstr ""
-"Vera se la komando donita en la \"komando\" ŝlosilo devu trakti \"xmpp\" URL-"
-"ojn."
-
-msgid ""
-"True if the command specified in the \"command\" key should handle \"ymsgr\" "
-"URLs."
-msgstr ""
-"Vera se la komando donita en la \"komando\" ŝlosilo devu trakti \"ymsgr\" "
-"URL-ojn."
-
-msgid ""
-"True if the command used to handle this type of URL should be run in a "
-"terminal."
-msgstr ""
-"Vera se la komando uzata por trakti tiun tipon de URL-o devu esti lanĉita en "
-"terminalo."
-
-msgid "Whether the specified command should handle \"aim\" URLs"
-msgstr "Ĉu la donita komando devu trakti \"aim\" URL-ojn"
-
-msgid "Whether the specified command should handle \"gg\" URLs"
-msgstr "Ĉu la donita komando devu trakti \"gg\" URL-ojn"
-
-msgid "Whether the specified command should handle \"icq\" URLs"
-msgstr "Ĉu la donita komando devu trakti \"icq\" URL-ojn"
-
-msgid "Whether the specified command should handle \"irc\" URLs"
-msgstr "Ĉu la donita komando devu trakti \"irc\" URL-ojn"
-
-msgid "Whether the specified command should handle \"msnim\" URLs"
-msgstr "Ĉu la donita komando devu trakti \"msnim\" URL-ojn"
-
-msgid "Whether the specified command should handle \"sip\" URLs"
-msgstr "Ĉu la donita komando devu trakti \"sip\" URL-ojn"
-
-msgid "Whether the specified command should handle \"xmpp\" URLs"
-msgstr "Ĉu la donita komando devu trakti \"xmpp\" URL-ojn"
-
-msgid "Whether the specified command should handle \"ymsgr\" URLs"
-msgstr "Ĉu la donita komando devu trakti \"ymsgr\" URL-ojn"
 
 msgid "<b><font color=\"red\">The logger has no read function</font></b>"
 msgstr "<b><font color=\"red\">La protokolilo ne havas legkapablon</font></b>"
@@ -2123,19 +2091,15 @@ msgstr "XML"
 
 #, c-format
 msgid ""
-"<font color=\"#16569E\"><font size=\"2\">(%s)</font> <b>%s &lt;AUTO-"
-"REPLY&gt;:</b></font> %s<br/>\n"
+"<span style=\"color: #16569E\"><span style=\"font-size: smaller\">(%s)</"
+"span> <b>%s &lt;AUTO-REPLY&gt;:</b></span> %s<br>\n"
 msgstr ""
-"<font color=\"#16569E\"><font size=\"2\">(%s)</font> <b>%s &lt;AŬTO-"
-"RESPONDO&gt;:</b></font> %s<br/>\n"
 
 #, c-format
 msgid ""
-"<font color=\"#A82F2F\"><font size=\"2\">(%s)</font> <b>%s &lt;AUTO-"
-"REPLY&gt;:</b></font> %s<br/>\n"
+"<span style=\"color: #A82F2F\"><span style=\"font-size: smaller\">(%s)</"
+"span> <b>%s &lt;AUTO-REPLY&gt;:</b></span> %s<br>\n"
 msgstr ""
-"<font color=\"#A82F2F\"><font size=\"2\">(%s)</font> <b>%s &lt;AŬTO-"
-"RESPONDO&gt;:</b></font> %s<br/>\n"
 
 msgid "<font color=\"red\"><b>Unable to find log path!</b></font>"
 msgstr ""
@@ -2149,6 +2113,25 @@ msgid "(%s) %s <AUTO-REPLY>: %s\n"
 msgstr "(%s) %s <AŬTO-RESPONDO>: %s\n"
 
 msgid ""
+"\n"
+"\n"
+"Message from Farsight: "
+msgstr ""
+
+msgid ""
+"Error initializing the call. This probably denotes problem in installation "
+"of GStreamer or Farsight."
+msgstr ""
+
+msgid "Network error."
+msgstr ""
+
+msgid ""
+"Codec negotiation failed. This problem might be resolved by installing more "
+"GStreamer codecs."
+msgstr ""
+
+msgid ""
 "No codecs found. Install some GStreamer codecs found in GStreamer plugins "
 "packages."
 msgstr ""
@@ -2157,9 +2140,14 @@ msgid ""
 "No codecs left. Your codec preferences in fs-codecs.conf are too strict."
 msgstr ""
 
-#, fuzzy
+msgid "Could not connect to the remote party"
+msgstr ""
+
 msgid "A non-recoverable Farsight2 error has occurred."
-msgstr "Nekonata ensaluteraro okazis: %s."
+msgstr ""
+
+msgid "A non-recoverable Farstream error has occurred."
+msgstr ""
 
 msgid "Error with your microphone"
 msgstr ""
@@ -2167,13 +2155,33 @@ msgstr ""
 msgid "Error with your webcam"
 msgstr ""
 
-#, fuzzy
 msgid "Conference error"
-msgstr "Agorderaro"
+msgstr ""
 
-#, fuzzy, c-format
+#, c-format
 msgid "Error creating session: %s"
-msgstr "Eraro kreante konekto"
+msgstr ""
+
+msgid "Could not create media pipeline"
+msgstr ""
+
+#. Translators: This is a noun that refers to one
+#. * possible audio input device. The device can help the
+#. * user to check if her speakers or headphones have been
+#. * set up correctly for voice calling.
+msgid "Test Sound"
+msgstr ""
+
+msgid "Disabled"
+msgstr ""
+
+#. Translators: This is a noun that refers to one
+#. * possible video input device. The device produces
+#. * a test "monoscope" image that can help the user check
+#. * the video output has been set up correctly without
+#. * needing a webcam connected to the computer.
+msgid "Test Pattern"
+msgstr ""
 
 #, c-format
 msgid "You are using %s, but this plugin requires %s."
@@ -2258,8 +2266,10 @@ msgid ""
 "(Please provide the full path)"
 msgstr ""
 
-msgid "Automatically reject from users not in buddy list"
-msgstr "Aŭtomate malakcepti uzantojn ekster la kunullisto"
+msgid ""
+"When a file-transfer request arrives from a user who is\n"
+"*not* on your buddy list:"
+msgstr ""
 
 msgid ""
 "Notify with a popup when an autoaccepted file transfer is complete\n"
@@ -2267,6 +2277,9 @@ msgid ""
 msgstr ""
 
 msgid "Create a new directory for each user"
+msgstr ""
+
+msgid "Escape the filenames"
 msgstr ""
 
 msgid "Notes"
@@ -2684,10 +2697,8 @@ msgstr "Psiŝika modo je enen konversacion"
 
 msgid ""
 "Causes conversation windows to appear as other users begin to message you.  "
-"This works for AIM, ICQ, XMPP, Sametime, and Yahoo!"
+"This works for AIM, ICQ, XMPP, and Sametime"
 msgstr ""
-"Igas aperon de konversacia fenestro kiam aliaj uzantoj ekmesaĝas vin.  Tio "
-"funkcias por AIM, ICQ, XMPP, Sametime, kaj Yahoo!"
 
 msgid "You feel a disturbance in the force..."
 msgstr ""
@@ -2735,6 +2746,56 @@ msgstr "Simpla Kromaĵo"
 #. *  description
 msgid "Tests to see that most things are working."
 msgstr "Provu por vidi ke plej parto de aĵoj bonfunkcias."
+
+msgid "TLS/SSL Versions"
+msgstr ""
+
+msgid "Minimum Version"
+msgstr ""
+
+msgid "Maximum Version"
+msgstr ""
+
+msgid "SSL 2"
+msgstr ""
+
+msgid "SSL 3"
+msgstr ""
+
+msgid "TLS 1.0"
+msgstr ""
+
+msgid "TLS 1.1"
+msgstr ""
+
+msgid "TLS 1.2"
+msgstr ""
+
+msgid "TLS 1.3"
+msgstr ""
+
+#. TODO: look into how to do this for older versions?
+msgid "Not Supported for NSS < 3.14"
+msgstr ""
+
+msgid "Ciphers"
+msgstr ""
+
+#. *< type
+#. *< ui_requirement
+#. *< flags
+#. *< dependencies
+#. *< priority
+#. *< id
+msgid "NSS Preferences"
+msgstr ""
+
+#. *< name
+#. *< version
+#. *  summary
+#. *  description
+msgid "Configure Ciphers and other Settings for the NSS SSL/TLS Plugin"
+msgstr ""
 
 #. Scheme name
 msgid "X.509 Certificates"
@@ -2852,8 +2913,8 @@ msgid ""
 msgstr ""
 
 msgid ""
-"Unable to find Apple's \"Bonjour for Windows\" toolkit, see http://d.pidgin."
-"im/BonjourWindows for more information."
+"Unable to find Apple's \"Bonjour for Windows\" toolkit, see https://"
+"developer.pidgin.im/BonjourWindows for more information."
 msgstr ""
 
 msgid "Unable to listen for incoming IM connections"
@@ -2869,7 +2930,6 @@ msgstr "Antaŭ nomo"
 msgid "Last name"
 msgstr "Familia nomo"
 
-#. email
 msgid "Email"
 msgstr "Retadreso"
 
@@ -2920,12 +2980,6 @@ msgid ""
 "invalid."
 msgstr ""
 
-msgid "Token Error"
-msgstr ""
-
-msgid "Unable to fetch the token.\n"
-msgstr ""
-
 msgid "Save Buddylist..."
 msgstr "Konservu Kunulliston..."
 
@@ -2954,53 +3008,18 @@ msgstr "Konservu kunulliston..."
 msgid "Load buddylist from file..."
 msgstr "Ŝarĝu kunulliston el dosiero..."
 
-msgid "You must fill in all registration fields"
-msgstr ""
-
-msgid "Passwords do not match"
-msgstr "Pasvortoj ne akordas"
-
-msgid "Unable to register new account.  An unknown error occurred."
-msgstr ""
-
-msgid "New Gadu-Gadu Account Registered"
-msgstr "Nova Gadu-Gadu-a Konto Registrita"
-
-msgid "Registration completed successfully!"
-msgstr "Registro pleniĝis sukcese!"
-
-msgid "Password"
-msgstr "Pasvorto"
-
-msgid "Password (again)"
-msgstr "Pasvorto (denove)"
-
-msgid "Enter captcha text"
-msgstr ""
-
-msgid "Captcha"
-msgstr ""
-
-msgid "Register New Gadu-Gadu Account"
-msgstr "Registru Novan Gadu-Gadu-an Konton"
-
-msgid "Please, fill in the following fields"
-msgstr ""
-
 msgid "City"
 msgstr "Urbo"
 
 msgid "Year of birth"
 msgstr "Naskiĝjaro"
 
-#. gender
 msgid "Gender"
 msgstr "Genro"
 
 msgid "Male or female"
 msgstr "Malina aŭ ina"
 
-#. 0
 msgid "Male"
 msgstr "Malina"
 
@@ -3016,38 +3035,20 @@ msgstr "Trovu kunulojn"
 msgid "Please, enter your search criteria below"
 msgstr ""
 
-msgid "Fill in the fields."
+msgid "Show status to:"
 msgstr ""
 
-msgid "Your current password is different from the one that you specified."
+msgid "All people"
 msgstr ""
 
-msgid "Unable to change password. Error occurred.\n"
+msgid "Only buddies"
 msgstr ""
 
-msgid "Change password for the Gadu-Gadu account"
+msgid "Change status broadcasting"
 msgstr ""
 
-msgid "Password was changed successfully!"
+msgid "Please, select who can see your status"
 msgstr ""
-
-msgid "Current password"
-msgstr "Aktuala pasvorto"
-
-msgid "Password (retype)"
-msgstr "Pasvorto (retajpu)"
-
-msgid "Enter current token"
-msgstr ""
-
-msgid "Current token"
-msgstr ""
-
-msgid "Please, enter your current password and your new password for UIN: "
-msgstr ""
-
-msgid "Change Gadu-Gadu Password"
-msgstr "Ŝanĝu Gadu-Gadu Pasvorton"
 
 #, c-format
 msgid "Select a chat for buddy: %s"
@@ -3056,22 +3057,16 @@ msgstr "Elektu babilejon por kunul: %s"
 msgid "Add to chat..."
 msgstr "Aldonu al babilejo..."
 
-#. 0
 #. Global
 msgid "Available"
 msgstr "Disponebla"
 
-#. 2
 msgid "Chatty"
 msgstr "Babilema"
 
-#. 3
 msgid "Do Not Disturb"
 msgstr "Ne Ĝenu"
 
-#. 1
-#. get_yahoo_status_from_purple_status() returns YAHOO_STATUS_CUSTOM for
-#. * the generic away state (YAHOO_STATUS_TYPE_AWAY) with no message
 #. Away stuff
 msgid "Away"
 msgstr "Fora"
@@ -3079,10 +3074,6 @@ msgstr "Fora"
 msgid "UIN"
 msgstr "UIN"
 
-#. first name
-#. purple_notify_user_info_add_pair( info, _( "Hidden Number" ), profile->hidden ? _( "Yes" ) : _( "No" ) );
-#. optional information
-#. purple_notify_user_info_add_pair( info, _( "Title" ), profile->title );
 msgid "First Name"
 msgstr "Persona Nomo"
 
@@ -3107,21 +3098,6 @@ msgstr ""
 msgid "Unable to read from socket"
 msgstr ""
 
-msgid "Buddy list downloaded"
-msgstr ""
-
-msgid "Your buddy list was downloaded from the server."
-msgstr ""
-
-msgid "Buddy list uploaded"
-msgstr ""
-
-msgid "Your buddy list was stored on the server."
-msgstr ""
-
-#. The session is now set up, ready to be connected. This emits the
-#. * signedOn signal, so clients can now do anything with msimprpl, and
-#. * we're ready for it (session key, userid, username all setup).
 msgid "Connected"
 msgstr ""
 
@@ -3134,14 +3110,13 @@ msgstr "Aldonu al babilejo"
 msgid "Chat _name:"
 msgstr "Babilejo _nomo:"
 
-#, c-format
-msgid "Unable to resolve hostname '%s': %s"
-msgstr ""
-
-#. 1. connect to server
 #. connect to the server
 msgid "Connecting"
 msgstr "Konektante"
+
+#, c-format
+msgid "Unable to resolve hostname: %s"
+msgstr ""
 
 msgid "Chat error"
 msgstr "Babileraro"
@@ -3154,18 +3129,6 @@ msgstr "Ne konektita al servilo"
 
 msgid "Find buddies..."
 msgstr "Trovu kunulojn..."
-
-msgid "Change password..."
-msgstr "Ŝanĝu pasvorton..."
-
-msgid "Upload buddylist to Server"
-msgstr "Alŝutu kunulliston al Servilo"
-
-msgid "Download buddylist from Server"
-msgstr "Elŝutu kunulliston el Servilo"
-
-msgid "Delete buddylist from Server"
-msgstr "Forigu kunulliston de Servilo"
 
 msgid "Save buddylist to file..."
 msgstr "Konservu kunulliston en dosiero..."
@@ -3193,6 +3156,19 @@ msgstr "Gadu-Gadu Uzanto"
 
 msgid "GG server"
 msgstr "GG servilo"
+
+msgid "Don't use encryption"
+msgstr ""
+
+msgid "Use encryption if available"
+msgstr ""
+
+#. TODO
+msgid "Require encryption"
+msgstr ""
+
+msgid "Connection security"
+msgstr ""
 
 #, c-format
 msgid "Unknown command: %s"
@@ -3229,7 +3205,6 @@ msgstr "MOTD por %s"
 #. * buffer that stores what is "being sent" until the
 #. * PurpleHTTPConnection reports it is fully sent.
 #.
-#. TODO: what to do here - do we really have to disconnect?
 #. TODO: do we really want to disconnect on a failure to write?
 #, c-format
 msgid "Lost connection with server: %s"
@@ -3258,7 +3233,6 @@ msgstr "Malkonekteblas"
 msgid "Unable to connect: %s"
 msgstr "Ne konekteblas: %s"
 
-#, c-format
 msgid "Server closed the connection"
 msgstr "Servilo fermis la konekton"
 
@@ -3283,7 +3257,7 @@ msgstr "IRC Protokol-Kromaĵo"
 msgid "The IRC Protocol Plugin that Sucks Less"
 msgstr "La IRC Protokolo Kromaĵo kiu Malpli Fekas"
 
-#. host to connect to
+#. set up account ID as user:server
 msgid "Server"
 msgstr "Servilo"
 
@@ -3297,6 +3271,9 @@ msgstr "Kodoprezentoj"
 msgid "Auto-detect incoming UTF-8"
 msgstr ""
 
+msgid "Ident name"
+msgstr ""
+
 msgid "Real name"
 msgstr "Vera nomo"
 
@@ -3306,6 +3283,12 @@ msgstr "Vera nomo"
 #.
 msgid "Use SSL"
 msgstr "Uzu SSL-n"
+
+msgid "Authenticate with SASL"
+msgstr ""
+
+msgid "Allow plaintext SASL auth over unencrypted connection"
+msgstr ""
 
 msgid "Bad mode"
 msgstr "Malbona moduso"
@@ -3341,6 +3324,12 @@ msgstr " <i>(identiĝita)</i>"
 msgid "Nick"
 msgstr "Karesnomo"
 
+msgid "Login name"
+msgstr ""
+
+msgid "Host name"
+msgstr ""
+
 msgid "Currently on"
 msgstr "Aktuale ĉe"
 
@@ -3367,6 +3356,10 @@ msgstr "%s forviŝis la temon."
 #, c-format
 msgid "The topic for %s is: %s"
 msgstr "La temo por %s estas: %s"
+
+#, c-format
+msgid "Topic for %s set by %s at %s on %s"
+msgstr ""
 
 #, c-format
 msgid "Unknown message '%s'"
@@ -3482,8 +3475,35 @@ msgstr "Karesnomo aŭ kanalo estas provizore ne disponebla."
 msgid "Wallops from %s"
 msgstr "Wallops el %s"
 
+#, c-format
+msgid "Failed to initialize SASL authentication: %s"
+msgstr ""
+
+msgid "SASL authentication failed: No worthy authentication mechanisms found."
+msgstr ""
+
+#, c-format
+msgid "SASL authentication failed: %s"
+msgstr ""
+
+msgid ""
+"SASL authentication failed: Server does not support SASL authentication."
+msgstr ""
+
+msgid "SASL authentication failed: Initializing SASL failed."
+msgstr ""
+
+msgid "Incorrect Password"
+msgstr ""
+
+msgid "SASL authentication failed: No worthy mechanisms found"
+msgstr ""
+
 msgid "action &lt;action to perform&gt;:  Perform an action."
 msgstr "ago &lt;ago farenda&gt;:  Faru agon."
+
+msgid "authserv: Send a command to authserv"
+msgstr ""
 
 msgid ""
 "away [message]:  Set an away message, or use no message to return from being "
@@ -3654,7 +3674,10 @@ msgstr "ruligi"
 msgid "Server requires plaintext authentication over an unencrypted stream"
 msgstr ""
 
-#. This should never happen!
+#. This happens when the server sends back jibberish
+#. * in the "additional data with success" case.
+#. * Seen with Wildfire 3.0.1.
+#.
 msgid "Invalid response from server"
 msgstr "Malvalida respondo el servilo"
 
@@ -3679,9 +3702,8 @@ msgstr ""
 msgid "Server thinks authentication is complete, but client does not"
 msgstr ""
 
-#, fuzzy
 msgid "Server may require plaintext authentication over an unencrypted stream"
-msgstr "Permesi plattekstan permeson tra malĉifritaj datumstrioj"
+msgstr ""
 
 #, c-format
 msgid ""
@@ -3696,9 +3718,8 @@ msgstr "SASL aŭtentokontrolo malsukcesis"
 msgid "SASL error: %s"
 msgstr "SASL eraro: %s"
 
-#, fuzzy
 msgid "Invalid Encoding"
-msgstr "Malvalida karesnomo"
+msgstr ""
 
 msgid "Unsupported Extension"
 msgstr ""
@@ -3713,9 +3734,8 @@ msgid ""
 "it.  This indicates a likely MITM attack"
 msgstr ""
 
-#, fuzzy
 msgid "Server does not support channel binding"
-msgstr "Servilo ne ekzistas"
+msgstr ""
 
 msgid "Unsupported channel binding method"
 msgstr ""
@@ -3723,28 +3743,23 @@ msgstr ""
 msgid "User not found"
 msgstr ""
 
-#, fuzzy
 msgid "Invalid Username Encoding"
-msgstr "Malvalida uzantnomo"
+msgstr ""
 
 msgid "Resource Constraint"
 msgstr ""
 
-#, fuzzy
 msgid "Unable to canonicalize username"
-msgstr "Ne eblas agordi"
+msgstr ""
 
-#, fuzzy
 msgid "Unable to canonicalize password"
-msgstr "Ne konekteblas: %s"
+msgstr ""
 
-#, fuzzy
 msgid "Malicious challenge from server"
-msgstr "Malvalida respondo el servilo"
+msgstr ""
 
-#, fuzzy
 msgid "Unexpected response from server"
-msgstr "Ricevis neatenditan HTTP respondon de servilo"
+msgstr ""
 
 msgid "The BOSH connection manager terminated your session."
 msgstr ""
@@ -3797,7 +3812,6 @@ msgstr "Regiono"
 msgid "Postal Code"
 msgstr "Poŝto Kodo"
 
-#. purple_notify_user_info_add_pair( info, _( "Email" ), profile->email );
 msgid "Country"
 msgstr "Lando"
 
@@ -3818,8 +3832,6 @@ msgstr "Laboro Titolo"
 msgid "Role"
 msgstr "Rolo"
 
-#. birthday
-#. birthday (required)
 msgid "Birthday"
 msgstr "Naskiĝdato"
 
@@ -3849,9 +3861,8 @@ msgstr "Prioriteco"
 msgid "Resource"
 msgstr "Rimedo"
 
-#, fuzzy
 msgid "Uptime"
-msgstr "Aktualigi"
+msgstr ""
 
 msgid "Logged Off"
 msgstr "Elsalutinta"
@@ -3875,11 +3886,11 @@ msgstr "Foto"
 msgid "Logo"
 msgstr "Logotipo"
 
-#, fuzzy, c-format
+#, c-format
 msgid ""
 "%s will no longer be able to see your status updates.  Do you want to "
 "continue?"
-msgstr "Vi estas foriganta %s de via kunullisto.  Ĉu vi volas daŭrigi?"
+msgstr ""
 
 msgid "Cancel Presence Notification"
 msgstr "Ĉesigu Prezentavizon"
@@ -3910,7 +3921,6 @@ msgstr "Malsaluti"
 msgid "JID"
 msgstr "JID"
 
-#. last name
 msgid "Last Name"
 msgstr "Familia Nomo"
 
@@ -4092,6 +4102,9 @@ msgstr "Dato"
 msgid "Already Registered"
 msgstr "Jam Registrita"
 
+msgid "Password"
+msgstr "Pasvorto"
+
 msgid "Unregister"
 msgstr "Forregistru"
 
@@ -4168,7 +4181,6 @@ msgstr "Nenio (Al atendante)"
 msgid "None"
 msgstr "Nenio"
 
-#. subscription type
 msgid "Subscription"
 msgstr "Abono"
 
@@ -4178,20 +4190,12 @@ msgstr "Agorda Teksto"
 msgid "Allow Buzz"
 msgstr ""
 
-#, fuzzy
 msgid "Mood Name"
-msgstr "Meza Nomo"
+msgstr ""
 
-#, fuzzy
 msgid "Mood Comment"
-msgstr "Kunul Komento"
+msgstr ""
 
-#. primitive
-#. ID
-#. name - use default
-#. saveable
-#. should be user_settable some day
-#. independent
 msgid "Tune Artist"
 msgstr ""
 
@@ -4227,6 +4231,9 @@ msgstr "Via pasvorto estas ŝanĝita."
 
 msgid "Error changing password"
 msgstr "Erara ŝanĝante pasvorton"
+
+msgid "Password (again)"
+msgstr "Pasvorto (denove)"
 
 msgid "Change XMPP Password"
 msgstr "Ŝanĝu XMPP Pasvorton"
@@ -4431,8 +4438,6 @@ msgid ""
 "buzzes now."
 msgstr ""
 
-#. Yahoo only supports one attention command: the 'buzz'.
-#. This is index number YAHOO_BUZZ.
 msgid "Buzz"
 msgstr "Zum"
 
@@ -4451,6 +4456,10 @@ msgstr "Ne eblas eki medion kun %s, malvalida JID"
 #, c-format
 msgid "Unable to initiate media with %s: user is not online"
 msgstr "Ne eblas eki medion kun %s, uzanto ne estas konektita"
+
+#, c-format
+msgid "Unable to initiate media with %s: resource is not online"
+msgstr ""
 
 #, c-format
 msgid "Unable to initiate media with %s: not subscribed to user presence"
@@ -4505,7 +4514,7 @@ msgstr ""
 msgid "invite &lt;user&gt; [message]:  Invite a user to the room."
 msgstr ""
 
-msgid "join: &lt;room&gt; [password]:  Join a chat on this server."
+msgid "join: &lt;room[@server]&gt; [password]:  Join a chat."
 msgstr ""
 
 msgid "kick &lt;user&gt; [reason]:  Kick a user from the room."
@@ -4544,20 +4553,8 @@ msgstr "XMPP Protokol-Kromaĵo"
 msgid "Domain"
 msgstr ""
 
-#, fuzzy
-msgid "Require encryption"
-msgstr "Petu aŭtentigon"
-
-#, fuzzy
-msgid "Use encryption if available"
-msgstr "Uzanto informo pri %s nedisponebla"
-
 msgid "Use old-style SSL"
 msgstr ""
-
-#, fuzzy
-msgid "Connection security"
-msgstr "Konekto perdita"
 
 msgid "Allow plaintext auth over unencrypted streams"
 msgstr "Permesi plattekstan permeson tra malĉifritaj datumstrioj"
@@ -4565,8 +4562,6 @@ msgstr "Permesi plattekstan permeson tra malĉifritaj datumstrioj"
 msgid "Connect port"
 msgstr "Konekto pordo"
 
-#. TODO: default to automatically try different ports. Make the user be
-#. * able to set the first port to try (like LastConnectedPort in Windows client).
 #. Account options
 msgid "Connect server"
 msgstr "Konekto servilo"
@@ -4577,8 +4572,9 @@ msgstr "Dosieralŝuto prokuriloj"
 msgid "BOSH URL"
 msgstr ""
 
-#. this should probably be part of global smiley theme settings later on,
-#. shared with MSN
+#. this should probably be part of global smiley theme settings
+#. * later on
+#.
 msgid "Show Custom Smileys"
 msgstr "Montru Proprajn Sidmienojn"
 
@@ -4609,9 +4605,8 @@ msgstr "XMPP Mesaĝo Eraro"
 msgid "(Code %s)"
 msgstr "(Kodo %s)"
 
-#, fuzzy
 msgid "A custom smiley in the message is too large to send."
-msgstr "Agordu mesaĝo-tempomarko-formatojn."
+msgstr ""
 
 msgid "XMPP stream header missing"
 msgstr ""
@@ -4686,31 +4681,39 @@ msgstr ""
 msgid "Please select the resource of %s to which you would like to send a file"
 msgstr ""
 
-#, fuzzy
+#, c-format
+msgid "The queue for %s has reached its maximum length of %u."
+msgstr ""
+
+msgid "XMPP stream management"
+msgstr ""
+
+msgid "Stanza queue is full"
+msgstr ""
+
+msgid "No further messages will be queued"
+msgstr ""
+
 msgid "Afraid"
-msgstr "Araba"
+msgstr ""
 
-#, fuzzy
 msgid "Amazed"
-msgstr "Animaciigi"
+msgstr ""
 
-#, fuzzy
 msgid "Amorous"
-msgstr "Glora"
+msgstr ""
 
 msgid "Angry"
 msgstr ""
 
-#, fuzzy
 msgid "Annoyed"
-msgstr "Malpermesita"
+msgstr ""
 
 msgid "Anxious"
 msgstr ""
 
-#, fuzzy
 msgid "Aroused"
-msgstr "Vi sendas"
+msgstr ""
 
 msgid "Ashamed"
 msgstr ""
@@ -4718,75 +4721,59 @@ msgstr ""
 msgid "Bored"
 msgstr ""
 
-#, fuzzy
 msgid "Brave"
-msgstr "Konservu"
+msgstr ""
 
-#, fuzzy
 msgid "Calm"
-msgstr "Sfero"
+msgstr ""
 
-#, fuzzy
 msgid "Cautious"
-msgstr "Babilejoj"
+msgstr ""
 
-#, fuzzy
 msgid "Cold"
-msgstr "Grasa"
+msgstr ""
 
-#, fuzzy
 msgid "Confident"
-msgstr "Konflikto"
+msgstr ""
 
-#, fuzzy
 msgid "Confused"
-msgstr "Daŭrigu"
+msgstr ""
 
-#, fuzzy
 msgid "Contemplative"
-msgstr "Kontakto"
+msgstr ""
 
-#, fuzzy
 msgid "Contented"
-msgstr "Daŭrigu"
+msgstr ""
 
-#, fuzzy
 msgid "Cranky"
-msgstr "Kompanio"
+msgstr ""
 
 msgid "Crazy"
 msgstr ""
 
-#, fuzzy
 msgid "Creative"
-msgstr "Kreu"
+msgstr ""
 
-#, fuzzy
 msgid "Curious"
-msgstr "Glora"
+msgstr ""
 
-#, fuzzy
 msgid "Dejected"
-msgstr "Malakceptu"
+msgstr ""
 
-#, fuzzy
 msgid "Depressed"
-msgstr "Forigu"
+msgstr ""
 
-#, fuzzy
 msgid "Disappointed"
-msgstr "Malkonektita."
+msgstr ""
 
 msgid "Disgusted"
 msgstr ""
 
-#, fuzzy
 msgid "Dismayed"
-msgstr "_Malŝaltu"
+msgstr ""
 
-#, fuzzy
 msgid "Distracted"
-msgstr "_Malŝaltu"
+msgstr ""
 
 msgid "Embarrassed"
 msgstr ""
@@ -4797,28 +4784,23 @@ msgstr ""
 msgid "Excited"
 msgstr ""
 
-#, fuzzy
 msgid "Flirtatious"
-msgstr "Glora"
+msgstr ""
 
-#, fuzzy
 msgid "Frustrated"
-msgstr "Antaŭ nomo"
+msgstr ""
 
 msgid "Grateful"
 msgstr ""
 
-#, fuzzy
 msgid "Grieving"
-msgstr "Ricevante..."
+msgstr ""
 
-#, fuzzy
 msgid "Grumpy"
-msgstr "Grupo"
+msgstr ""
 
-#, fuzzy
 msgid "Guilty"
-msgstr "Urbo"
+msgstr ""
 
 msgid "Happy"
 msgstr ""
@@ -4826,9 +4808,8 @@ msgstr ""
 msgid "Hopeful"
 msgstr ""
 
-#, fuzzy
 msgid "Hot"
-msgstr "_Retnodo:"
+msgstr ""
 
 msgid "Humbled"
 msgstr ""
@@ -4836,13 +4817,11 @@ msgstr ""
 msgid "Humiliated"
 msgstr ""
 
-#, fuzzy
 msgid "Hungry"
-msgstr "Hungara"
+msgstr ""
 
-#, fuzzy
 msgid "Hurt"
-msgstr "Humuro"
+msgstr ""
 
 msgid "Impressed"
 msgstr ""
@@ -4853,17 +4832,14 @@ msgstr ""
 msgid "In love"
 msgstr ""
 
-#, fuzzy
 msgid "Indignant"
-msgstr "Indonezia"
+msgstr ""
 
-#, fuzzy
 msgid "Interested"
-msgstr "Interesiĝoj"
+msgstr ""
 
-#, fuzzy
 msgid "Intoxicated"
-msgstr "Invitu"
+msgstr ""
 
 msgid "Invincible"
 msgstr ""
@@ -4871,62 +4847,50 @@ msgstr ""
 msgid "Jealous"
 msgstr ""
 
-#, fuzzy
 msgid "Lonely"
-msgstr "Simio"
+msgstr ""
 
-#, fuzzy
 msgid "Lost"
-msgstr "Pli Laŭta"
+msgstr ""
 
 msgid "Lucky"
 msgstr ""
 
-#, fuzzy
 msgid "Mean"
-msgstr "Germana"
+msgstr ""
 
-#, fuzzy
 msgid "Moody"
-msgstr "Etoso"
+msgstr ""
 
 msgid "Nervous"
 msgstr ""
 
-#, fuzzy
 msgid "Neutral"
-msgstr "Detalo"
+msgstr ""
 
-#, fuzzy
 msgid "Offended"
-msgstr "Senkonekta"
+msgstr ""
 
 msgid "Outraged"
 msgstr ""
 
-#, fuzzy
 msgid "Playful"
-msgstr "Ludu"
+msgstr ""
 
-#, fuzzy
 msgid "Proud"
-msgstr "Laŭte"
+msgstr ""
 
-#, fuzzy
 msgid "Relaxed"
-msgstr "Vera nomo"
+msgstr ""
 
-#, fuzzy
 msgid "Relieved"
-msgstr "Ricevita"
+msgstr ""
 
-#, fuzzy
 msgid "Remorseful"
-msgstr "Forigu"
+msgstr ""
 
-#, fuzzy
 msgid "Restless"
-msgstr "Registru"
+msgstr ""
 
 msgid "Sad"
 msgstr ""
@@ -4937,20 +4901,17 @@ msgstr ""
 msgid "Satisfied"
 msgstr ""
 
-#, fuzzy
 msgid "Serious"
-msgstr "Glora"
+msgstr ""
 
-#, fuzzy
 msgid "Shocked"
-msgstr "Blokita"
+msgstr ""
 
 msgid "Shy"
 msgstr ""
 
-#, fuzzy
 msgid "Sick"
-msgstr "Karesnomo"
+msgstr ""
 
 #. Sleepy / Tired
 msgid "Sleepy"
@@ -4959,13 +4920,11 @@ msgstr ""
 msgid "Spontaneous"
 msgstr ""
 
-#, fuzzy
 msgid "Stressed"
-msgstr "Rapideco"
+msgstr ""
 
-#, fuzzy
 msgid "Strong"
-msgstr "Haltu"
+msgstr ""
 
 msgid "Surprised"
 msgstr ""
@@ -4976,13 +4935,11 @@ msgstr ""
 msgid "Thirsty"
 msgstr ""
 
-#, fuzzy
 msgid "Tired"
-msgstr "Fajro"
+msgstr ""
 
-#, fuzzy
 msgid "Undefined"
-msgstr "Substrekita"
+msgstr ""
 
 msgid "Weak"
 msgstr ""
@@ -5012,1505 +4969,6 @@ msgstr "Agoj"
 
 msgid "Select an action"
 msgstr "Elektu agon"
-
-#. only notify the user about problems adding to the friends list
-#. * maybe we should do something else for other lists, but it probably
-#. * won't cause too many problems if we just ignore it
-#, c-format
-msgid "Unable to add \"%s\"."
-msgstr "Malsukcesis aldoni \"%s\"."
-
-msgid "Buddy Add error"
-msgstr ""
-
-msgid "The username specified does not exist."
-msgstr ""
-
-msgid "Unable to parse message"
-msgstr ""
-
-msgid "Syntax Error (probably a client bug)"
-msgstr ""
-
-msgid "Invalid email address"
-msgstr "Malvalida retadreso"
-
-msgid "User does not exist"
-msgstr "Uzanto ne ekzistas"
-
-msgid "Fully qualified domain name missing"
-msgstr ""
-
-msgid "Already logged in"
-msgstr "Jam ensalutita"
-
-msgid "Invalid username"
-msgstr "Malvalida uzantnomo"
-
-msgid "Invalid friendly name"
-msgstr "Malvalida amika nomo"
-
-msgid "List full"
-msgstr "Listo plena"
-
-msgid "Already there"
-msgstr "Jam tie"
-
-msgid "Not on list"
-msgstr "Ne en listo"
-
-msgid "User is offline"
-msgstr "Uzanto senkonektas"
-
-msgid "Already in the mode"
-msgstr "Jam en la moduso"
-
-msgid "Already in opposite list"
-msgstr "Jam en mala listo"
-
-msgid "Too many groups"
-msgstr "Tro da groupoj"
-
-msgid "Invalid group"
-msgstr "Malvalida group"
-
-msgid "User not in group"
-msgstr "Uzanto ne en grupo"
-
-msgid "Group name too long"
-msgstr "Gruponomo tro longa"
-
-msgid "Cannot remove group zero"
-msgstr "Ne povas forigi grupo nulo"
-
-msgid "Tried to add a user to a group that doesn't exist"
-msgstr "Provis aldoni uzanton al grupo neekzistanta."
-
-msgid "Switchboard failed"
-msgstr ""
-
-msgid "Notify transfer failed"
-msgstr "Dosiero transmeto malsukcesis"
-
-msgid "Required fields missing"
-msgstr ""
-
-msgid "Too many hits to a FND"
-msgstr ""
-
-msgid "Not logged in"
-msgstr "Ne ensalutita"
-
-msgid "Service temporarily unavailable"
-msgstr "Servilo provizore ne disponebla"
-
-msgid "Database server error"
-msgstr ""
-
-msgid "Command disabled"
-msgstr ""
-
-msgid "File operation error"
-msgstr ""
-
-msgid "Memory allocation error"
-msgstr ""
-
-msgid "Wrong CHL value sent to server"
-msgstr ""
-
-msgid "Server busy"
-msgstr "Servilo okupita"
-
-msgid "Server unavailable"
-msgstr "Servilo disponebla"
-
-msgid "Peer notification server down"
-msgstr ""
-
-msgid "Database connect error"
-msgstr "Datumbaso konekto eraro"
-
-msgid "Server is going down (abandon ship)"
-msgstr ""
-
-msgid "Error creating connection"
-msgstr "Eraro kreante konekto"
-
-msgid "CVR parameters are either unknown or not allowed"
-msgstr "CVR parametroj estas nekonataj aŭ ne permesitaj"
-
-msgid "Unable to write"
-msgstr "Ne eblas skribi"
-
-msgid "Session overload"
-msgstr "Sesio troigita"
-
-msgid "User is too active"
-msgstr "Uzanto tro aktivas"
-
-msgid "Too many sessions"
-msgstr "Tro da sesioj"
-
-msgid "Passport not verified"
-msgstr "Pasporto ne kontrolita"
-
-msgid "Bad friend file"
-msgstr "Malbona amikodosiero"
-
-msgid "Not expected"
-msgstr "Ne atendita"
-
-#, fuzzy
-msgid "Friendly name is changing too rapidly"
-msgstr "Amikonomo ŝangâs tro rapide"
-
-msgid "Server too busy"
-msgstr "Servilo tro okupita"
-
-msgid "Authentication failed"
-msgstr "Aŭtentokontrolo malsukcesis"
-
-msgid "Not allowed when offline"
-msgstr "Malpermesita kiam senkonekta"
-
-msgid "Not accepting new users"
-msgstr "Malakceptas novajn uzantojn"
-
-msgid "Kids Passport without parental consent"
-msgstr "Infana Pasporto sen patra konsento"
-
-msgid "Passport account not yet verified"
-msgstr "Pasporta konto ne jam kontrolita"
-
-msgid "Passport account suspended"
-msgstr "Pasporta konto suspendita"
-
-msgid "Bad ticket"
-msgstr "Malbona bileto"
-
-#, c-format
-msgid "Unknown Error Code %d"
-msgstr "Nekonata Eraro Kodo %d"
-
-#, c-format
-msgid "MSN Error: %s\n"
-msgstr "MSN Eraro: %s\n"
-
-#, c-format
-msgid "Buddy list synchronization issue in %s (%s)"
-msgstr ""
-
-#, c-format
-msgid ""
-"%s on the local list is inside the group \"%s\" but not on the server list. "
-"Do you want this buddy to be added?"
-msgstr ""
-
-#, c-format
-msgid ""
-"%s is on the local list but not on the server list. Do you want this buddy "
-"to be added?"
-msgstr ""
-
-msgid "Other Contacts"
-msgstr "Aliaj Kontaktoj"
-
-msgid "Non-IM Contacts"
-msgstr "Ne-TM Kontaktoj"
-
-#, c-format
-msgid "%s sent a wink. <a href='msn-wink://%s'>Click here to play it</a>"
-msgstr ""
-
-#, c-format
-msgid "%s sent a wink, but it could not be saved"
-msgstr ""
-
-#, c-format
-msgid "%s sent a voice clip. <a href='audio://%s'>Click here to play it</a>"
-msgstr ""
-
-#, c-format
-msgid "%s sent a voice clip, but it could not be saved"
-msgstr ""
-
-#, c-format
-msgid "%s sent you a voice chat invite, which is not yet supported."
-msgstr ""
-
-msgid "Nudge"
-msgstr ""
-
-#, c-format
-msgid "%s has nudged you!"
-msgstr ""
-
-#, c-format
-msgid "Nudging %s..."
-msgstr ""
-
-msgid "Email Address..."
-msgstr "Retadreso..."
-
-msgid "Your new MSN friendly name is too long."
-msgstr "Via nova MSN amika nomo estas tro longa."
-
-#, fuzzy, c-format
-msgid "Set friendly name for %s."
-msgstr "Difinu vian amikan nomon."
-
-#, fuzzy
-msgid "Set Friendly Name"
-msgstr "Difinu Amika Nomo..."
-
-msgid "This is the name that other MSN buddies will see you as."
-msgstr "Tio estas la nomo kiu aliaj MSN kunuloj vidos vin kiel."
-
-#, fuzzy
-msgid "This Location"
-msgstr "Uzanto Loko"
-
-#, fuzzy
-msgid "This is the name that identifies this location"
-msgstr "Tio estas la nomo kiu aliaj MSN kunuloj vidos vin kiel."
-
-#, fuzzy
-msgid "Other Locations"
-msgstr "Uzanto Loko"
-
-#, fuzzy
-msgid "You can sign out from other locations here"
-msgstr "Vi ensalutis el alia loko"
-
-#. TODO: Due to limitations in our current request field API, the
-#. following string will show up with a trailing colon.  This should
-#. be fixed either by adding an "include_colon" boolean, or creating
-#. a separate purple_request_field_label_new_without_colon function,
-#. or by never automatically adding the colon and requiring that
-#. callers add the colon themselves.
-#, fuzzy
-msgid "You are not signed in from any other locations."
-msgstr "Vi ensalutis el alia loko"
-
-msgid "Allow multiple logins?"
-msgstr ""
-
-msgid ""
-"Do you want to allow or disallow connecting from multiple locations "
-"simultaneously?"
-msgstr ""
-
-msgid "Allow"
-msgstr "Permesu"
-
-msgid "Disallow"
-msgstr "Malpermesu"
-
-msgid "Set your home phone number."
-msgstr "Difinu vian hejm telefononombron."
-
-msgid "Set your work phone number."
-msgstr "Difinu vian labor telefononombron."
-
-msgid "Set your mobile phone number."
-msgstr "Difiniu vian poŝtelefona nombron."
-
-msgid "Allow MSN Mobile pages?"
-msgstr ""
-
-msgid ""
-"Do you want to allow or disallow people on your buddy list to send you MSN "
-"Mobile pages to your cell phone or other mobile device?"
-msgstr ""
-
-#, c-format
-msgid "Blocked Text for %s"
-msgstr ""
-
-msgid "No text is blocked for this account."
-msgstr ""
-
-#, c-format
-msgid ""
-"MSN servers are currently blocking the following regular expressions:<br/>%s"
-msgstr ""
-
-msgid "This account does not have email enabled."
-msgstr ""
-
-msgid "Send a mobile message."
-msgstr ""
-
-msgid "Page"
-msgstr "Paĝo"
-
-msgid "Playing a game"
-msgstr ""
-
-msgid "Working"
-msgstr "Laborante"
-
-msgid "Has you"
-msgstr "Havas vin"
-
-msgid "Home Phone Number"
-msgstr "Hejma Telefonnumero"
-
-msgid "Work Phone Number"
-msgstr "Labora Telefonnumero"
-
-msgid "Mobile Phone Number"
-msgstr "Poŝtelefona Numero"
-
-msgid "Be Right Back"
-msgstr "Tuj Revenas"
-
-msgid "Busy"
-msgstr "Okupata"
-
-msgid "On the Phone"
-msgstr "Telefonante"
-
-msgid "Out to Lunch"
-msgstr "Ekstere Tagmanĝanten"
-
-msgid "Game Title"
-msgstr "Ludo Titolo"
-
-msgid "Office Title"
-msgstr ""
-
-msgid "Set Friendly Name..."
-msgstr "Difinu Amika Nomo..."
-
-#, fuzzy
-msgid "View Locations..."
-msgstr "Elektu Lokon..."
-
-msgid "Set Home Phone Number..."
-msgstr "Difinu Hejm-Telefonnumeron..."
-
-msgid "Set Work Phone Number..."
-msgstr "Difinu Labor-Telefonnumeron..."
-
-msgid "Set Mobile Phone Number..."
-msgstr "Difiniu Poŝtelefonan Numeron..."
-
-msgid "Enable/Disable Mobile Devices..."
-msgstr "Ebligu/Malebligu Poŝtelefonajn Ekipaĵojn..."
-
-#, fuzzy
-msgid "Allow/Disallow Multiple Logins..."
-msgstr "Ebligu/Malebligu Poŝtelefonajn Paĝojn..."
-
-msgid "Allow/Disallow Mobile Pages..."
-msgstr "Ebligu/Malebligu Poŝtelefonajn Paĝojn..."
-
-msgid "View Blocked Text..."
-msgstr ""
-
-msgid "Open Hotmail Inbox"
-msgstr "Malfermu Hotmail-an Alkeston"
-
-msgid "Send to Mobile"
-msgstr "Sendu al Poŝtelefono"
-
-msgid "SSL support is needed for MSN. Please install a supported SSL library."
-msgstr ""
-
-#, c-format
-msgid ""
-"Unable to add the buddy %s because the username is invalid.  Usernames must "
-"be valid email addresses."
-msgstr ""
-
-msgid "Unable to Add"
-msgstr "Ne eblas Aldoni"
-
-msgid "Authorization Request Message:"
-msgstr "Permeso Demando Mesaĝo:"
-
-msgid "Please authorize me!"
-msgstr "Bonvolu permesu min!"
-
-#. *
-#. * A wrapper for purple_request_action() that uses @c OK and @c Cancel buttons.
-#.
-msgid "_OK"
-msgstr "_Daŭrigu"
-
-msgid "Error retrieving profile"
-msgstr "Eraro ricevante profilon"
-
-msgid "General"
-msgstr "Ĝenerala"
-
-msgid "Age"
-msgstr "Aĝo"
-
-msgid "Occupation"
-msgstr "Okupiĝo"
-
-msgid "Location"
-msgstr "Loko"
-
-msgid "Hobbies and Interests"
-msgstr "Hobioj kaj Interesiĝoj"
-
-msgid "A Little About Me"
-msgstr "Iomete Pri Mi"
-
-msgid "Social"
-msgstr ""
-
-msgid "Marital Status"
-msgstr "Edzstato"
-
-msgid "Interests"
-msgstr "Interesiĝoj"
-
-msgid "Pets"
-msgstr ""
-
-msgid "Hometown"
-msgstr "Hejmurbo"
-
-msgid "Places Lived"
-msgstr "Vivintejoj"
-
-msgid "Fashion"
-msgstr "Fasono"
-
-msgid "Humor"
-msgstr "Humuro"
-
-msgid "Music"
-msgstr "Muziko"
-
-msgid "Favorite Quote"
-msgstr "Favorita Citaĵo"
-
-msgid "Contact Info"
-msgstr "Kontakto Informo"
-
-msgid "Personal"
-msgstr "Persona"
-
-msgid "Significant Other"
-msgstr ""
-
-msgid "Home Phone"
-msgstr "Hejmo Telfono"
-
-msgid "Home Phone 2"
-msgstr "Hejmo Telfono 2"
-
-msgid "Home Address"
-msgstr "Hejmo Adreso"
-
-msgid "Personal Mobile"
-msgstr "Persona Poŝtelefono"
-
-msgid "Home Fax"
-msgstr "Hejmfakso"
-
-msgid "Personal Email"
-msgstr "Persona Retadreso"
-
-msgid "Personal IM"
-msgstr "Persona TM"
-
-msgid "Anniversary"
-msgstr "Naskiĝdato"
-
-#. Business
-msgid "Work"
-msgstr "Laboro"
-
-msgid "Company"
-msgstr "Kompanio"
-
-msgid "Department"
-msgstr "Departemento"
-
-msgid "Profession"
-msgstr "Prefesio"
-
-msgid "Work Phone"
-msgstr "Labor Telefono"
-
-msgid "Work Phone 2"
-msgstr "Labor Telefono 2"
-
-msgid "Work Address"
-msgstr "Laboro Adreso"
-
-msgid "Work Mobile"
-msgstr "Laborpoŝtelefono"
-
-msgid "Work Pager"
-msgstr "Laborpaĝilo"
-
-msgid "Work Fax"
-msgstr "Laborfakso"
-
-msgid "Work Email"
-msgstr "Laboro Retadreso"
-
-msgid "Work IM"
-msgstr "Laboro TM"
-
-msgid "Start Date"
-msgstr "Komenca Dato"
-
-msgid "Favorite Things"
-msgstr "Favorataj Aĵoj"
-
-msgid "Last Updated"
-msgstr "Laste Aktualigita"
-
-msgid "Homepage"
-msgstr "Hejmpaĝo"
-
-msgid "The user has not created a public profile."
-msgstr "La uzanto ne kreis publikan profilon."
-
-msgid ""
-"MSN reported not being able to find the user's profile. This either means "
-"that the user does not exist, or that the user exists but has not created a "
-"public profile."
-msgstr ""
-
-msgid ""
-"Could not find any information in the user's profile. The user most likely "
-"does not exist."
-msgstr ""
-
-msgid "View web profile"
-msgstr "Rigardi ttt profilon"
-
-#. *< type
-#. *< ui_requirement
-#. *< flags
-#. *< dependencies
-#. *< priority
-#. *< id
-#. *< name
-#. *< version
-#. *< summary
-msgid "Windows Live Messenger Protocol Plugin"
-msgstr ""
-
-msgid "Use HTTP Method"
-msgstr "Uzu HTTP-an metodon"
-
-msgid "HTTP Method Server"
-msgstr "HTTP Metoda Servilo"
-
-msgid "Show custom smileys"
-msgstr "Montru personajn ridmienojn"
-
-#, fuzzy
-msgid "Allow direct connections"
-msgstr "Malsukcesis konekti: %s"
-
-msgid "Allow connecting from multiple locations"
-msgstr ""
-
-msgid "nudge: nudge a user to get their attention"
-msgstr ""
-
-msgid "Windows Live ID authentication:Unable to connect"
-msgstr ""
-
-msgid "Windows Live ID authentication:Invalid response"
-msgstr ""
-
-msgid "The following users are missing from your addressbook"
-msgstr ""
-
-#, c-format
-msgid "Unknown error (%d): %s"
-msgstr "Nekonata eraro (%d): %s"
-
-msgid "Unable to add user"
-msgstr "Ne eblas aldoni uzanton"
-
-#. Unknown error!
-#, c-format
-msgid "Unknown error (%d)"
-msgstr "Nekonata eraro (%d)"
-
-#, fuzzy
-msgid "Unable to remove user"
-msgstr "Ne eblas aldoni uzanton"
-
-msgid "Mobile message was not sent because it was too long."
-msgstr ""
-
-#, c-format
-msgid ""
-"The MSN server will shut down for maintenance in %d minute. You will "
-"automatically be signed out at that time.  Please finish any conversations "
-"in progress.\n"
-"\n"
-"After the maintenance has been completed, you will be able to successfully "
-"sign in."
-msgid_plural ""
-"The MSN server will shut down for maintenance in %d minutes. You will "
-"automatically be signed out at that time.  Please finish any conversations "
-"in progress.\n"
-"\n"
-"After the maintenance has been completed, you will be able to successfully "
-"sign in."
-msgstr[0] ""
-msgstr[1] ""
-
-msgid ""
-"Message was not sent because the system is unavailable. This normally "
-"happens when the user is blocked or does not exist."
-msgstr ""
-
-msgid "Message was not sent because messages are being sent too quickly."
-msgstr ""
-
-msgid "Message was not sent because an unknown encoding error occurred."
-msgstr ""
-
-msgid "Message was not sent because an unknown error occurred."
-msgstr ""
-
-msgid "Writing error"
-msgstr "Skriberaro"
-
-msgid "Reading error"
-msgstr "Legeraro"
-
-#, c-format
-msgid ""
-"Connection error from %s server:\n"
-"%s"
-msgstr ""
-
-msgid "Our protocol is not supported by the server"
-msgstr ""
-
-msgid "Error parsing HTTP"
-msgstr ""
-
-msgid "You have signed on from another location"
-msgstr "Vi ensalutis el alia loko"
-
-msgid "The MSN servers are temporarily unavailable. Please wait and try again."
-msgstr ""
-
-msgid "The MSN servers are going down temporarily"
-msgstr ""
-
-#, c-format
-msgid "Unable to authenticate: %s"
-msgstr ""
-
-msgid ""
-"Your MSN buddy list is temporarily unavailable. Please wait and try again."
-msgstr ""
-
-msgid "Handshaking"
-msgstr ""
-
-msgid "Transferring"
-msgstr ""
-
-msgid "Starting authentication"
-msgstr "Komencas aŭtentokontrolon"
-
-msgid "Getting cookie"
-msgstr ""
-
-msgid "Sending cookie"
-msgstr ""
-
-msgid "Retrieving buddy list"
-msgstr ""
-
-#, c-format
-msgid "%s requests to view your webcam, but this request is not yet supported."
-msgstr ""
-
-#, c-format
-msgid "%s invited you to view his/her webcam, but this is not yet supported."
-msgstr ""
-
-msgid "Away From Computer"
-msgstr ""
-
-msgid "On The Phone"
-msgstr ""
-
-msgid "Out To Lunch"
-msgstr ""
-
-msgid "Message may have not been sent because a timeout occurred:"
-msgstr ""
-
-msgid "Message could not be sent, not allowed while invisible:"
-msgstr ""
-
-msgid "Message could not be sent because the user is offline:"
-msgstr ""
-
-msgid "Message could not be sent because a connection error occurred:"
-msgstr ""
-
-msgid "Message could not be sent because we are sending too quickly:"
-msgstr ""
-
-msgid ""
-"Message could not be sent because we were unable to establish a session with "
-"the server. This is likely a server problem, try again in a few minutes:"
-msgstr ""
-
-msgid ""
-"Message could not be sent because an error with the switchboard occurred:"
-msgstr ""
-
-msgid "Message may have not been sent because an unknown error occurred:"
-msgstr ""
-
-msgid "Delete Buddy from Address Book?"
-msgstr ""
-
-msgid "Do you want to delete this buddy from your address book as well?"
-msgstr "Ĉu vi volas forigi tiun kunul el via adresaro ankaŭ?"
-
-msgid "The username specified is invalid."
-msgstr "La enigita uzantnomo malvalidas."
-
-#, fuzzy
-msgid "The PIN you entered is invalid."
-msgstr "La enigita SecurID malvalidas."
-
-#, fuzzy
-msgid "The PIN you entered has an invalid length [4-10]."
-msgstr "La enigita SecurID malvalidas."
-
-msgid "The PIN is invalid. It should only consist of digits [0-9]."
-msgstr ""
-
-#, fuzzy
-msgid "The two PINs you entered do not match."
-msgstr "Novaj pasvortoj malsamas."
-
-#, fuzzy
-msgid "The Display Name you entered is invalid."
-msgstr "La enigita SecurID malvalidas."
-
-msgid ""
-"The birthday you entered is invalid. The correct format is: 'YYYY-MM-DD'."
-msgstr ""
-
-#. show error to user
-#, fuzzy
-msgid "Profile Update Error"
-msgstr "Skriberaro"
-
-#. no profile information yet, so we cannot update
-#. (reference: "libpurple/request.h")
-msgid "Profile"
-msgstr "Profilo"
-
-msgid "Your profile information is not yet retrieved. Please try again later."
-msgstr ""
-
-msgid "Your UID"
-msgstr ""
-
-#. pin
-#. pin (required)
-#, fuzzy
-msgid "PIN"
-msgstr "UIN"
-
-msgid "Verify PIN"
-msgstr ""
-
-#. display name
-#. nick name (required)
-#, fuzzy
-msgid "Display Name"
-msgstr "Familia Nomo"
-
-#. hidden
-msgid "Hide my number"
-msgstr ""
-
-#. mobile number
-#, fuzzy
-msgid "Mobile Number"
-msgstr "Poŝtelefona Numero"
-
-#, fuzzy
-msgid "Update your Profile"
-msgstr "Uzanto Profilo"
-
-msgid "Here you can update your MXit profile"
-msgstr ""
-
-msgid "View Splash"
-msgstr ""
-
-msgid "There is no splash-screen currently available"
-msgstr ""
-
-#, fuzzy
-msgid "About"
-msgstr "Pri mi"
-
-#. display / change profile
-#, fuzzy
-msgid "Change Profile..."
-msgstr "Ŝanĝu Pasvorton..."
-
-#. display splash-screen
-#, fuzzy
-msgid "View Splash..."
-msgstr "Montru Protokolon..."
-
-#. display plugin version
-#, fuzzy
-msgid "About..."
-msgstr "Pri mi"
-
-#. the file is too big
-msgid "The file you are trying to send is too large!"
-msgstr ""
-
-msgid ""
-"Unable to connect to the MXit HTTP server. Please check your server settings."
-msgstr ""
-
-#, fuzzy
-msgid "Logging In..."
-msgstr "Ensalutante"
-
-#, fuzzy
-msgid ""
-"Unable to connect to the MXit server. Please check your server settings."
-msgstr "Ne povis konekti al aŭtentokontrolo servilo: %s"
-
-#, fuzzy
-msgid "Connecting..."
-msgstr "Konektante"
-
-#, fuzzy
-msgid "The PIN you entered has an invalid length [7-10]."
-msgstr "La enigita SecurID malvalidas."
-
-#. mxit login name
-msgid "MXit ID"
-msgstr ""
-
-#. show the form to the user to complete
-#, fuzzy
-msgid "Register New MXit Account"
-msgstr "Registradu Novan XMPP-n Konton"
-
-msgid "Please fill in the following fields:"
-msgstr ""
-
-#. no reply from the WAP site
-msgid "Error contacting the MXit WAP site. Please try again later."
-msgstr ""
-
-#. wapserver error
-#. server could not find the user
-msgid ""
-"MXit is currently unable to process the request. Please try again later."
-msgstr ""
-
-msgid "Wrong security code entered. Please try again later."
-msgstr ""
-
-msgid "Your session has expired. Please try again later."
-msgstr ""
-
-msgid "Invalid country selected. Please try again."
-msgstr ""
-
-msgid "The MXit ID you entered is not registered. Please register first."
-msgstr ""
-
-msgid "The MXit ID you entered is already registered. Please choose another."
-msgstr ""
-
-msgid "Internal error. Please try again later."
-msgstr ""
-
-msgid "You did not enter the security code"
-msgstr ""
-
-msgid "Security Code"
-msgstr ""
-
-#. ask for input (required)
-#, fuzzy
-msgid "Enter Security Code"
-msgstr "Enigu kodon"
-
-#, fuzzy
-msgid "Your Country"
-msgstr "Lando"
-
-#, fuzzy
-msgid "Your Language"
-msgstr "Preferata Lingvo"
-
-#. display the form to the user and wait for his/her input
-#, fuzzy
-msgid "MXit Authorization"
-msgstr "Petu aŭtentigon"
-
-msgid "MXit account validation"
-msgstr ""
-
-#, fuzzy
-msgid "Retrieving User Information..."
-msgstr "Uzanto Informo"
-
-#, fuzzy
-msgid "Loading menu..."
-msgstr "Ensalutante"
-
-#, fuzzy
-msgid "Status Message"
-msgstr "Senditaj Mesaĝoj"
-
-#, fuzzy
-msgid "Rejection Message"
-msgstr "Ricevitaj Mesaĝoj"
-
-#. hidden number
-#, fuzzy
-msgid "Hidden Number"
-msgstr "Meza Nomo"
-
-#, fuzzy
-msgid "Your MXit ID..."
-msgstr "Yahoo ID..."
-
-#. Configuration options
-#. WAP server (reference: "libpurple/accountopt.h")
-#, fuzzy
-msgid "WAP Server"
-msgstr "Servilo"
-
-#, fuzzy
-msgid "Connect via HTTP"
-msgstr "Konekti per TCP"
-
-msgid "Enable splash-screen popup"
-msgstr ""
-
-#. you were kicked
-#, fuzzy
-msgid "You have been kicked from this MultiMX."
-msgstr "Vi estas forigita: (%s)"
-
-#, fuzzy
-msgid "was kicked"
-msgstr "Malbona bileto"
-
-#, fuzzy
-msgid "_Room Name:"
-msgstr "_Ĉambro:"
-
-#. Display system message in chat window
-#, fuzzy
-msgid "You have invited"
-msgstr "Vi ricevis retmesaĝon!"
-
-#, fuzzy
-msgid "Last Online"
-msgstr "Enrete"
-
-#. we must have lost the connection, so terminate it so that we can reconnect
-msgid "We have lost the connection to MXit. Please reconnect."
-msgstr ""
-
-#. packet could not be queued for transmission
-#, fuzzy
-msgid "Message Send Error"
-msgstr "XMPP Mesaĝo Eraro"
-
-msgid "Unable to process your request at this time"
-msgstr ""
-
-msgid "Timeout while waiting for a response from the MXit server."
-msgstr ""
-
-#, fuzzy
-msgid "Successfully Logged In..."
-msgstr "Sukcese aliĝis Qun"
-
-#, c-format
-msgid ""
-"%s sent you an encrypted message, but it is not supported on this client."
-msgstr ""
-
-#, fuzzy
-msgid "Message Error"
-msgstr "XMPP Mesaĝo Eraro"
-
-msgid "Cannot perform redirect using the specified protocol"
-msgstr ""
-
-#, fuzzy
-msgid "An internal MXit server error occurred."
-msgstr "Nekonata ensaluteraro okazis: %s."
-
-#, fuzzy, c-format
-msgid "Login error: %s (%i)"
-msgstr "SASL eraro: %s"
-
-#, fuzzy, c-format
-msgid "Logout error: %s (%i)"
-msgstr "SASL eraro: %s"
-
-#, fuzzy
-msgid "Contact Error"
-msgstr "Konekteraro"
-
-#, fuzzy
-msgid "Message Sending Error"
-msgstr "XMPP Mesaĝo Eraro"
-
-#, fuzzy
-msgid "Status Error"
-msgstr "Stato por %s"
-
-#, fuzzy
-msgid "Mood Error"
-msgstr "Piktograma Eraro"
-
-#, fuzzy
-msgid "Invitation Error"
-msgstr "Malregistra Eraro"
-
-#, fuzzy
-msgid "Contact Removal Error"
-msgstr "Konekteraro"
-
-#, fuzzy
-msgid "Subscription Error"
-msgstr "Abono"
-
-#, fuzzy
-msgid "Contact Update Error"
-msgstr "Konekteraro"
-
-#, fuzzy
-msgid "File Transfer Error"
-msgstr "Dosieralŝuto pordo"
-
-#, fuzzy
-msgid "Cannot create MultiMx room"
-msgstr "Ne povas krei atentigon"
-
-#, fuzzy
-msgid "MultiMx Invitation Error"
-msgstr "Malregistra Eraro"
-
-#, fuzzy
-msgid "Profile Error"
-msgstr "Skriberaro"
-
-#. bad packet
-msgid "Invalid packet received from MXit."
-msgstr ""
-
-#. connection error
-msgid "A connection error occurred to MXit. (read stage 0x01)"
-msgstr ""
-
-#. connection closed
-msgid "A connection error occurred to MXit. (read stage 0x02)"
-msgstr ""
-
-msgid "A connection error occurred to MXit. (read stage 0x03)"
-msgstr ""
-
-#. malformed packet length record (too long)
-msgid "A connection error occurred to MXit. (read stage 0x04)"
-msgstr ""
-
-#. connection error
-msgid "A connection error occurred to MXit. (read stage 0x05)"
-msgstr ""
-
-#. connection closed
-msgid "A connection error occurred to MXit. (read stage 0x06)"
-msgstr ""
-
-msgid "In Love"
-msgstr ""
-
-#, fuzzy
-msgid "Pending"
-msgstr "Sendante"
-
-#, fuzzy
-msgid "Invited"
-msgstr "Invitu"
-
-#, fuzzy
-msgid "Rejected"
-msgstr "Malakceptu"
-
-#, fuzzy
-msgid "Deleted"
-msgstr "Forigu"
-
-msgid "MXit Advertising"
-msgstr ""
-
-#, fuzzy
-msgid "More Information"
-msgstr "Laborinformo"
-
-#, c-format
-msgid "No such user: %s"
-msgstr ""
-
-msgid "User lookup"
-msgstr ""
-
-msgid "Reading challenge"
-msgstr ""
-
-msgid "Unexpected challenge length from server"
-msgstr ""
-
-msgid "Logging in"
-msgstr "Ensalutante"
-
-msgid "MySpaceIM - No Username Set"
-msgstr "MySpaceIM - Neniu Uzantonomo Difinitia"
-
-msgid "You appear to have no MySpace username."
-msgstr ""
-
-msgid "Would you like to set one now? (Note: THIS CANNOT BE CHANGED!)"
-msgstr ""
-
-msgid "Lost connection with server"
-msgstr "Perdis konekton kun servilo"
-
-#. Can't write _()'d strings in array initializers. Workaround.
-#. khc: then use N_() in the array initializer and use _() when they are
-#. used
-msgid "New mail messages"
-msgstr "Novaj retmesaĝoj"
-
-msgid "New blog comments"
-msgstr ""
-
-msgid "New profile comments"
-msgstr ""
-
-msgid "New friend requests!"
-msgstr ""
-
-msgid "New picture comments"
-msgstr ""
-
-msgid "MySpace"
-msgstr ""
-
-msgid "IM Friends"
-msgstr "TM Amikoj"
-
-#, c-format
-msgid ""
-"%d buddy was added or updated from the server (including buddies already on "
-"the server-side list)"
-msgid_plural ""
-"%d buddies were added or updated from the server (including buddies already "
-"on the server-side list)"
-msgstr[0] ""
-msgstr[1] ""
-
-msgid "Add contacts from server"
-msgstr "Aldoni kontaktojn el servilo."
-
-#, c-format
-msgid "Protocol error, code %d: %s"
-msgstr ""
-
-#, c-format
-msgid ""
-"%s Your password is %zu characters, which is longer than the maximum length "
-"of %d.  Please shorten your password at http://profileedit.myspace.com/index."
-"cfm?fuseaction=accountSettings.changePassword and try again."
-msgstr ""
-
-msgid "Incorrect username or password"
-msgstr "Misa uzantnomo aŭ pasvorto"
-
-msgid "MySpaceIM Error"
-msgstr ""
-
-msgid "Invalid input condition"
-msgstr ""
-
-msgid "Failed to add buddy"
-msgstr "Malsukcesis aldoni kunulon"
-
-msgid "'addbuddy' command failed."
-msgstr ""
-
-msgid "persist command failed"
-msgstr ""
-
-msgid "Failed to remove buddy"
-msgstr "Malsukcesis forigi kunulon"
-
-msgid "'delbuddy' command failed"
-msgstr ""
-
-msgid "blocklist command failed"
-msgstr ""
-
-msgid "Missing Cipher"
-msgstr ""
-
-msgid "The RC4 cipher could not be found"
-msgstr ""
-
-msgid ""
-"Upgrade to a libpurple with RC4 support (>= 2.0.1). MySpaceIM plugin will "
-"not be loaded."
-msgstr ""
-
-msgid "Add friends from MySpace.com"
-msgstr ""
-
-msgid "Importing friends failed"
-msgstr ""
-
-#. TODO: find out how
-msgid "Find people..."
-msgstr "Trovu homojn..."
-
-msgid "Change IM name..."
-msgstr "Ŝanĝu TM nomon..."
-
-msgid "myim URL handler"
-msgstr ""
-
-msgid "No suitable MySpaceIM account could be found to open this myim URL."
-msgstr ""
-
-msgid "Enable the proper MySpaceIM account and try again."
-msgstr ""
-
-msgid "Show display name in status text"
-msgstr ""
-
-msgid "Show headline in status text"
-msgstr ""
-
-msgid "Send emoticons"
-msgstr ""
-
-msgid "Screen resolution (dots per inch)"
-msgstr ""
-
-msgid "Base font size (points)"
-msgstr "Baza tiparo grandeco (punktoj)"
-
-msgid "User"
-msgstr "Uzanto"
-
-msgid "Headline"
-msgstr ""
-
-msgid "Song"
-msgstr ""
-
-msgid "Total Friends"
-msgstr ""
-
-msgid "Client Version"
-msgstr "Klienta Version"
-
-msgid ""
-"An error occurred while trying to set the username.  Please try again, or "
-"visit http://editprofile.myspace.com/index.cfm?fuseaction=profile.username "
-"to set your username."
-msgstr ""
-
-msgid "MySpaceIM - Username Available"
-msgstr ""
-
-msgid "This username is available. Would you like to set it?"
-msgstr ""
-
-msgid "ONCE SET, THIS CANNOT BE CHANGED!"
-msgstr ""
-
-msgid "MySpaceIM - Please Set a Username"
-msgstr ""
-
-msgid "This username is unavailable."
-msgstr "Tiu uzantonomo ne disponeblas."
-
-msgid "Please try another username:"
-msgstr "Bonvolu provi alian uzantonomon:"
-
-#. Protocol won't log in now without a username set.. Disconnect
-msgid "No username set"
-msgstr "Neniu uzantonomo difinita"
-
-msgid "Please enter a username to check its availability:"
-msgstr ""
-
-#. TODO: icons for each zap
-#. Lots of comments for translators:
-#. Zap means "to strike suddenly and forcefully as if with a
-#. * projectile or weapon."  This term often has an electrical
-#. * connotation, for example, "he was zapped by electricity when
-#. * he put a fork in the toaster."
-msgid "Zap"
-msgstr ""
-
-#, c-format
-msgid "%s has zapped you!"
-msgstr ""
-
-#, c-format
-msgid "Zapping %s..."
-msgstr ""
-
-#. Whack means "to hit or strike someone with a sharp blow"
-msgid "Whack"
-msgstr ""
-
-#, c-format
-msgid "%s has whacked you!"
-msgstr ""
-
-#, c-format
-msgid "Whacking %s..."
-msgstr ""
-
-#. Torch means "to set on fire."  Don't worry, this doesn't
-#. * make a whole lot of sense in English, either.  Feel free
-#. * to translate it literally.
-msgid "Torch"
-msgstr ""
-
-#, c-format
-msgid "%s has torched you!"
-msgstr ""
-
-#, c-format
-msgid "Torching %s..."
-msgstr ""
-
-#. Smooch means "to kiss someone, often enthusiastically"
-msgid "Smooch"
-msgstr ""
-
-#, c-format
-msgid "%s has smooched you!"
-msgstr ""
-
-#, c-format
-msgid "Smooching %s..."
-msgstr ""
-
-#. A hug is a display of affection; wrapping your arms around someone
-msgid "Hug"
-msgstr ""
-
-#, c-format
-msgid "%s has hugged you!"
-msgstr ""
-
-#, c-format
-msgid "Hugging %s..."
-msgstr ""
-
-#. Slap means "to hit someone with an open/flat hand"
-msgid "Slap"
-msgstr ""
-
-#, c-format
-msgid "%s has slapped you!"
-msgstr ""
-
-#, c-format
-msgid "Slapping %s..."
-msgstr ""
-
-#. Goose means "to pinch someone on their butt"
-msgid "Goose"
-msgstr ""
-
-#, c-format
-msgid "%s has goosed you!"
-msgstr ""
-
-#, c-format
-msgid "Goosing %s..."
-msgstr ""
-
-#. A high-five is when two people's hands slap each other
-#. * in the air above their heads.  It is done to celebrate
-#. * something, often a victory, or to congratulate someone.
-msgid "High-five"
-msgstr ""
-
-#, c-format
-msgid "%s has high-fived you!"
-msgstr ""
-
-#, c-format
-msgid "High-fiving %s..."
-msgstr ""
-
-#. We're not entirely sure what the MySpace people mean by
-#. * this... but we think it's the equivalent of "prank."  Or, for
-#. * someone to perform a mischievous trick or practical joke.
-msgid "Punk"
-msgstr ""
-
-#, c-format
-msgid "%s has punk'd you!"
-msgstr ""
-
-#, c-format
-msgid "Punking %s..."
-msgstr ""
-
-#. Raspberry is a slang term for the vibrating sound made
-#. * when you stick your tongue out of your mouth with your
-#. * lips closed and blow.  It is typically done when
-#. * gloating or bragging.  Nowadays it's a pretty silly
-#. * gesture, so it does not carry a harsh negative
-#. * connotation.  It is generally used in a playful tone
-#. * with friends.
-msgid "Raspberry"
-msgstr ""
-
-#, c-format
-msgid "%s has raspberried you!"
-msgstr ""
-
-#, c-format
-msgid "Raspberrying %s..."
-msgstr ""
 
 msgid "Required parameters not passed in"
 msgstr ""
@@ -6562,6 +5020,9 @@ msgstr ""
 
 msgid "Master archive is misconfigured"
 msgstr ""
+
+msgid "Incorrect username or password"
+msgstr "Misa uzantnomo aŭ pasvorto"
 
 msgid "Could not recognize the host of the username you entered"
 msgstr ""
@@ -6676,6 +5137,12 @@ msgstr ""
 msgid "Telephone Number"
 msgstr ""
 
+msgid "Location"
+msgstr "Loko"
+
+msgid "Department"
+msgstr "Departemento"
+
 msgid "Personal Title"
 msgstr ""
 
@@ -6724,6 +5191,9 @@ msgstr ""
 msgid "Would you like to join the conversation?"
 msgstr "Ĉu vi deziras aliĝi al konversacio?"
 
+msgid "You have signed on from another location"
+msgstr "Vi ensalutis el alia loko"
+
 #, c-format
 msgid ""
 "%s appears to be offline and did not receive the message that you just sent."
@@ -6736,6 +5206,9 @@ msgstr ""
 
 msgid "This conference has been closed. No more messages can be sent."
 msgstr "Tiu konferenco fermiĝis. Ne pliaj mesaĝoj sendiĝeblas."
+
+msgid "Busy"
+msgstr "Okupata"
 
 #. *< type
 #. *< ui_requirement
@@ -6765,13 +5238,19 @@ msgstr "Nenia kialo donita."
 msgid "Authorization Denied Message:"
 msgstr "Permeso Rifuzo Mesaĝo"
 
-#, fuzzy, c-format
-msgid "Received unexpected response from %s: %s"
-msgstr "Ricevis neatenditan respondon de"
+#. *
+#. * A wrapper for purple_request_action() that uses @c OK and @c Cancel buttons.
+#.
+msgid "_OK"
+msgstr "_Daŭrigu"
 
-#, fuzzy, c-format
+#, c-format
+msgid "Received unexpected response from %s: %s"
+msgstr ""
+
+#, c-format
 msgid "Received unexpected response from %s"
-msgstr "Ricevis neatenditan respondon de"
+msgstr ""
 
 msgid ""
 "You have been connecting and disconnecting too frequently. Wait ten minutes "
@@ -6785,13 +5264,12 @@ msgstr ""
 
 #. Note to translators: The first %s is a URL, the second is an
 #. error message.
-#, fuzzy, c-format
+#, c-format
 msgid "Error requesting %s: %s"
-msgstr "Eraro skribante al %s: %s"
+msgstr ""
 
-#, fuzzy
 msgid "The server returned an empty response"
-msgstr "Ne povis konekti al aŭtentokontrolo servilo: %s"
+msgstr ""
 
 msgid ""
 "Server requested that you fill out a CAPTCHA in order to sign in, but this "
@@ -6823,15 +5301,17 @@ msgstr "Malvalida babilejo nomo"
 msgid "Invalid error"
 msgstr "Malvalida eraro"
 
+msgid "Not logged in"
+msgstr "Ne ensalutita"
+
 msgid "Cannot receive IM due to parental controls"
 msgstr ""
 
 msgid "Cannot send SMS without accepting terms"
 msgstr ""
 
-#, fuzzy
 msgid "Cannot send SMS"
-msgstr "Ne povas sendi dosierujon %s."
+msgstr ""
 
 #. SMS_WITHOUT_DISCLAIMER is weird
 msgid "Cannot send SMS to this country"
@@ -6856,44 +5336,39 @@ msgstr ""
 msgid "Bot account reached monthly IM limit"
 msgstr ""
 
-#, fuzzy
 msgid "Unable to receive offline messages"
-msgstr "Ne eblas sendi mesaĝon: %s"
+msgstr ""
 
-#, fuzzy
 msgid "Offline message store full"
-msgstr "Senkonekta Mesaĝo"
+msgstr ""
 
-#, fuzzy, c-format
+#, c-format
 msgid "Unable to send message: %s (%s)"
-msgstr "Ne eblas sendi mesaĝon: %s"
+msgstr ""
 
 #, c-format
 msgid "Unable to send message: %s"
 msgstr "Ne eblas sendi mesaĝon: %s"
 
-#, fuzzy, c-format
+#, c-format
 msgid "Unable to send message to %s: %s (%s)"
-msgstr "Ne eblas sendi mesaĝon al %s:"
+msgstr ""
 
-#, fuzzy, c-format
+#, c-format
 msgid "Unable to send message to %s: %s"
-msgstr "Ne eblas sendi mesaĝon al %s:"
+msgstr ""
 
 msgid "Thinking"
 msgstr ""
 
-#, fuzzy
 msgid "Shopping"
-msgstr "Maltajpas"
+msgstr ""
 
-#, fuzzy
 msgid "Questioning"
-msgstr "Estona"
+msgstr ""
 
-#, fuzzy
 msgid "Eating"
-msgstr "Averto"
+msgstr ""
 
 msgid "Watching a movie"
 msgstr ""
@@ -6901,9 +5376,8 @@ msgstr ""
 msgid "Typing"
 msgstr "Tajpante"
 
-#, fuzzy
 msgid "At the office"
-msgstr "Malofice"
+msgstr ""
 
 msgid "Taking a bath"
 msgstr ""
@@ -6914,24 +5388,20 @@ msgstr ""
 msgid "Having fun"
 msgstr ""
 
-#, fuzzy
 msgid "Sleeping"
-msgstr "Sendante"
+msgstr ""
 
 msgid "Using a PDA"
 msgstr ""
 
-#, fuzzy
 msgid "Meeting friends"
-msgstr "TM Amikoj"
+msgstr ""
 
-#, fuzzy
 msgid "On the phone"
-msgstr "Telefonante"
+msgstr ""
 
-#, fuzzy
 msgid "Surfing"
-msgstr "Rikuranta"
+msgstr ""
 
 #. "I am mobile." / "John is mobile."
 msgid "Mobile"
@@ -6947,38 +5417,41 @@ msgid "Having Coffee"
 msgstr ""
 
 #. Playing video games
-#, fuzzy
 msgid "Gaming"
-msgstr "Uzanto Ludante"
+msgstr ""
 
 msgid "Browsing the web"
 msgstr ""
 
-#, fuzzy
 msgid "Smoking"
-msgstr "Laborante"
+msgstr ""
 
-#, fuzzy
 msgid "Writing"
-msgstr "Laborante"
+msgstr ""
 
 #. Drinking [Alcohol]
-#, fuzzy
 msgid "Drinking"
-msgstr "Laborante"
+msgstr ""
 
 msgid "Listening to music"
 msgstr ""
 
-#, fuzzy
 msgid "Studying"
-msgstr "Sendante"
+msgstr ""
 
-#, fuzzy
+msgid "Working"
+msgstr "Laborante"
+
 msgid "In the restroom"
-msgstr "Interesiĝoj"
+msgstr ""
 
 msgid "Received invalid data on connection with server"
+msgstr ""
+
+msgid "Error parsing response from authentication server"
+msgstr ""
+
+msgid "Unknown error during authentication"
 msgstr ""
 
 #. *< type
@@ -7057,25 +5530,20 @@ msgstr ""
 msgid "Invisible"
 msgstr "Nevidebla"
 
-#, fuzzy
 msgid "Evil"
-msgstr "Retadreso"
+msgstr ""
 
-#, fuzzy
 msgid "Depression"
-msgstr "Prefesio"
+msgstr ""
 
-#, fuzzy
 msgid "At home"
-msgstr "Pri mi"
+msgstr ""
 
-#, fuzzy
 msgid "At work"
-msgstr "Reto"
+msgstr ""
 
-#, fuzzy
 msgid "At lunch"
-msgstr "Ekstere Tagmanĝanten"
+msgstr ""
 
 #, c-format
 msgid "Unable to connect to authentication server: %s"
@@ -7107,6 +5575,11 @@ msgid ""
 "supported by your system."
 msgstr ""
 
+msgid ""
+"You required Kerberos authentication but encryption is disabled in your "
+"account settings."
+msgstr ""
+
 #, c-format
 msgid "You may be disconnected shortly.  If so, check %s for updates."
 msgstr ""
@@ -7121,8 +5594,6 @@ msgid "Received authorization"
 msgstr ""
 
 #. Unregistered username
-#. uid is not exist
-#. the username does not exist
 msgid "Username does not exist"
 msgstr "Uzantonomo ne ekzistas"
 
@@ -7268,6 +5739,12 @@ msgstr "Via AIM konekto perdeblas."
 msgid "You have been disconnected from chat room %s."
 msgstr "Vi estas diskonektita de babilejo %s."
 
+msgid "The new formatting is invalid."
+msgstr "La nova formatumo malvalidas."
+
+msgid "Username formatting can change only capitalization and whitespace."
+msgstr ""
+
 msgid "Pop-Up Message"
 msgstr "Ŝpruca Mesaĝo"
 
@@ -7382,6 +5859,9 @@ msgid ""
 "numbers and spaces, or contain only numbers."
 msgstr ""
 
+msgid "Unable to Add"
+msgstr "Ne eblas Aldoni"
+
 msgid "Unable to Retrieve Buddy List"
 msgstr "Ne eblas Ricevi Kunulliston"
 
@@ -7450,9 +5930,8 @@ msgstr ""
 msgid "iTunes Music Store Link"
 msgstr ""
 
-#, fuzzy
 msgid "Lunch"
-msgstr "Finch"
+msgstr ""
 
 #, c-format
 msgid "Buddy Comment for %s"
@@ -7473,9 +5952,8 @@ msgstr ""
 msgid "C_onnect"
 msgstr "K_onektu"
 
-#, fuzzy
 msgid "You closed the connection."
-msgstr "Servilo fermis la konekton"
+msgstr ""
 
 msgid "Get AIM Info"
 msgstr "Ricevu AIM Informon"
@@ -7484,13 +5962,11 @@ msgstr "Ricevu AIM Informon"
 msgid "Edit Buddy Comment"
 msgstr "Redaktu Kunul Komenton"
 
-#, fuzzy
 msgid "Get X-Status Msg"
-msgstr "Ricevi Statan Mesaĝon"
+msgstr ""
 
-#, fuzzy
 msgid "End Direct IM Session"
-msgstr "Rekta TM establiĝis"
+msgstr ""
 
 msgid "Direct IM"
 msgstr "Rekta TM"
@@ -7507,18 +5983,11 @@ msgstr ""
 msgid "ICQ Privacy Options"
 msgstr "ICQ Privatecaj Opcioj"
 
-msgid "The new formatting is invalid."
-msgstr "La nova formatumo malvalidas."
-
-msgid "Username formatting can change only capitalization and whitespace."
-msgstr ""
-
 msgid "Change Address To:"
 msgstr "Ŝanĝu adreson al:"
 
-#, fuzzy
 msgid "you are not waiting for authorization"
-msgstr "<i>vi ne atendas aŭtentigon</i>"
+msgstr ""
 
 msgid "You are awaiting authorization from the following buddies"
 msgstr "Vi atendas aŭtentigon de la jenaj kunuloj"
@@ -7556,13 +6025,11 @@ msgstr "Agordi TM Plusendado (ttt)"
 msgid "Set Privacy Options..."
 msgstr "Difinu Privatecajn Opciojn..."
 
-#, fuzzy
 msgid "Show Visible List"
-msgstr "Montru Kunul_liston"
+msgstr ""
 
-#, fuzzy
 msgid "Show Invisible List"
-msgstr "Nevidebla"
+msgstr ""
 
 #. AIM actions
 msgid "Confirm Account"
@@ -7580,11 +6047,16 @@ msgstr "Montru Kunulojn Atendante Permeso"
 msgid "Search for Buddy by Email Address..."
 msgstr "Serĉu Kunulon laŭ Retadreso..."
 
-#, fuzzy
-msgid "Don't use encryption"
-msgstr "Petu aŭtentigon"
+msgid "clientLogin"
+msgstr ""
 
-msgid "Use clientLogin"
+msgid "Kerberos"
+msgstr ""
+
+msgid "MD5-based"
+msgstr ""
+
+msgid "Authentication method"
 msgstr ""
 
 msgid ""
@@ -7618,75 +6090,6 @@ msgid ""
 "This requires a direct connection between the two computers and is necessary "
 "for IM Images.  Because your IP address will be revealed, this may be "
 "considered a privacy risk."
-msgstr ""
-
-msgid "Invalid SNAC"
-msgstr "Malvalida SNAC"
-
-msgid "Server rate limit exceeded"
-msgstr ""
-
-msgid "Client rate limit exceeded"
-msgstr ""
-
-msgid "Service unavailable"
-msgstr ""
-
-msgid "Service not defined"
-msgstr ""
-
-msgid "Obsolete SNAC"
-msgstr ""
-
-msgid "Not supported by host"
-msgstr ""
-
-msgid "Not supported by client"
-msgstr ""
-
-msgid "Refused by client"
-msgstr ""
-
-msgid "Reply too big"
-msgstr ""
-
-msgid "Responses lost"
-msgstr ""
-
-msgid "Request denied"
-msgstr ""
-
-msgid "Busted SNAC payload"
-msgstr ""
-
-msgid "Insufficient rights"
-msgstr ""
-
-msgid "In local permit/deny"
-msgstr "En loka permeso/rifuzo"
-
-msgid "Warning level too high (sender)"
-msgstr ""
-
-msgid "Warning level too high (receiver)"
-msgstr ""
-
-msgid "User temporarily unavailable"
-msgstr ""
-
-msgid "No match"
-msgstr ""
-
-msgid "List overflow"
-msgstr ""
-
-msgid "Request ambiguous"
-msgstr ""
-
-msgid "Queue full"
-msgstr ""
-
-msgid "Not while on AOL"
 msgstr ""
 
 #. Label
@@ -7775,6 +6178,9 @@ msgstr "Uzantoinformo ne disponebla: %s"
 msgid "Mobile Phone"
 msgstr "Poŝtelefono"
 
+msgid "Age"
+msgstr "Aĝo"
+
 msgid "Personal Web Page"
 msgstr "Persona ttt-ejo"
 
@@ -7783,11 +6189,20 @@ msgstr "Persona ttt-ejo"
 msgid "Additional Information"
 msgstr "Kroma Informo"
 
+msgid "Home Address"
+msgstr "Hejmo Adreso"
+
 msgid "Zip Code"
 msgstr "Poŝtkodo"
 
+msgid "Work Address"
+msgstr "Laboro Adreso"
+
 msgid "Work Information"
 msgstr "Laborinformo"
+
+msgid "Company"
+msgstr "Kompanio"
 
 msgid "Division"
 msgstr "Dividaĵo"
@@ -7807,6 +6222,81 @@ msgstr "Membro Ek De"
 msgid "Capabilities"
 msgstr "Kapablecoj"
 
+msgid "Profile"
+msgstr "Profilo"
+
+msgid "View web profile"
+msgstr "Rigardi ttt profilon"
+
+msgid "Invalid SNAC"
+msgstr "Malvalida SNAC"
+
+msgid "Server rate limit exceeded"
+msgstr ""
+
+msgid "Client rate limit exceeded"
+msgstr ""
+
+msgid "Service unavailable"
+msgstr ""
+
+msgid "Service not defined"
+msgstr ""
+
+msgid "Obsolete SNAC"
+msgstr ""
+
+msgid "Not supported by host"
+msgstr ""
+
+msgid "Not supported by client"
+msgstr ""
+
+msgid "Refused by client"
+msgstr ""
+
+msgid "Reply too big"
+msgstr ""
+
+msgid "Responses lost"
+msgstr ""
+
+msgid "Request denied"
+msgstr ""
+
+msgid "Busted SNAC payload"
+msgstr ""
+
+msgid "Insufficient rights"
+msgstr ""
+
+msgid "In local permit/deny"
+msgstr "En loka permeso/rifuzo"
+
+msgid "Warning level too high (sender)"
+msgstr ""
+
+msgid "Warning level too high (receiver)"
+msgstr ""
+
+msgid "User temporarily unavailable"
+msgstr ""
+
+msgid "No match"
+msgstr ""
+
+msgid "List overflow"
+msgstr ""
+
+msgid "Request ambiguous"
+msgstr ""
+
+msgid "Queue full"
+msgstr ""
+
+msgid "Not while on AOL"
+msgstr ""
+
 #. Translators: This string is a menu option that, if selected, will cause
 #. you to appear online to the chosen user even when your status is set to
 #. Invisible.
@@ -7816,9 +6306,8 @@ msgstr "Aperas Enreta"
 #. Translators: This string is a menu option that, if selected, will cause
 #. you to appear offline to the chosen user when your status is set to
 #. Invisible (this is the default).
-#, fuzzy
 msgid "Don't Appear Online"
-msgstr "Aperas Enreta"
+msgstr ""
 
 #. Translators: This string is a menu option that, if selected, will cause
 #. you to always appear offline to the chosen user (even when your status
@@ -7830,735 +6319,29 @@ msgstr "Aperas Senkonekta"
 #. you to appear offline to the chosen user if you are invisible, and
 #. appear online to the chosen user if you are not invisible (this is the
 #. default).
-#, fuzzy
 msgid "Don't Appear Offline"
-msgstr "Aperas Senkonekta"
+msgstr ""
 
-#, fuzzy
 msgid "you have no buddies on this list"
-msgstr "Vi estas forigita: (%s)"
+msgstr ""
 
-#, fuzzy, c-format
+#, c-format
 msgid ""
 "You can add a buddy to this list by right-clicking on them and selecting \"%s"
 "\""
 msgstr ""
-"Vi povas re-peti aŭtentigon el tiuj kunuloj per dekstre-klaki ilin kaj "
-"elekti \"Re-petu aŭtentigon.\""
 
-#, fuzzy
 msgid "Visible List"
-msgstr "Videbla"
+msgstr ""
 
 msgid "These buddies will see your status when you switch to \"Invisible\""
 msgstr ""
 
-#, fuzzy
 msgid "Invisible List"
-msgstr "Nevidebla"
+msgstr ""
 
 msgid "These buddies will always see you as offline"
 msgstr ""
-
-msgid "Aquarius"
-msgstr "Verŝisto"
-
-msgid "Pisces"
-msgstr "Fiŝoj"
-
-msgid "Aries"
-msgstr "Ŝafo"
-
-msgid "Taurus"
-msgstr "Bovo"
-
-msgid "Gemini"
-msgstr "Ĝemeloj "
-
-msgid "Cancer"
-msgstr "Kankro"
-
-msgid "Leo"
-msgstr "Leono"
-
-msgid "Virgo"
-msgstr "Virgulino"
-
-msgid "Libra"
-msgstr "Pesilo "
-
-msgid "Scorpio"
-msgstr "Skorpio "
-
-msgid "Sagittarius"
-msgstr "Pafisto"
-
-msgid "Capricorn"
-msgstr "Kaprikorno"
-
-msgid "Rat"
-msgstr "Rato"
-
-msgid "Ox"
-msgstr ""
-
-msgid "Tiger"
-msgstr "Tigro"
-
-msgid "Rabbit"
-msgstr "Kuniklo"
-
-msgid "Dragon"
-msgstr "Drako"
-
-msgid "Snake"
-msgstr "Serpento"
-
-msgid "Horse"
-msgstr "Ĉevalo"
-
-msgid "Goat"
-msgstr "Kapro"
-
-msgid "Monkey"
-msgstr "Simio"
-
-msgid "Rooster"
-msgstr "Virkoko"
-
-msgid "Dog"
-msgstr "Hundo"
-
-msgid "Pig"
-msgstr "Porko"
-
-msgid "Other"
-msgstr "Alia"
-
-msgid "Visible"
-msgstr "Videbla"
-
-msgid "Friend Only"
-msgstr ""
-
-msgid "Private"
-msgstr "Privata"
-
-msgid "QQ Number"
-msgstr "QQ Nombro"
-
-msgid "Country/Region"
-msgstr "Lando/Regiono"
-
-msgid "Province/State"
-msgstr "Provinco/Ŝtato"
-
-msgid "Zipcode"
-msgstr "Poŝtkodo"
-
-msgid "Phone Number"
-msgstr "Telefonnumero"
-
-msgid "Authorize adding"
-msgstr "Permesi aldoni"
-
-msgid "Cellphone Number"
-msgstr "Poŝtelefona Numero"
-
-msgid "Personal Introduction"
-msgstr "Persono Enkonduko"
-
-msgid "City/Area"
-msgstr "Urbo/Loko"
-
-msgid "Publish Mobile"
-msgstr "Montri Poŝtelefonon"
-
-msgid "Publish Contact"
-msgstr "Alinomo Kontakton"
-
-msgid "College"
-msgstr "Kolegio"
-
-msgid "Horoscope"
-msgstr "Horoskopo"
-
-msgid "Zodiac"
-msgstr "Zodiako"
-
-msgid "Blood"
-msgstr "Sango"
-
-msgid "True"
-msgstr "Prave"
-
-msgid "False"
-msgstr "Malprave"
-
-msgid "Modify Contact"
-msgstr "Ŝanĝi Kontakton"
-
-msgid "Modify Address"
-msgstr "Ŝanĝi Adreson"
-
-msgid "Modify Extended Information"
-msgstr "Ŝanĝi Detalan Informon"
-
-msgid "Modify Information"
-msgstr "Ŝanĝu Informon"
-
-msgid "Update"
-msgstr "Aktualigi"
-
-msgid "Could not change buddy information."
-msgstr ""
-
-msgid "Note"
-msgstr ""
-
-#. callback
-msgid "Buddy Memo"
-msgstr ""
-
-msgid "Change his/her memo as you like"
-msgstr ""
-
-msgid "_Modify"
-msgstr "Ŝ_anĝu"
-
-msgid "Memo Modify"
-msgstr ""
-
-msgid "Server says:"
-msgstr "Servilo diras:"
-
-msgid "Your request was accepted."
-msgstr ""
-
-msgid "Your request was rejected."
-msgstr ""
-
-#, c-format
-msgid "%u requires verification: %s"
-msgstr ""
-
-msgid "Add buddy question"
-msgstr "Aldonu kunulon al via listo?"
-
-msgid "Enter answer here"
-msgstr "Enigu respondon ĉi-tie"
-
-msgid "Send"
-msgstr "Sendu"
-
-msgid "Invalid answer."
-msgstr "Malvalida respondo."
-
-msgid "Authorization denied message:"
-msgstr "Rifuzita permeso mesaĝo:"
-
-msgid "Sorry, you're not my style."
-msgstr ""
-
-#, c-format
-msgid "%u needs authorization"
-msgstr "%u bezonas aŭtentokontrolon"
-
-msgid "Add buddy authorize"
-msgstr ""
-
-msgid "Enter request here"
-msgstr ""
-
-msgid "Would you be my friend?"
-msgstr "Ĉu vi estus mia amiko?"
-
-msgid "QQ Buddy"
-msgstr "QQ Kunul"
-
-msgid "Add buddy"
-msgstr "Aldoni kunulon"
-
-msgid "Invalid QQ Number"
-msgstr "Malvalida QQ Numero"
-
-msgid "Failed sending authorize"
-msgstr ""
-
-#, c-format
-msgid "Failed removing buddy %u"
-msgstr "Malsukcesis forigi kunulon %u"
-
-#, c-format
-msgid "Failed removing me from %d's buddy list"
-msgstr ""
-
-msgid "No reason given"
-msgstr "Nenia kialo donita"
-
-#. only need to get value
-#, c-format
-msgid "You have been added by %s"
-msgstr ""
-
-msgid "Would you like to add him?"
-msgstr "Ĉu vi deziras aldoni ŝlin?"
-
-#, c-format
-msgid "Rejected by %s"
-msgstr ""
-
-#, c-format
-msgid "Message: %s"
-msgstr "Mesaĝo: %s"
-
-msgid "ID: "
-msgstr "ID: "
-
-msgid "Group ID"
-msgstr "Grupo ID"
-
-msgid "QQ Qun"
-msgstr "QQ Qun"
-
-msgid "Please enter Qun number"
-msgstr "Bonvolu enigi Qun numeron"
-
-msgid "You can only search for permanent Qun\n"
-msgstr ""
-
-msgid "(Invalid UTF-8 string)"
-msgstr ""
-
-msgid "Not member"
-msgstr "Ne membro"
-
-msgid "Member"
-msgstr "Membro"
-
-msgid "Requesting"
-msgstr ""
-
-msgid "Admin"
-msgstr ""
-
-#. XXX: Should this be "Topic"?
-#, fuzzy
-msgid "Room Title"
-msgstr "Babilejoj Listo"
-
-msgid "Notice"
-msgstr ""
-
-msgid "Detail"
-msgstr "Detalo"
-
-msgid "Creator"
-msgstr "Kreanto"
-
-msgid "About me"
-msgstr "Pri mi"
-
-msgid "Category"
-msgstr "Kategorio"
-
-msgid "The Qun does not allow others to join"
-msgstr ""
-
-msgid "Join QQ Qun"
-msgstr "Aliĝu QQ Qun"
-
-msgid "Input request here"
-msgstr ""
-
-#, c-format
-msgid "Successfully joined Qun %s (%u)"
-msgstr "Sukcese aliĝis Qun %s (%u)"
-
-msgid "Successfully joined Qun"
-msgstr "Sukcese aliĝis Qun"
-
-#, c-format
-msgid "Qun %u denied from joining"
-msgstr ""
-
-msgid "QQ Qun Operation"
-msgstr "QQ Qun Operacio"
-
-msgid "Failed:"
-msgstr "Malsukcesita:"
-
-msgid "Join Qun, Unknown Reply"
-msgstr ""
-
-msgid "Quit Qun"
-msgstr ""
-
-msgid ""
-"Note, if you are the creator, \n"
-"this operation will eventually remove this Qun."
-msgstr ""
-
-msgid "Sorry, you are not our style"
-msgstr ""
-
-msgid "Successfully changed Qun members"
-msgstr "Sukcese ŝanĝis Qun membrojn"
-
-msgid "Successfully changed Qun information"
-msgstr "Sukcese ŝanĝis Qun informon"
-
-msgid "You have successfully created a Qun"
-msgstr ""
-
-msgid "Would you like to set up detailed information now?"
-msgstr ""
-
-msgid "Setup"
-msgstr "Agordo"
-
-#, c-format
-msgid "%u requested to join Qun %u for %s"
-msgstr ""
-
-#, c-format
-msgid "%u request to join Qun %u"
-msgstr ""
-
-#, c-format
-msgid "Failed to join Qun %u, operated by admin %u"
-msgstr ""
-
-#, c-format
-msgid "<b>Joining Qun %u is approved by admin %u for %s</b>"
-msgstr ""
-
-#, c-format
-msgid "<b>Removed buddy %u.</b>"
-msgstr "<b>Forigu Kunulon %u.</b>"
-
-#, c-format
-msgid "<b>New buddy %u joined.</b>"
-msgstr ""
-
-#, c-format
-msgid "Unknown-%d"
-msgstr "Nekonata-%d"
-
-msgid "Level"
-msgstr "Nivelo"
-
-msgid " VIP"
-msgstr " VIP"
-
-msgid " TCP"
-msgstr " TCP"
-
-msgid " FromMobile"
-msgstr ""
-
-msgid " BindMobile"
-msgstr ""
-
-msgid " Video"
-msgstr ""
-
-msgid " Zone"
-msgstr ""
-
-msgid "Flag"
-msgstr ""
-
-msgid "Ver"
-msgstr ""
-
-msgid "Invalid name"
-msgstr "Malvalida Uzantonomo"
-
-msgid "Select icon..."
-msgstr "Elektu piktogramon..."
-
-#, c-format
-msgid "<b>Login time</b>: %d-%d-%d, %d:%d:%d<br>\n"
-msgstr ""
-
-#, c-format
-msgid "<b>Total Online Buddies</b>: %d<br>\n"
-msgstr ""
-
-#, c-format
-msgid "<b>Last Refresh</b>: %d-%d-%d, %d:%d:%d<br>\n"
-msgstr ""
-
-#, c-format
-msgid "<b>Server</b>: %s<br>\n"
-msgstr "<b>Servilo</b>: %s<br>\n"
-
-#, c-format
-msgid "<b>Client Tag</b>: %s<br>\n"
-msgstr ""
-
-#, c-format
-msgid "<b>Connection Mode</b>: %s<br>\n"
-msgstr ""
-
-#, c-format
-msgid "<b>My Internet IP</b>: %s:%d<br>\n"
-msgstr ""
-
-#, c-format
-msgid "<b>Sent</b>: %lu<br>\n"
-msgstr ""
-
-#, c-format
-msgid "<b>Resend</b>: %lu<br>\n"
-msgstr ""
-
-#, c-format
-msgid "<b>Lost</b>: %lu<br>\n"
-msgstr ""
-
-#, c-format
-msgid "<b>Received</b>: %lu<br>\n"
-msgstr ""
-
-#, c-format
-msgid "<b>Received Duplicate</b>: %lu<br>\n"
-msgstr ""
-
-#, c-format
-msgid "<b>Time</b>: %d-%d-%d, %d:%d:%d<br>\n"
-msgstr ""
-
-#, c-format
-msgid "<b>IP</b>: %s<br>\n"
-msgstr ""
-
-msgid "Login Information"
-msgstr "Ensaluta Informo"
-
-msgid "<p><b>Original Author</b>:<br>\n"
-msgstr ""
-
-msgid "<p><b>Code Contributors</b>:<br>\n"
-msgstr ""
-
-msgid "<p><b>Lovely Patch Writers</b>:<br>\n"
-msgstr ""
-
-msgid "<p><b>Acknowledgement</b>:<br>\n"
-msgstr ""
-
-msgid "<p><b>Scrupulous Testers</b>:<br>\n"
-msgstr ""
-
-msgid "and more, please let me know... thank you!))"
-msgstr ""
-
-msgid "<p><i>And, all the boys in the backroom...</i><br>\n"
-msgstr ""
-
-msgid "<i>Feel free to join us!</i> :)"
-msgstr ""
-
-#, c-format
-msgid "About OpenQ %s"
-msgstr "Pri OpenQ %s"
-
-msgid "Change Icon"
-msgstr "Ŝanĝi Piktogramon"
-
-msgid "Change Password"
-msgstr ""
-
-msgid "Account Information"
-msgstr "Konto Informo"
-
-msgid "Update all QQ Quns"
-msgstr ""
-
-msgid "About OpenQ"
-msgstr "Pri OpenQ"
-
-msgid "Modify Buddy Memo"
-msgstr ""
-
-#. *< type
-#. *< ui_requirement
-#. *< flags
-#. *< dependencies
-#. *< priority
-#. *< id
-#. *< name
-#. *< version
-#. *  summary
-#. *  description
-msgid "QQ Protocol Plugin"
-msgstr "QQ Protokolo tKromaĵo"
-
-msgid "Auto"
-msgstr "Aŭtomate"
-
-msgid "Select Server"
-msgstr "Elekti Servilon"
-
-msgid "QQ2005"
-msgstr "QQ2005"
-
-msgid "QQ2007"
-msgstr "QQ2007"
-
-msgid "QQ2008"
-msgstr "QQ2008"
-
-msgid "Connect by TCP"
-msgstr "Konekti per TCP"
-
-msgid "Show server notice"
-msgstr ""
-
-msgid "Show server news"
-msgstr ""
-
-msgid "Show chat room when msg comes"
-msgstr ""
-
-msgid "Keep alive interval (seconds)"
-msgstr ""
-
-msgid "Update interval (seconds)"
-msgstr ""
-
-msgid "Unable to decrypt server reply"
-msgstr ""
-
-#, c-format
-msgid "Failed requesting token, 0x%02X"
-msgstr ""
-
-#, c-format
-msgid "Invalid token len, %d"
-msgstr ""
-
-#. extend redirect used in QQ2006
-msgid "Redirect_EX is not currently supported"
-msgstr ""
-
-#. need activation
-#. need activation
-#. need activation
-msgid "Activation required"
-msgstr "Registrado postulita"
-
-#, c-format
-msgid "Unknown reply code when logging in (0x%02X)"
-msgstr ""
-
-msgid "Requesting captcha"
-msgstr ""
-
-msgid "Checking captcha"
-msgstr ""
-
-msgid "Failed captcha verification"
-msgstr ""
-
-msgid "Captcha Image"
-msgstr ""
-
-msgid "Enter code"
-msgstr "Enigu kodon"
-
-msgid "QQ Captcha Verification"
-msgstr ""
-
-msgid "Enter the text from the image"
-msgstr ""
-
-#, c-format
-msgid "Unknown reply when checking password (0x%02X)"
-msgstr ""
-
-#, c-format
-msgid ""
-"Unknown reply code when logging in (0x%02X):\n"
-"%s"
-msgstr ""
-
-msgid "Socket error"
-msgstr ""
-
-msgid "Getting server"
-msgstr ""
-
-msgid "Requesting token"
-msgstr ""
-
-msgid "Unable to resolve hostname"
-msgstr ""
-
-msgid "Invalid server or port"
-msgstr ""
-
-msgid "Connecting to server"
-msgstr "Konekto al servilo"
-
-msgid "QQ Error"
-msgstr "QQ Eraro"
-
-#, c-format
-msgid ""
-"Server News:\n"
-"%s\n"
-"%s\n"
-"%s"
-msgstr ""
-
-#, c-format
-msgid "%s:%s"
-msgstr "%s:%s"
-
-#, c-format
-msgid "From %s:"
-msgstr "De %s:"
-
-#, c-format
-msgid ""
-"Server notice From %s: \n"
-"%s"
-msgstr ""
-
-msgid "Unknown SERVER CMD"
-msgstr "Nekonata SERVILO CMD"
-
-#, c-format
-msgid ""
-"Error reply of %s(0x%02X)\n"
-"Room %u, reply 0x%02X"
-msgstr ""
-
-msgid "QQ Qun Command"
-msgstr "QQ Qun Komando"
-
-msgid "Unable to decrypt login reply"
-msgstr ""
-
-msgid "Unknown LOGIN CMD"
-msgstr ""
-
-msgid "Unknown CLIENT CMD"
-msgstr "Nekonata KLIENTO CMD"
-
-#, c-format
-msgid "%d has declined the file %s"
-msgstr ""
-
-msgid "File Send"
-msgstr ""
-
-#, fuzzy, c-format
-msgid "%d cancelled the transfer of %s"
-msgstr "%s rezignis la alŝuton de %s"
 
 #, c-format
 msgid "<b>Group Title:</b> %s<br>"
@@ -8691,23 +6474,8 @@ msgstr ""
 msgid "Topic:"
 msgstr "Temo:"
 
-msgid "No Sametime Community Server specified"
+msgid "A server is required to connect this account"
 msgstr ""
-
-#, c-format
-msgid ""
-"No host or IP address has been configured for the Meanwhile account %s. "
-"Please enter one below to continue logging in."
-msgstr ""
-
-msgid "Meanwhile Connection Setup"
-msgstr ""
-
-msgid "No Sametime Community Server Specified"
-msgstr ""
-
-msgid "Connect"
-msgstr "Kontaktu"
 
 #, c-format
 msgid "Unknown (0x%04x)<br>"
@@ -8742,6 +6510,9 @@ msgid ""
 "The identifier '%s' did not match any users in your Sametime community. This "
 "entry has been removed from your buddy list."
 msgstr ""
+
+msgid "Unable to add user"
+msgstr "Ne eblas aldoni uzanton"
 
 #, c-format
 msgid ""
@@ -8997,6 +6768,9 @@ msgid "Hyper Active"
 msgstr ""
 
 msgid "Robot"
+msgstr ""
+
+msgid "In Love"
 msgstr ""
 
 msgid "User Modes"
@@ -9280,6 +7054,12 @@ msgstr ""
 msgid "Unit"
 msgstr ""
 
+msgid "Homepage"
+msgstr "Hejmpaĝo"
+
+msgid "Note"
+msgstr ""
+
 msgid "Join Chat"
 msgstr ""
 
@@ -9429,6 +7209,9 @@ msgstr ""
 
 msgid "Key Exchange failed"
 msgstr ""
+
+msgid "Authentication failed"
+msgstr "Aŭtentokontrolo malsukcesis"
 
 msgid ""
 "Resuming detached session failed. Press Reconnect to create new connection."
@@ -9872,6 +7655,9 @@ msgstr ""
 msgid "Unable to create listen socket"
 msgstr ""
 
+msgid "Unable to resolve hostname"
+msgstr ""
+
 msgid "SIP usernames may not contain whitespaces or @ symbols"
 msgstr "SIP uzantnomoj ne enhaveblas blankan spacon aŭ @ simbolojn"
 
@@ -9911,388 +7697,6 @@ msgstr ""
 msgid "Auth Domain"
 msgstr ""
 
-msgid "join &lt;room&gt;:  Join a chat room on the Yahoo network"
-msgstr ""
-
-msgid "list: List rooms on the Yahoo network"
-msgstr ""
-
-msgid "doodle: Request user to start a Doodle session"
-msgstr ""
-
-msgid "Yahoo ID..."
-msgstr "Yahoo ID..."
-
-#. *< type
-#. *< ui_requirement
-#. *< flags
-#. *< dependencies
-#. *< priority
-#. *< id
-#. *< name
-#. *< version
-#. *  summary
-#. *  description
-msgid "Yahoo! Protocol Plugin"
-msgstr "Yahoo! Protokol-Kromaĵo"
-
-msgid "Pager port"
-msgstr "Paĝila pordo"
-
-msgid "File transfer server"
-msgstr "Dosieralŝuto servilo"
-
-msgid "File transfer port"
-msgstr "Dosieralŝuto pordo"
-
-msgid "Chat room locale"
-msgstr "Babilejo lokaĵaro"
-
-msgid "Ignore conference and chatroom invitations"
-msgstr "Ignoru konferencajn kaj babilejan invitojn"
-
-msgid "Use account proxy for HTTP and HTTPS connections"
-msgstr ""
-
-msgid "Chat room list URL"
-msgstr "Babilejolisto URL"
-
-msgid "Yahoo JAPAN ID..."
-msgstr "Yahoo JAPANA ID..."
-
-#. *< type
-#. *< ui_requirement
-#. *< flags
-#. *< dependencies
-#. *< priority
-#. *< id
-#. *< name
-#. *< version
-#. *  summary
-#. *  description
-msgid "Yahoo! JAPAN Protocol Plugin"
-msgstr "Yahoo! JAPANA Protokol-Kromaĵo"
-
-#, c-format
-msgid "%s has sent you a webcam invite, which is not yet supported."
-msgstr ""
-
-msgid "Your SMS was not delivered"
-msgstr ""
-
-msgid "Your Yahoo! message did not get sent."
-msgstr "Via Yahoo!-a mesaĝo malsendiĝas."
-
-#, c-format
-msgid "Yahoo! system message for %s:"
-msgstr "Yahoo! sistem-mesaĝo pro %s:"
-
-#, c-format
-msgid ""
-"%s has (retroactively) denied your request to add them to your list for the "
-"following reason: %s."
-msgstr ""
-
-#, c-format
-msgid "%s has (retroactively) denied your request to add them to your list."
-msgstr ""
-
-msgid "Add buddy rejected"
-msgstr ""
-
-#. Some error in the received stream
-msgid "Received invalid data"
-msgstr ""
-
-#. security lock from too many failed login attempts
-msgid ""
-"Account locked: Too many failed login attempts.  Logging into the Yahoo! "
-"website may fix this."
-msgstr ""
-
-#. indicates a lock of some description
-msgid ""
-"Account locked: Unknown reason.  Logging into the Yahoo! website may fix "
-"this."
-msgstr ""
-
-#. indicates a lock due to logging in too frequently
-msgid ""
-"Account locked: You have been logging in too frequently.  Wait a few minutes "
-"before trying to connect again.  Logging into the Yahoo! website may help."
-msgstr ""
-
-#. username or password missing
-msgid "Username or password missing"
-msgstr "Misa uzantnomo aŭ pasvorto"
-
-#, c-format
-msgid ""
-"The Yahoo server has requested the use of an unrecognized authentication "
-"method.  You will probably not be able to successfully sign on to Yahoo.  "
-"Check %s for updates."
-msgstr ""
-
-msgid "Failed Yahoo! Authentication"
-msgstr "Malsukcesis Yahoo! Aŭtentokontrolo"
-
-#, c-format
-msgid ""
-"You have tried to ignore %s, but the user is on your buddy list.  Clicking "
-"\"Yes\" will remove and ignore the buddy."
-msgstr ""
-
-msgid "Ignore buddy?"
-msgstr "Ignoru Kunulon?"
-
-#, fuzzy
-msgid "Invalid username or password"
-msgstr "Misa uzantnomo aŭ pasvorto"
-
-msgid ""
-"Your account has been locked due to too many failed login attempts.  Please "
-"try logging into the Yahoo! website."
-msgstr ""
-
-#, c-format
-msgid "Unknown error 52.  Reconnecting should fix this."
-msgstr ""
-
-msgid ""
-"Error 1013: The username you have entered is invalid.  The most common cause "
-"of this error is entering your email address instead of your Yahoo! ID."
-msgstr ""
-
-#, c-format
-msgid "Unknown error number %d. Logging into the Yahoo! website may fix this."
-msgstr ""
-
-#, c-format
-msgid "Unable to add buddy %s to group %s to the server list on account %s."
-msgstr ""
-
-msgid "Unable to add buddy to server list"
-msgstr "Ne eblas aldoni kunulon al servilolisto"
-
-#, c-format
-msgid "[ Audible %s/%s/%s.swf ] %s"
-msgstr "[ Aŭdebla %s/%s/%s.swf ] %s"
-
-msgid "Received unexpected HTTP response from server"
-msgstr "Ricevis neatenditan HTTP respondon de servilo"
-
-#, c-format
-msgid "Lost connection with %s: %s"
-msgstr "Perdis konekton kun %s: %s"
-
-#, c-format
-msgid "Unable to establish a connection with %s: %s"
-msgstr "Ne eblas konekti kun %s: %s"
-
-#, fuzzy
-msgid "Unable to connect: The server returned an empty response."
-msgstr "Ne povis konekti al aŭtentokontrolo servilo: %s"
-
-msgid ""
-"Unable to connect: The server's response did not contain the necessary "
-"information"
-msgstr ""
-
-msgid "Not at Home"
-msgstr "Malhejme"
-
-msgid "Not at Desk"
-msgstr "Malpupitre"
-
-msgid "Not in Office"
-msgstr "Malofice"
-
-msgid "On Vacation"
-msgstr "Feriante"
-
-msgid "Stepped Out"
-msgstr "Ekeliris"
-
-msgid "Not on server list"
-msgstr "Ne en servilo listo"
-
-msgid "Appear Permanently Offline"
-msgstr "Aperas Ĉiama Senkonekta"
-
-msgid "Presence"
-msgstr "Ĉeesto"
-
-msgid "Don't Appear Permanently Offline"
-msgstr "Ne Aperas Ĉiama Senkonekta"
-
-msgid "Join in Chat"
-msgstr "Aliĝu Babilejon"
-
-msgid "Initiate Conference"
-msgstr "Iniciati Konferencon"
-
-msgid "Presence Settings"
-msgstr "Ĉeesto Agordoj"
-
-msgid "Start Doodling"
-msgstr ""
-
-msgid "Select the ID you want to activate"
-msgstr ""
-
-msgid "Join whom in chat?"
-msgstr "Kiun kuniĝi en babilejo?"
-
-msgid "Activate ID..."
-msgstr "Ŝaltu ID-on..."
-
-msgid "Join User in Chat..."
-msgstr "Kuniĝu Uzanto en Babilejo..."
-
-msgid "Open Inbox"
-msgstr "Malfermu Alkeston"
-
-msgid "Can't send SMS. Unable to obtain mobile carrier."
-msgstr ""
-
-msgid "Can't send SMS. Unknown mobile carrier."
-msgstr ""
-
-msgid "Getting mobile carrier to send the SMS."
-msgstr ""
-
-#. Write a local message to this conversation showing that a request for a
-#. * Doodle session has been made
-#.
-msgid "Sent Doodle request."
-msgstr ""
-
-msgid "Unable to connect."
-msgstr "Ne konekteblas."
-
-msgid "Unable to establish file descriptor."
-msgstr "Ne eblas estabi dosierotenilon."
-
-#, c-format
-msgid "%s is trying to send you a group of %d files.\n"
-msgstr ""
-
-msgid "Write Error"
-msgstr "Skriberaro"
-
-msgid "Yahoo! Japan Profile"
-msgstr "Yahoo! Japana profilo"
-
-msgid "Yahoo! Profile"
-msgstr "Yahoo! Profilo"
-
-msgid ""
-"Sorry, profiles marked as containing adult content are not supported at this "
-"time."
-msgstr ""
-
-msgid ""
-"If you wish to view this profile, you will need to visit this link in your "
-"web browser:"
-msgstr ""
-
-msgid "Yahoo! ID"
-msgstr "Yahoo! ID"
-
-msgid "Hobbies"
-msgstr "Hobioj"
-
-msgid "Latest News"
-msgstr "Lastaj Novaĵoj"
-
-msgid "Home Page"
-msgstr "Hejmpaĝo"
-
-msgid "Cool Link 1"
-msgstr "Mojosa Ligilo 1"
-
-msgid "Cool Link 2"
-msgstr "Mojosa Ligilo 1"
-
-msgid "Cool Link 3"
-msgstr "Mojosa Ligilo 1"
-
-msgid "Last Update"
-msgstr "Lasta Aktualigo"
-
-msgid ""
-"This profile is in a language or format that is not supported at this time."
-msgstr ""
-
-msgid ""
-"Could not retrieve the user's profile. This most likely is a temporary "
-"server-side problem. Please try again later."
-msgstr ""
-
-msgid ""
-"Could not retrieve the user's profile. This most likely means that the user "
-"does not exist; however, Yahoo! sometimes does fail to find a user's "
-"profile. If you know that the user exists, please try again later."
-msgstr ""
-
-msgid "The user's profile is empty."
-msgstr "La uzanto profilo malplenas."
-
-#, c-format
-msgid "%s has declined to join."
-msgstr ""
-
-msgid "Failed to join chat"
-msgstr "Malsukcesis aliĝi babilejon"
-
-#. -6
-msgid "Unknown room"
-msgstr "Nekonata babilejo"
-
-#. -15
-msgid "Maybe the room is full"
-msgstr "Eble la babilejo plenas"
-
-#. -35
-msgid "Not available"
-msgstr "Ne disponebla"
-
-msgid ""
-"Unknown error. You may need to logout and wait five minutes before being "
-"able to rejoin a chatroom"
-msgstr ""
-
-#, c-format
-msgid "You are now chatting in %s."
-msgstr "Vi nun estas babilanta en %s."
-
-msgid "Failed to join buddy in chat"
-msgstr "Malsukcesis kuniĝi kunulon en babilejo"
-
-msgid "Maybe they're not in a chat?"
-msgstr "Eble ili ne estas en babilejo?"
-
-msgid "Fetching the room list failed."
-msgstr ""
-
-msgid "Voices"
-msgstr "Voĉoj"
-
-msgid "Webcams"
-msgstr "Retkameraoj"
-
-msgid "Connection problem"
-msgstr "Konektado problemo"
-
-msgid "Unable to fetch room list."
-msgstr "Ne eblas ricevi babilejliston."
-
-msgid "User Rooms"
-msgstr "Uzanto Babilejoj"
-
-msgid "Connection problem with the YCHT server"
-msgstr "Konektproblemo kun la YCHT servilo"
-
 msgid ""
 "(There was an error converting this message.\t Check the 'Encoding' option "
 "in the Account Editor)"
@@ -10301,6 +7705,12 @@ msgstr ""
 #, c-format
 msgid "Unable to send to chat %s,%s,%s"
 msgstr ""
+
+msgid "User is offline"
+msgstr "Uzanto senkonektas"
+
+msgid "User"
+msgstr "Uzanto"
 
 msgid "Hidden or not logged-in"
 msgstr "Kaŝita aŭ ne ensalutita"
@@ -10519,9 +7929,8 @@ msgstr "Ne ĝenu"
 msgid "Extended away"
 msgstr "Longfora"
 
-#, fuzzy
 msgid "Feeling"
-msgstr "Ricevante"
+msgstr ""
 
 #, c-format
 msgid "%s (%s) changed status from %s to %s"
@@ -10671,15 +8080,30 @@ msgid ""
 "the old file has been renamed to %s~."
 msgstr ""
 
-msgid ""
-"Chat over IM.  Supports AIM, Google Talk, Jabber/XMPP, MSN, Yahoo and more"
+msgid "Instant Messaging Client"
 msgstr ""
+
+msgid ""
+"Pidgin is a chat program which lets you log in to accounts on multiple chat "
+"networks simultaneously."
+msgstr ""
+
+msgid ""
+"This means that you can be chatting with friends on AIM, talking to a friend "
+"on Google Talk, and sitting in an IRC chat room all at the same time."
+msgstr ""
+
+msgid "The buddy list showing friends on different networks."
+msgstr ""
+
+msgid "Pidgin Internet Messenger"
+msgstr "Piĝin Interreta Mesaĝilo"
 
 msgid "Internet Messenger"
 msgstr "Interreta Mesaĝilo"
 
-msgid "Pidgin Internet Messenger"
-msgstr "Piĝin Interreta Mesaĝilo"
+msgid "Chat over IM.  Supports AIM, Google Talk, Jabber/XMPP, and more"
+msgstr ""
 
 #. Build the login options frame.
 msgid "Login Options"
@@ -10720,14 +8144,17 @@ msgstr "Uzu Sistemajn Prokurilo-Agordojn"
 msgid "No Proxy"
 msgstr "Sen Prokurilo"
 
-msgid "HTTP"
-msgstr "HTTP"
-
 msgid "SOCKS 4"
 msgstr "SOCKS 4"
 
 msgid "SOCKS 5"
 msgstr "SOCKS 5"
+
+msgid "Tor/Privacy (SOCKS5)"
+msgstr ""
+
+msgid "HTTP"
+msgstr "HTTP"
 
 msgid "Use Environmental Settings"
 msgstr "Uzu Mediajn Agordojn"
@@ -10755,6 +8182,12 @@ msgstr "_Pordo:"
 
 msgid "Pa_ssword:"
 msgstr "Pa_svorto:"
+
+msgid "Use _silence suppression"
+msgstr ""
+
+msgid "_Voice and Video"
+msgstr ""
 
 msgid "Unable to save new account"
 msgstr "Ne eblas konservu novan konton"
@@ -10793,9 +8226,18 @@ msgid ""
 "<b>Accounts->Manage Accounts</b> in the Buddy List window"
 msgstr ""
 
-#, fuzzy, c-format
+#, c-format
+msgid ""
+"<a href=\"viewinfo\">%s</a>%s%s%s wants to add you (%s) to his or her buddy "
+"list%s%s"
+msgstr ""
+
+#, c-format
 msgid "%s%s%s%s wants to add you (%s) to his or her buddy list%s%s"
-msgstr "%s%s%s%s volas aldoni %s-n al sia kunullisto%s%s"
+msgstr ""
+
+msgid "Send Instant Message"
+msgstr ""
 
 #. Buddy List
 msgid "Background Color"
@@ -10862,9 +8304,8 @@ msgstr ""
 
 #. Note to translators: These two strings refer to the font and color
 #. of a buddy list buddy when it is online
-#, fuzzy
 msgid "Online Text"
-msgstr "Konektita Teksto"
+msgstr ""
 
 msgid "The text information for when a buddy is online"
 msgstr ""
@@ -10879,9 +8320,8 @@ msgstr ""
 
 #. Note to translators: These two strings refer to the font and color
 #. of a buddy list buddy when it is offline
-#, fuzzy
 msgid "Offline Text"
-msgstr "Senkonekta Teksto"
+msgstr ""
 
 msgid "The text information for when a buddy is offline"
 msgstr ""
@@ -11041,9 +8481,8 @@ msgstr ""
 msgid "Please select your mood from the list"
 msgstr ""
 
-#, fuzzy
 msgid "Message (optional)"
-msgstr "Alinomo (nedeviga)"
+msgstr ""
 
 msgid "Edit User Mood"
 msgstr "Redaktu Uzantan Agordon"
@@ -11128,9 +8567,8 @@ msgstr "/Iloj/Agordoj"
 msgid "/Tools/Pr_ivacy"
 msgstr "/Iloj/Pr_ivateco"
 
-#, fuzzy
 msgid "/Tools/Set _Mood"
-msgstr "/Iloj/Sistemo-_Protokolo"
+msgstr ""
 
 msgid "/Tools/_File Transfers"
 msgstr "/Iloj/_Dosiero-alŝutoj"
@@ -11151,20 +8589,20 @@ msgstr "/_Helpo"
 msgid "/Help/Online _Help"
 msgstr "/Helpo/Reta _Helpo"
 
-#, fuzzy
 msgid "/Help/_Build Information"
-msgstr "Kunul Informo"
+msgstr ""
 
 msgid "/Help/_Debug Window"
 msgstr "/Helpo/_Sencimig-fenestro"
 
-#, fuzzy
 msgid "/Help/De_veloper Information"
-msgstr "Laborinformo"
+msgstr ""
 
-#, fuzzy
+msgid "/Help/_Plugin Information"
+msgstr ""
+
 msgid "/Help/_Translator Information"
-msgstr "Ĉefa Informo"
+msgstr ""
 
 msgid "/Help/_About"
 msgstr "/Helpo/_Pri"
@@ -11345,6 +8783,9 @@ msgstr "Kunul _uzantnomo:"
 msgid "(Optional) A_lias:"
 msgstr "(Opcia) A_linomo:"
 
+msgid "(Optional) _Invite message:"
+msgstr ""
+
 msgid "Add buddy to _group:"
 msgstr "Aldoni kunulon al _grupo:"
 
@@ -11369,10 +8810,10 @@ msgstr "A_linomo:"
 msgid "_Group:"
 msgstr "_Grupo:"
 
-msgid "Auto_join when account connects."
+msgid "Automatically _join when account connects"
 msgstr ""
 
-msgid "_Remain in chat after window is closed."
+msgid "_Remain in chat after window is closed"
 msgstr ""
 
 msgid "Please enter the name of the group to be added."
@@ -11390,9 +8831,8 @@ msgstr "<PurpleMain>/Kontoj/"
 msgid "_Edit Account"
 msgstr "_Redakti Konton"
 
-#, fuzzy
 msgid "Set _Mood..."
-msgstr "Difini Agordon..."
+msgstr ""
 
 msgid "No actions available"
 msgstr "Neniu ago disponebla"
@@ -11412,6 +8852,9 @@ msgstr ""
 #. Widget creation function
 msgid "SSL Servers"
 msgstr "SSL Serviloj"
+
+msgid "Supported debug options are: plugins, version"
+msgstr ""
 
 msgid "Unknown command."
 msgstr "Nekonata komando."
@@ -11482,9 +8925,8 @@ msgstr "/_Konversacio"
 msgid "/Conversation/New Instant _Message..."
 msgstr "/Konversacio/Nova Tuj _Mesaĝo..."
 
-#, fuzzy
 msgid "/Conversation/Join a _Chat..."
-msgstr "/Konversacio/In_vitu..."
+msgstr ""
 
 msgid "/Conversation/_Find..."
 msgstr "/Konversacio/_Trovu..."
@@ -11513,9 +8955,8 @@ msgstr "/Konversacio/Medio/Aŭda\\/Vida Alvo_ko"
 msgid "/Conversation/Se_nd File..."
 msgstr "/Konversacio/Se_ndu Dosieron..."
 
-#, fuzzy
 msgid "/Conversation/Get _Attention"
-msgstr "/Konversacio/Ricevu Informon"
+msgstr ""
 
 msgid "/Conversation/Add Buddy _Pounce..."
 msgstr "/Konversacio/Aldonu Kunul-_Atentigon..."
@@ -11598,9 +9039,8 @@ msgstr "/Konversacio/Medio/Aŭda\\/Vida Alvoko"
 msgid "/Conversation/Send File..."
 msgstr "/Konversacio/Sendu Dosieron..."
 
-#, fuzzy
 msgid "/Conversation/Get Attention"
-msgstr "/Konversacio/Ricevu Informon"
+msgstr ""
 
 msgid "/Conversation/Add Buddy Pounce..."
 msgstr "/Konversacio/Aldonu Kunul-Atentijon..."
@@ -11666,13 +9106,11 @@ msgstr "_Sendu"
 msgid "0 people in room"
 msgstr "0 homo en ĉambro"
 
-#, fuzzy
 msgid "Close Find bar"
-msgstr "Fermu tiun langeton"
+msgstr ""
 
-#, fuzzy
 msgid "Find:"
-msgstr "Trovu"
+msgstr ""
 
 #, c-format
 msgid "%d person in room"
@@ -11691,6 +9129,11 @@ msgstr "Nelegitaj mesaĝoj"
 
 msgid "New Event"
 msgstr "Nova Evento"
+
+msgid ""
+"The account has disconnected and you are no longer in this chat. You will "
+"automatically rejoin the chat when the account reconnects."
+msgstr ""
 
 msgid "clear: Clears all conversation scrollbacks."
 msgstr ""
@@ -11783,15 +9226,11 @@ msgstr "Eraro "
 msgid "Fatal Error"
 msgstr "Fatala Eraro"
 
-msgid "bug master"
-msgstr ""
-
 msgid "artist"
 msgstr "artisto"
 
-#. feel free to not translate this
-msgid "Ka-Hing Cheung"
-msgstr ""
+msgid "lead developer"
+msgstr "ĉefa programisto"
 
 msgid "voice and video"
 msgstr ""
@@ -11804,6 +9243,11 @@ msgstr "retestro"
 
 msgid "win32 port"
 msgstr "win32 portebliĝo"
+
+#. Translators: This is a person's name. For most languages we recommend
+#. not translating it.
+msgid "Ka-Hing Cheung"
+msgstr ""
 
 msgid "maintainer"
 msgstr "vartulo"
@@ -11824,9 +9268,6 @@ msgstr "XMPP"
 msgid "original author"
 msgstr "originala aŭtoro"
 
-msgid "lead developer"
-msgstr "ĉefa programisto"
-
 msgid "Senior Contributor/QA"
 msgstr ""
 
@@ -11836,9 +9277,11 @@ msgstr "Afrikansa"
 msgid "Arabic"
 msgstr "Araba"
 
-#, fuzzy
 msgid "Assamese"
-msgstr "Ludoj"
+msgstr ""
+
+msgid "Asturian"
+msgstr ""
 
 msgid "Belarusian Latin"
 msgstr "Belorusa Latina"
@@ -11849,9 +9292,14 @@ msgstr "Bulgara"
 msgid "Bengali"
 msgstr "Bengala"
 
-#, fuzzy
 msgid "Bengali-India"
-msgstr "Bengala"
+msgstr ""
+
+msgid "Breton"
+msgstr ""
+
+msgid "Bodo"
+msgstr ""
 
 msgid "Bosnian"
 msgstr "Bosna"
@@ -11892,6 +9340,9 @@ msgstr "Esperanto"
 msgid "Spanish"
 msgstr "Hispana"
 
+msgid "Argentine Spanish"
+msgstr ""
+
 msgid "Estonian"
 msgstr "Estona"
 
@@ -11903,9 +9354,6 @@ msgstr "Persa"
 
 msgid "Finnish"
 msgstr "Finna"
-
-msgid "French"
-msgstr "Franca"
 
 msgid "Irish"
 msgstr "Irlanda"
@@ -11925,11 +9373,11 @@ msgstr "Hebrea"
 msgid "Hindi"
 msgstr "Hindia"
 
+msgid "Croatian"
+msgstr ""
+
 msgid "Hungarian"
 msgstr "Hungara"
-
-msgid "Armenian"
-msgstr "Armena"
 
 msgid "Indonesian"
 msgstr "Indonezia"
@@ -11946,6 +9394,9 @@ msgstr "Kartvela"
 msgid "Ubuntu Georgian Translators"
 msgstr "Ubuntaj Kartvelaj Tradukantoj"
 
+msgid "Kazakh"
+msgstr ""
+
 msgid "Khmer"
 msgstr "Ĥmera"
 
@@ -11958,33 +9409,44 @@ msgstr "Kanara Tradukteamo"
 msgid "Korean"
 msgstr "Korea"
 
+msgid "Kashmiri"
+msgstr ""
+
 msgid "Kurdish"
 msgstr "Kurda"
 
-msgid "Lao"
-msgstr "Laŭa"
+msgid "Kurdish (Sorani)"
+msgstr ""
 
-#, fuzzy
+msgid "Lithuanian"
+msgstr "Litova"
+
+msgid "Latvian"
+msgstr ""
+
 msgid "Maithili"
-msgstr "Svahila"
+msgstr ""
+
+msgid "Meadow Mari"
+msgstr ""
 
 msgid "Macedonian"
 msgstr "Makedona"
 
-#, fuzzy
+msgid "Malay"
+msgstr ""
+
 msgid "Malayalam"
-msgstr "Malina"
+msgstr ""
 
 msgid "Mongolian"
 msgstr "Mongola"
 
-#, fuzzy
 msgid "Marathi"
-msgstr "Guĝarata"
+msgstr ""
 
-#, fuzzy
-msgid "Malay"
-msgstr "Malina"
+msgid "Burmese"
+msgstr ""
 
 msgid "Bokmål Norwegian"
 msgstr "Bokmål Norvega"
@@ -12001,9 +9463,8 @@ msgstr "Norvega Ninorska"
 msgid "Occitan"
 msgstr "Okcitana"
 
-#, fuzzy
 msgid "Oriya"
-msgstr "Opero"
+msgstr ""
 
 msgid "Punjabi"
 msgstr "Panĝaba"
@@ -12026,6 +9487,9 @@ msgstr "Rumana"
 msgid "Russian"
 msgstr "Rusa"
 
+msgid "Sindhi"
+msgstr ""
+
 msgid "Slovak"
 msgstr "Slovaka"
 
@@ -12037,6 +9501,9 @@ msgstr "Albana"
 
 msgid "Serbian"
 msgstr "Serba"
+
+msgid "Serbian Latin"
+msgstr ""
 
 msgid "Sinhala"
 msgstr "Sinhala"
@@ -12056,21 +9523,25 @@ msgstr "Telugua"
 msgid "Thai"
 msgstr "Taja"
 
-msgid "Turkish"
-msgstr "Turka"
+msgid "Tatar"
+msgstr ""
 
-#, fuzzy
 msgid "Ukranian"
-msgstr "Armena"
+msgstr ""
 
 msgid "Urdu"
 msgstr "Urdua"
 
+msgid "Uzbek"
+msgstr ""
+
+#. Translators: This is a person's name. For most languages we recommend
+#. not translating it.
+msgid "Akmal Khushvakov"
+msgstr ""
+
 msgid "Vietnamese"
 msgstr "Vjetnama"
-
-msgid "T.M.Thanh and the Gnome-Vi Team"
-msgstr "T.M.Thanh kaj la Gnome-Vi Teamo"
 
 msgid "Simplified Chinese"
 msgstr "Simpligita Ĉina"
@@ -12084,10 +9555,22 @@ msgstr "Tradicia Ĉina"
 msgid "Amharic"
 msgstr "Amhara"
 
-msgid "Lithuanian"
-msgstr "Litova"
+msgid "French"
+msgstr "Franca"
 
-#, fuzzy, c-format
+msgid "Armenian"
+msgstr "Armena"
+
+msgid "Lao"
+msgstr "Laŭa"
+
+msgid "Turkish"
+msgstr "Turka"
+
+msgid "T.M.Thanh and the Gnome-Vi Team"
+msgstr "T.M.Thanh kaj la Gnome-Vi Teamo"
+
+#, c-format
 msgid ""
 "%s is a messaging client based on libpurple which is capable of connecting "
 "to multiple messaging services at once.  %s is written in C using GTK+.  %s "
@@ -12096,15 +9579,6 @@ msgid ""
 "copyrighted by its contributors, a list of whom is also distributed with "
 "%s.  There is no warranty for %s.<BR><BR>"
 msgstr ""
-"%s estas modula mesaĝokliento bazita sur libpurple kiu kapablas konekti al "
-"AIM, MSN, Yahoo!, XMPP, ICQ, IRC, SILC, SIP/SIMPLE, Novell GroupWise, Lotus "
-"Sametime, Bonjour, Zephyr, MySpaceIM,Gadu-Gadu kaj QQ ĉiujn samtempe.  Ĝi "
-"estas programita per GTK+.<BR><BR>Vi rajtas modifi kaj pludistribui la "
-"programon je la kondiĉoj de la GPL (versio 2 aŭ posta).  Ekzempleron de la "
-"GPL-o enhavas la dosiero 'COPYING' disdonita kun %s.  %s estas "
-"aŭtorrajtigita de kontribuantoj.  Vidu la dosieron 'COPYRIGHT' pri kompleta "
-"listo de kontribuantoj.  Ni provizas nenian garantion pri tiu programaro."
-"<BR><BR>"
 
 #, c-format
 msgid ""
@@ -12114,11 +9588,10 @@ msgid ""
 "im<BR><BR>"
 msgstr ""
 
-#, c-format
 msgid ""
 "<font size=\"4\"><b>Help from other Pidgin users</b></font> is available by "
-"e-mailing <a href=\"mailto:support@pidgin.im\">support@pidgin.im</a><br/"
-">This is a <b>public</b> mailing list! (<a href=\"http://pidgin.im/pipermail/"
+"emailing <a href=\"mailto:support@pidgin.im\">support@pidgin.im</a><br/>This "
+"is a <b>public</b> mailing list! (<a href=\"http://pidgin.im/pipermail/"
 "support/\">archive</a>)<br/>We can't help with third-party protocols or "
 "plugins!<br/>This list's primary language is <b>English</b>.  You are "
 "welcome to post in another language, but the responses may be less helpful."
@@ -12129,14 +9602,13 @@ msgstr ""
 msgid "About %s"
 msgstr "Pri %s"
 
-#, fuzzy
 msgid "Build Information"
-msgstr "Kunul Informo"
+msgstr ""
 
 #. End of not to be translated section
-#, fuzzy, c-format
+#, c-format
 msgid "%s Build Information"
-msgstr "Kunul Informo"
+msgstr ""
 
 msgid "Current Developers"
 msgstr "Aktualaj Programistoj"
@@ -12150,9 +9622,9 @@ msgstr "Emeritaj Programistoj"
 msgid "Retired Crazy Patch Writers"
 msgstr "Emeritaj Frenezaj Flikistoj"
 
-#, fuzzy, c-format
+#, c-format
 msgid "%s Developer Information"
-msgstr "Uzanto Informo"
+msgstr ""
 
 msgid "Current Translators"
 msgstr "Aktualaj Tradukantoj"
@@ -12160,9 +9632,16 @@ msgstr "Aktualaj Tradukantoj"
 msgid "Past Translators"
 msgstr "Pastintaj Tradukantoj"
 
-#, fuzzy, c-format
+#, c-format
 msgid "%s Translator Information"
-msgstr "Laborinformo"
+msgstr ""
+
+#, c-format
+msgid "%s Plugin Information"
+msgstr ""
+
+msgid "Plugin Information"
+msgstr ""
 
 msgid "_Name"
 msgstr "_Nomo"
@@ -12565,9 +10044,8 @@ msgstr "Enmetu TM Bildon"
 msgid "Insert Smiley"
 msgstr "Enmetu Ridmienon"
 
-#, fuzzy
 msgid "Send Attention"
-msgstr "Send-Butono"
+msgstr ""
 
 msgid "<b>_Bold</b>"
 msgstr "<b>_Grasa:</b>"
@@ -12727,13 +10205,14 @@ msgstr ""
 msgid "Exiting because another libpurple client is already running.\n"
 msgstr ""
 
-#, fuzzy
 msgid "_Media"
-msgstr "/_Medio"
+msgstr ""
 
-#, fuzzy
 msgid "_Hangup"
-msgstr "/Medio/_Rekroĉi"
+msgstr ""
+
+msgid "Media error"
+msgstr ""
 
 #, c-format
 msgid "%s wishes to start an audio/video session with you."
@@ -12746,8 +10225,50 @@ msgstr ""
 msgid "Incoming Call"
 msgstr ""
 
+#. Translators note: These are the letters on the keys of a numeric
+#. keypad; translate according to the tables in §7 of ETSI ES 202 130:
+#. http://webapp.etsi.org/WorkProgram/Report_WorkItem.asp?WKI_ID=11730
+#.
+#. Letters on the '2' key of a numeric keypad
+msgid "ABC"
+msgstr ""
+
+#. Letters on the '3' key of a numeric keypad
+msgid "DEF"
+msgstr ""
+
+#. Letters on the '4' key of a numeric keypad
+msgid "GHI"
+msgstr ""
+
+#. Letters on the '5' key of a numeric keypad
+msgid "JKL"
+msgstr ""
+
+#. Letters on the '6' key of a numeric keypad
+msgid "MNO"
+msgstr ""
+
+#. Letters on the '7' key of a numeric keypad
+msgid "PQRS"
+msgstr ""
+
+#. Letters on the '8' key of a numeric keypad
+msgid "TUV"
+msgstr ""
+
+#. Letters on the '9' key of a numeric keypad
+msgid "WXYZ"
+msgstr ""
+
+msgid "_Hold"
+msgstr ""
+
 msgid "_Pause"
 msgstr "_Paŭzo"
+
+msgid "_Mute"
+msgstr ""
 
 #, c-format
 msgid "%s has %d new message."
@@ -12777,6 +10298,9 @@ msgid ""
 msgstr ""
 "La 'Mana' foliumilo komando estis elektita, sed nenia komando estis difinita."
 
+msgid "Unable to open URL: the 'Manual' browser command seems invalid."
+msgstr ""
+
 msgid "No message"
 msgstr "Neniu mesaĝo"
 
@@ -12789,6 +10313,13 @@ msgstr "<span weight=\"bold\" size=\"larger\">Vi ricevis retmesaĝon!</span>"
 msgid "New Pounces"
 msgstr ""
 
+#. Translators: Make sure you translate "Dismiss" differently than
+#. "close"!  This string is used in the "You have pounced" dialog
+#. that appears when one of your Buddy Pounces is triggered.  In
+#. this context "Dismiss" means "I acknowledge that I've seen that
+#. this pounce was triggered--remove it from this list."  Translating
+#. it as "Remove" is acceptable if you can't think of a more precise
+#. word.
 msgid "Dismiss"
 msgstr ""
 
@@ -12843,10 +10374,6 @@ msgstr "Elektu dosieron"
 
 msgid "Modify Buddy Pounce"
 msgstr ""
-
-#. Create the "Pounce on Whom" frame.
-msgid "Pounce on Whom"
-msgstr "Atentigi Kiun"
 
 msgid "_Account:"
 msgstr "_Konto:"
@@ -12974,23 +10501,18 @@ msgstr ""
 msgid "Theme failed to copy."
 msgstr ""
 
-#, fuzzy
 msgid "Theme Selections"
-msgstr "Retumilo Elekto"
+msgstr ""
 
 #. Instructions
-#, fuzzy
 msgid ""
 "Select a theme that you would like to use from the lists below.\n"
 "New themes can be installed by dragging and dropping them onto the theme "
 "list."
 msgstr ""
-"Elektu ridmienotemon kiun vi deziras uzi el la listo sube. Novaj temoj estas "
-"instaleblaj per treni kal faligi ilin sur la temo listo."
 
-#, fuzzy
 msgid "Buddy List Theme:"
-msgstr "Kunullisto"
+msgstr ""
 
 msgid "Status Icon Theme:"
 msgstr ""
@@ -12998,9 +10520,8 @@ msgstr ""
 msgid "Sound Theme:"
 msgstr ""
 
-#, fuzzy
 msgid "Smiley Theme:"
-msgstr "Ridmieno-temo"
+msgstr ""
 
 msgid "Keyboard Shortcuts"
 msgstr ""
@@ -13088,6 +10609,12 @@ msgstr "Uzu dolĉan rulumon"
 msgid "F_lash window when IMs are received"
 msgstr "Fu_lmu ekranon kiam TM-oj riceviĝas"
 
+msgid "Resize incoming custom smileys"
+msgstr ""
+
+msgid "Maximum size:"
+msgstr ""
+
 msgid "Minimum input area height in lines:"
 msgstr ""
 
@@ -13116,17 +10643,12 @@ msgstr ""
 msgid "Cannot start browser configuration program."
 msgstr ""
 
-#, fuzzy
-msgid "Disabled"
-msgstr "_Malŝaltu"
-
 #, c-format
 msgid "Use _automatically detected IP address: %s"
 msgstr "Uzi _aŭtodetektitan IP adreson: %s"
 
-#, fuzzy
 msgid "ST_UN server:"
-msgstr "ST_UN servilo:"
+msgstr ""
 
 msgid "<span style=\"italic\">Example: stunserver.org</span>"
 msgstr "<span style=\"italic\">Ekzemplo: stunserver.org</span>"
@@ -13140,37 +10662,33 @@ msgstr "Pordoj"
 msgid "_Enable automatic router port forwarding"
 msgstr ""
 
-#, fuzzy
 msgid "_Manually specify range of ports to listen on:"
-msgstr "_Mane difinu intervalon de pordoj aŭskultendaj"
+msgstr ""
 
-#, fuzzy
 msgid "_Start:"
-msgstr "_Stato:"
+msgstr ""
 
-#, fuzzy
 msgid "_End:"
-msgstr "_Etendu"
+msgstr ""
 
 #. TURN server
 msgid "Relay Server (TURN)"
 msgstr ""
 
-#, fuzzy
 msgid "_TURN server:"
-msgstr "ST_UN servilo:"
+msgstr ""
 
-#, fuzzy
 msgid "_UDP Port:"
-msgstr "_Pordo:"
+msgstr ""
 
-#, fuzzy
+msgid "T_CP Port:"
+msgstr ""
+
 msgid "Use_rname:"
-msgstr "Uzantnomo:"
+msgstr ""
 
-#, fuzzy
 msgid "Pass_word:"
-msgstr "Pasvorto:"
+msgstr ""
 
 msgid "Seamonkey"
 msgstr "Seamonkey"
@@ -13273,20 +10791,17 @@ msgstr "Agordi _Prokurilon"
 msgid "Use remote _DNS with SOCKS4 proxies"
 msgstr ""
 
-#, fuzzy
 msgid "Proxy t_ype:"
-msgstr "Prokurilo _tipo:"
+msgstr ""
 
 msgid "No proxy"
 msgstr "Sen prokurilo"
 
-#, fuzzy
 msgid "P_ort:"
-msgstr "_Pordo:"
+msgstr ""
 
-#, fuzzy
 msgid "User_name:"
-msgstr "Uzantnomo:"
+msgstr ""
 
 msgid "Log _format:"
 msgstr "Protokolo _formato:"
@@ -13374,9 +10889,8 @@ msgstr "Laŭ klavaro aŭ muso uzo"
 msgid "_Minutes before becoming idle:"
 msgstr "_Minutoj antaŭe eksenfari:"
 
-#, fuzzy
 msgid "Change to this status when _idle:"
-msgstr "Ŝanĝu staton kiam _senfara"
+msgstr ""
 
 msgid "_Auto-reply:"
 msgstr "_Aŭto-respondo:"
@@ -13394,6 +10908,37 @@ msgstr "Uzu stato de lasta malsaluto je sensaluto"
 msgid "Status to a_pply at startup:"
 msgstr "Stato aplikenda je ensaluto:"
 
+msgid "DROP"
+msgstr ""
+
+#, c-format
+msgid "Silence threshold: %d%%"
+msgstr ""
+
+msgid "Volume:"
+msgstr ""
+
+msgid "Test Audio"
+msgstr ""
+
+msgid "Test Video"
+msgstr ""
+
+msgid "_Device"
+msgstr ""
+
+msgid "Audio"
+msgstr ""
+
+msgid "Input"
+msgstr ""
+
+msgid "Output"
+msgstr ""
+
+msgid "Video"
+msgstr ""
+
 msgid "Interface"
 msgstr "Interfaco"
 
@@ -13403,9 +10948,11 @@ msgstr "Retumilo"
 msgid "Status / Idle"
 msgstr "Stato / Senfara"
 
-#, fuzzy
 msgid "Themes"
-msgstr "Ridmieno-temo"
+msgstr ""
+
+msgid "Voice/Video"
+msgstr ""
 
 msgid "Allow all users to contact me"
 msgstr "Permesu ĉiujn uzantojn kontakti min"
@@ -13490,6 +11037,43 @@ msgstr "Elektu Novan Nomon"
 msgid "Select Folder..."
 msgstr "Elektu Dosierujon..."
 
+msgid "Screen share error"
+msgstr ""
+
+msgid "Error creating screencast request"
+msgstr ""
+
+msgid "OpenPipeWireRemote request failed"
+msgstr ""
+
+msgid "No file descriptor found"
+msgstr ""
+
+msgid "Screencast \"Start\" failed"
+msgstr ""
+
+msgid "Screencast \"SelectSources\" failed"
+msgstr ""
+
+msgid "Screencast \"CreateSession\" failed."
+msgstr ""
+
+msgid "Test image"
+msgstr ""
+
+msgid "Select window"
+msgstr ""
+
+msgid "Use monitor"
+msgstr ""
+
+#, c-format
+msgid "%s (%d✕%d @ %d,%d)"
+msgstr ""
+
+msgid "Unknown output"
+msgstr ""
+
 #. list button
 msgid "_Get List"
 msgstr "_Ricevu Liston"
@@ -13521,9 +11105,9 @@ msgstr "_Stato:"
 msgid "Use a _different status for some accounts"
 msgstr "Uzu _malsimilan staton por kelkaj kontoj"
 
-#. Save & Use button
-msgid "Sa_ve & Use"
-msgstr "Konser_vu & Uzu"
+#. Save and Use button
+msgid "Sa_ve and Use"
+msgstr ""
 
 #, c-format
 msgid "Status for %s"
@@ -13585,9 +11169,6 @@ msgstr "Stato Elektilo"
 
 msgid "Google Talk"
 msgstr "Gogla Babilado"
-
-msgid "Facebook (XMPP)"
-msgstr ""
 
 #, c-format
 msgid "The following error has occurred loading %s: %s"
@@ -13698,9 +11279,8 @@ msgstr "_Ludu sonon"
 msgid "_Save File"
 msgstr "_Konservu Dosieron"
 
-#, fuzzy
 msgid "Do you really want to clear?"
-msgstr "Ĉu vi certe volas forigi %s-n?"
+msgstr ""
 
 msgid "Select color"
 msgstr "Elektu koloron"
@@ -13740,11 +11320,11 @@ msgstr ""
 msgid "Pidgin smileys"
 msgstr "Piĝinaj ridmienoj"
 
-msgid "Selecting this disables graphical emoticons."
-msgstr ""
-
 msgid "none"
 msgstr "neniu"
+
+msgid "Selecting this disables graphical emoticons."
+msgstr ""
 
 msgid "Small"
 msgstr "Malgranda"
@@ -13870,6 +11450,9 @@ msgstr "Ricevitaj Mesaĝoj"
 msgid "Select Color for %s"
 msgstr "Elektu Koloron por %s"
 
+msgid "General"
+msgstr "Ĝenerala"
+
 msgid "Ignore incoming format"
 msgstr ""
 
@@ -13907,6 +11490,9 @@ msgstr ""
 
 msgid "PubSub Leaf"
 msgstr ""
+
+msgid "Other"
+msgstr "Alia"
 
 msgid ""
 "\n"
@@ -14234,6 +11820,9 @@ msgstr ""
 msgid "Notify For"
 msgstr "Avizu Por"
 
+msgid "\tS_ystem messages"
+msgstr ""
+
 msgid "\t_Only when someone says your username"
 msgstr "\t_Nur kiam iun diras vian uzantnomon"
 
@@ -14267,6 +11856,8 @@ msgid "R_aise conversation window"
 msgstr "Startigu konversacio-fenestron"
 
 #. Present conversation method button
+#. Translators: "Present" as used here is a verb. The plugin presents
+#. * the window to the user.
 msgid "_Present conversation window"
 msgstr "_Nuna konversacio-fenestro"
 
@@ -14355,9 +11946,8 @@ msgstr ""
 msgid "Conversation Entry"
 msgstr "Konversacio Enskribigo"
 
-#, fuzzy
 msgid "Conversation History"
-msgstr "Konversacio Enskribigo"
+msgstr ""
 
 msgid "Request Dialog"
 msgstr "Peto Dialogujo"
@@ -14420,7 +12010,7 @@ msgid "Lets you send raw input to text-based protocols."
 msgstr ""
 
 msgid ""
-"Lets you send raw input to text-based protocols (XMPP, MSN, IRC, TOC). Hit "
+"Lets you send raw input to text-based protocols (XMPP, IRC, TOC). Hit "
 "'Enter' in the entry box to send. Watch the debug window."
 msgstr ""
 
@@ -14661,21 +12251,17 @@ msgstr "Montru iChat-stilajn tempomarkojn ĉiuj N minutoj."
 msgid "Timestamp Format Options"
 msgstr "Tempomarko Formato Opcioj"
 
-#, fuzzy, c-format
 msgid "_Force timestamp format:"
-msgstr "_Devigi 24-horan tempoformaton"
+msgstr ""
 
-#, fuzzy
 msgid "Use system default"
-msgstr "Labortablo Aprioro"
+msgstr ""
 
-#, fuzzy
 msgid "12 hour time format"
-msgstr "_Devigi 24-horan tempoformaton"
+msgstr ""
 
-#, fuzzy
 msgid "24 hour time format"
-msgstr "_Devigi 24-horan tempoformaton"
+msgstr ""
 
 msgid "Show dates in..."
 msgstr "Montru Datojn en..."
@@ -14714,61 +12300,6 @@ msgid ""
 msgstr ""
 "Tiu kromaĵo ebligas la uzanto agordi konversaciajn kaj protokolajn mesaĝajn "
 "tempmarkajn formatojn."
-
-#, fuzzy
-msgid "Audio"
-msgstr "Aŭtomate"
-
-#, fuzzy
-msgid "Video"
-msgstr "Video Babilado"
-
-msgid "Output"
-msgstr ""
-
-#, fuzzy
-msgid "_Plugin"
-msgstr "Kromaĵoj"
-
-#, fuzzy
-msgid "_Device"
-msgstr "_Rifuzi"
-
-msgid "Input"
-msgstr ""
-
-#, fuzzy
-msgid "P_lugin"
-msgstr "Kromaĵoj"
-
-msgid "D_evice"
-msgstr ""
-
-#. *< magic
-#. *< major version
-#. *< minor version
-#. *< type
-#. *< ui_requirement
-#. *< flags
-#. *< dependencies
-#. *< priority
-#. *< id
-#, fuzzy
-msgid "Voice/Video Settings"
-msgstr "Agordi"
-
-#, fuzzy
-msgid "Voice and Video Settings"
-msgstr "Agordi"
-
-#. *< name
-#. *< version
-msgid "Configure your microphone and webcam."
-msgstr ""
-
-#. *< summary
-msgid "Configure microphone and webcam settings for voice/video calls."
-msgstr ""
 
 msgid "Opacity:"
 msgstr "Maltravidebleco:"
@@ -14817,9 +12348,95 @@ msgstr "Variebla Travidebleco por la kunullisto kaj konversacioj."
 #. *  description
 msgid ""
 "This plugin enables variable alpha transparency on conversation windows and "
-"the buddy list.\n"
-"\n"
-"* Note: This plugin requires Win2000 or greater."
+"the buddy list."
+msgstr ""
+
+#. Alerts
+msgid "Chatroom alerts"
+msgstr ""
+
+msgid "Chatroom message alerts _only where someone says your username"
+msgstr ""
+
+#. Launcher integration
+msgid "Launcher Icon"
+msgstr ""
+
+msgid "_Disable launcher integration"
+msgstr ""
+
+msgid "Show number of unread _messages on launcher icon"
+msgstr ""
+
+msgid "Show number of unread co_nversations on launcher icon"
+msgstr ""
+
+#. Messaging menu integration
+msgid "Messaging Menu"
+msgstr ""
+
+msgid "Show number of _unread messages for conversations in messaging menu"
+msgstr ""
+
+msgid "Show _elapsed time for unread conversations in messaging menu"
+msgstr ""
+
+#. *< type
+#. *< ui_requirement
+#. *< flags
+#. *< dependencies
+#. *< priority
+#. *< id
+msgid "Unity Integration"
+msgstr ""
+
+#. *< name
+#. *< version
+#. *  summary
+msgid "Provides integration with Unity."
+msgstr ""
+
+#. *  description
+msgid "Provides integration with Unity's messaging menu and launcher."
+msgstr ""
+
+msgid "_Plugin"
+msgstr ""
+
+msgid "P_lugin"
+msgstr ""
+
+msgid "D_evice"
+msgstr ""
+
+msgid "Silence threshold:"
+msgstr ""
+
+msgid "Input and Output Settings"
+msgstr ""
+
+msgid "Microphone Test"
+msgstr ""
+
+#. *< magic
+#. *< major version
+#. *< minor version
+#. *< type
+#. *< ui_requirement
+#. *< flags
+#. *< dependencies
+#. *< priority
+#. *< id
+msgid "Voice/Video Settings"
+msgstr ""
+
+#. *< name
+#. *< version
+msgid "Configure your microphone and webcam."
+msgstr ""
+
+#. *< summary
+msgid "Configure microphone and webcam settings for voice/video calls."
 msgstr ""
 
 #. Autostart
@@ -14882,14 +12499,7 @@ msgstr ""
 msgid "This plugin is useful for debugging XMPP servers or clients."
 msgstr ""
 
-#. $(^Name) is the current Version name (e.g. Pidgin 2.7.0).  $_CLICK will become a translated version of "Click Next to continue."  DO NOT translate the CLICK in $_CLICK.  It will break the installer.
-msgid ""
-"$(^Name) is released under the GNU General Public License (GPL). The license "
-"is provided here for information purposes only. $_CLICK"
-msgstr ""
-
-#. Installer Subsection Detailed Description
-msgid "A multi-platform GUI toolkit, used by Pidgin"
+msgid "The installer is already running."
 msgstr ""
 
 msgid ""
@@ -14897,8 +12507,50 @@ msgid ""
 "again."
 msgstr ""
 
+#. "Next >" appears on a button on the License Page of the Installer
+msgid "Next >"
+msgstr ""
+
+#. $(^Name) is the current Version name (e.g. Pidgin 2.7.0).  $_CLICK will become a translated version of "Click Next to continue."  DO NOT translate the CLICK in $_CLICK.  It will break the installer.
+msgid ""
+"$(^Name) is released under the GNU General Public License (GPL). The license "
+"is provided here for information purposes only. $_CLICK"
+msgstr ""
+
+#. Installer Subsection Text
+msgid "Pidgin Instant Messaging Client (required)"
+msgstr ""
+
+#. Installer Subsection Text
+msgid "GTK+ Runtime (required if not present)"
+msgstr ""
+
+#. Installer Subsection Text
+msgid "Shortcuts"
+msgstr ""
+
+#. Installer Subsection Text
+msgid "Desktop"
+msgstr ""
+
+#. Installer Subsection Text
+msgid "Start Menu"
+msgstr ""
+
+#. Installer Subsection Text
+msgid "Localizations"
+msgstr ""
+
 #. Installer Subsection Detailed Description
 msgid "Core Pidgin files and dlls"
+msgstr ""
+
+#. Installer Subsection Detailed Description
+msgid "Shortcuts for starting Pidgin"
+msgstr ""
+
+#. Installer Subsection Detailed Description
+msgid "Create a shortcut to Pidgin on the Desktop"
 msgstr ""
 
 #. Installer Subsection Detailed Description
@@ -14906,29 +12558,33 @@ msgid "Create a Start Menu entry for Pidgin"
 msgstr ""
 
 #. Installer Subsection Detailed Description
-msgid "Create a shortcut to Pidgin on the Desktop"
+msgid "A multi-platform GUI toolkit, used by Pidgin"
 msgstr ""
 
 #. Installer Subsection Text
 msgid "Debug Symbols (for reporting crashes)"
 msgstr ""
 
-#. Installer Subsection Text
-#, fuzzy
-msgid "Desktop"
-msgstr "Labortablo Aprioro"
-
-#. $R2 will display the URL that the GTK+ Runtime failed to download from
-msgid ""
-"Error Downloading the GTK+ Runtime ($R2).$\\rThis is required for Pidgin to "
-"function; if retrying fails, you may need to use the 'Offline Installer' "
-"from http://pidgin.im/download/windows/ ."
+#. Text displayed on Installer Finish Page
+msgid "Visit the Pidgin Web Page"
 msgstr ""
 
-#. $R2 will display the URL that the Debug Symbols failed to download from
 msgid ""
-"Error Installing Debug Symbols ($R2).$\\rIf retrying fails, you may need to "
-"use the 'Offline Installer' from http://pidgin.im/download/windows/ ."
+"Unable to uninstall the currently installed version of Pidgin. The new "
+"version will be installed without removing the currently installed version."
+msgstr ""
+
+msgid ""
+"Pidgin requires a compatible GTK+ Runtime (which does not appear to be "
+"installed).$\\rAre you sure you want to skip installing the GTK+ Runtime?"
+msgstr ""
+
+#. Installer Subsection Text
+msgid "URI Handlers"
+msgstr ""
+
+#. Installer Subsection Text
+msgid "Spellchecking Support"
 msgstr ""
 
 #. $R3 will display the URL that the Dictionary failed to download from
@@ -14939,681 +12595,28 @@ msgid ""
 "%20Pidgin#manual_win32_spellcheck_installation"
 msgstr ""
 
-#. Installer Subsection Text
-#, fuzzy
-msgid "GTK+ Runtime (required if not present)"
-msgstr "GTK+ Rultempa Versio"
-
-#. Installer Subsection Text
-#, fuzzy
-msgid "Localizations"
-msgstr "Loko"
-
-#. "Next >" appears on a button on the License Page of the Installer
-msgid "Next >"
-msgstr ""
-
-#. Installer Subsection Text
-#, fuzzy
-msgid "Pidgin Instant Messaging Client (required)"
-msgstr "Piĝin Interreta Mesaĝilo"
-
-msgid ""
-"Pidgin requires a compatible GTK+ Runtime (which doesn't appear to be "
-"already present).$\\rAre you sure you want to skip installing the GTK+ "
-"Runtime?"
-msgstr ""
-
-#. Installer Subsection Text
-#, fuzzy
-msgid "Shortcuts"
-msgstr "Ligilo"
-
-#. Installer Subsection Detailed Description
-msgid "Shortcuts for starting Pidgin"
-msgstr ""
-
-#. Installer Subsection Text
-msgid "Spellchecking Support"
-msgstr ""
-
-#. Installer Subsection Text
-#, fuzzy
-msgid "Start Menu"
-msgstr "Eko"
-
 #. Installer Subsection Detailed Description
 msgid ""
 "Support for Spellchecking.  (Internet connection required for installation)"
 msgstr ""
 
-#, fuzzy
-msgid "The installer is already running."
-msgstr "Tiu karesnomo \"%s\" jam estas uzata."
+#. $R2 will display the URL that the Debug Symbols failed to download from
+msgid ""
+"Error Installing Debug Symbols ($R2).$\\rIf retrying fails, you may need to "
+"use the 'Offline Installer' from http://pidgin.im/download/windows/ ."
+msgstr ""
+
+#. $R2 will display the URL that the GTK+ Runtime failed to download from
+msgid ""
+"Error Downloading the GTK+ Runtime ($R2).$\\rThis is required for Pidgin to "
+"function; if retrying fails, you may need to use the 'Offline Installer' "
+"from http://pidgin.im/download/windows/ ."
+msgstr ""
 
 msgid ""
 "The uninstaller could not find registry entries for Pidgin.$\\rIt is likely "
 "that another user installed this application."
 msgstr ""
 
-#. Installer Subsection Text
-#, fuzzy
-msgid "URI Handlers"
-msgstr "_Tenilo:"
-
-msgid ""
-"Unable to uninstall the currently installed version of Pidgin. The new "
-"version will be installed without removing the currently installed version."
-msgstr ""
-
-#. Text displayed on Installer Finish Page
-msgid "Visit the Pidgin Web Page"
-msgstr ""
-
 msgid "You do not have permission to uninstall this application."
 msgstr ""
-
-#~ msgid "Transfer was closed."
-#~ msgstr "Transmeto estis fermita."
-
-#~ msgid "Set your friendly name."
-#~ msgstr "Difinu vian amikan nomon."
-
-#, fuzzy
-#~ msgid "Error requesting %s"
-#~ msgstr "Eraro skribante al %s: %s"
-
-#~ msgid "Force old (port 5223) SSL"
-#~ msgstr "Devigi malnovan (pordo 5223) SSL-n"
-
-#, fuzzy
-#~ msgid "The name you entered is invalid."
-#~ msgstr "La enigita SecurID malvalidas."
-
-#~ msgid "Search for Buddy by Information"
-#~ msgstr "Serĉu Kunulon laŭ Informo..."
-
-#, fuzzy
-#~ msgid "The certificate is not valid yet."
-#~ msgstr "La enigita uzantnomo malvalidas."
-
-#, fuzzy
-#~ msgid "The nick name you entered is invalid."
-#~ msgstr "La enigita SecurID malvalidas."
-
-#, fuzzy
-#~ msgid "Nick Name"
-#~ msgstr "Karesnomo"
-
-#, fuzzy
-#~ msgid "Your Mobile Number..."
-#~ msgstr "Difiniu Poŝtelefonan Numeron..."
-
-#~ msgid "Unknown reason."
-#~ msgstr "Nekonata kialo."
-
-#~ msgid "Artist"
-#~ msgstr "Artisto"
-
-#~ msgid "Album"
-#~ msgstr "Albumo"
-
-#, fuzzy
-#~ msgid "Current Mood"
-#~ msgstr "Aktuale ĉe"
-
-#, fuzzy
-#~ msgid "New Mood"
-#~ msgstr "Uzanto Agordo"
-
-#, fuzzy
-#~ msgid "Change your Mood"
-#~ msgstr "Ŝanĝu staton al"
-
-#, fuzzy
-#~ msgid "How do you feel right now?"
-#~ msgstr "Mi ne estas tie nun"
-
-#, fuzzy
-#~ msgid "Change Mood..."
-#~ msgstr "Ŝanĝu pasvorton..."
-
-#~ msgid "Pager server"
-#~ msgstr "Paĝila servilo"
-
-#~ msgid "Yahoo Chat server"
-#~ msgstr "Yahoo Babil servilo"
-
-#~ msgid "Yahoo Chat port"
-#~ msgstr "Yahoo Babilo pordo"
-
-#~ msgid "Orientation"
-#~ msgstr "Orientiĝo"
-
-#~ msgid "The orientation of the tray."
-#~ msgstr "La oientiĝo de la pleto."
-
-#~ msgid "Error creating conference."
-#~ msgstr "Eraro kreante konferencon."
-
-#~ msgid "%s just sent you a Nudge!"
-#~ msgstr "%s ĵus sendis al vi Zumon!"
-
-#~ msgid "Friendly name changes too rapidly"
-#~ msgstr "Amikonomo ŝangâs tro rapide"
-
-#~ msgid "This Hotmail account may not be active."
-#~ msgstr "Tiu Hotmail konto eble ne estas aktiva."
-
-#~ msgid "Profile URL"
-#~ msgstr "Profilo URL"
-
-#~ msgid "MSN Protocol Plugin"
-#~ msgstr "MSN Protokol-Kromaĵo"
-
-#~ msgid "%s is not a valid group."
-#~ msgstr "%s ne estas valida grupo."
-
-#~ msgid "Unknown error."
-#~ msgstr "Nekonata eraro."
-
-#~ msgid "%s on %s (%s)"
-#~ msgstr "%s en %s (%s)"
-
-#~ msgid "Unable to add user on %s (%s)"
-#~ msgstr "Ne eblas aldoni uzanto en %s (%s)"
-
-#~ msgid "Unable to block user on %s (%s)"
-#~ msgstr "Ne eblas bloki uzanton ĉe %s (%s)"
-
-#~ msgid "Unable to permit user on %s (%s)"
-#~ msgstr "Ne eblas permezi uzanton ĉe %s (%s)"
-
-#~ msgid "%s could not be added because your buddy list is full."
-#~ msgstr "%s ne aldoneblas ĉar via kunullisto plenumas."
-
-#~ msgid "%s is not a valid passport account."
-#~ msgstr "%s ne etas valida pasporto konto."
-
-#~ msgid "Unable to rename group"
-#~ msgstr "Ne eblas alinomigi grupon"
-
-#~ msgid "Unable to delete group"
-#~ msgstr "Ne eblas forigi grupo"
-
-#~ msgid "%s has added you to his or her buddy list."
-#~ msgstr "%s aldonis vin en sia kunul listo."
-
-#~ msgid "%s has removed you from his or her buddy list."
-#~ msgstr "%s forigis vin el sia kunul listo."
-
-#~ msgid ""
-#~ "<FONT SIZE=\"4\">IRC Channel:</FONT> #pidgin on irc.freenode.net<BR><BR>"
-#~ msgstr ""
-#~ "<FONT SIZE=\"4\">IRC kanalo:</FONT> #pidgin ĉe irc.freenode.net<BR><BR>"
-
-#~ msgid "<FONT SIZE=\"4\">XMPP MUC:</FONT> devel@conference.pidgin.im<BR><BR>"
-#~ msgstr ""
-#~ "<FONT SIZE=\"4\">XMPP MUC:</FONT> devel@conference.pidgin.im<BR><BR>"
-
-#~ msgid "Debugging Information"
-#~ msgstr "Sencimiga Informo"
-
-#~ msgid ""
-#~ "Unrecognized file type\n"
-#~ "\n"
-#~ "Defaulting to PNG."
-#~ msgstr ""
-#~ "Nerekonata dosiertipo\n"
-#~ "\n"
-#~ "Apriorigas kiel PNG."
-
-#~ msgid ""
-#~ "Error saving image\n"
-#~ "\n"
-#~ "%s"
-#~ msgstr ""
-#~ "Eraro konservante bildon\n"
-#~ "\n"
-#~ "%s"
-
-#, fuzzy
-#~ msgid "(Default)"
-#~ msgstr "(apriora)"
-
-#~ msgid "Icon"
-#~ msgstr "Piktogramo"
-
-#~ msgid "Proxy Server &amp; Browser"
-#~ msgstr "Prokura Servilo &amp; Retumilo"
-
-#~ msgid "Auto-away"
-#~ msgstr "Aŭto-fora"
-
-#~ msgid "Change _status to:"
-#~ msgstr "Ŝangû _staton al:"
-
-#~ msgid "Failed to open file '%s': %s"
-#~ msgstr "Malsukcesis malfermi dosieron '%s': %s"
-
-#~ msgid "Send instant messages over multiple protocols"
-#~ msgstr "Sendu tujmesaĝojn per pluraj protokoloj"
-
-#~ msgid "_Start port:"
-#~ msgstr "_Komenca pordo:"
-
-#~ msgid "_End port:"
-#~ msgstr "_Fina pordo:"
-
-#~ msgid "_User:"
-#~ msgstr "_Uzanto:"
-
-#~ msgid "Calling ... "
-#~ msgstr "Alvokante..."
-
-#~ msgid "Euskera(Basque)"
-#~ msgstr "Eŭska"
-
-#~ msgid ""
-#~ "%s %s\n"
-#~ "Usage: %s [OPTION]...\n"
-#~ "\n"
-#~ "  -c, --config=DIR    use DIR for config files\n"
-#~ "  -d, --debug         print debugging messages to stdout\n"
-#~ "  -f, --force-online  force online, regardless of network status\n"
-#~ "  -h, --help          display this help and exit\n"
-#~ "  -m, --multiple      do not ensure single instance\n"
-#~ "  -n, --nologin       don't automatically login\n"
-#~ "  -l, --login[=NAME]  enable specified account(s) (optional argument "
-#~ "NAME\n"
-#~ "                      specifies account(s) to use, separated by commas.\n"
-#~ "                      Without this only the first account will be "
-#~ "enabled).\n"
-#~ "  --display=DISPLAY   X display to use\n"
-#~ "  -v, --version       display the current version and exit\n"
-#~ msgstr ""
-#~ "%s %s\n"
-#~ "Uzo: %s [OPCIOJ]...\n"
-#~ "\n"
-#~ "  -c, --config=UJO    uzu UJOn por agordo dosieroj\n"
-#~ "  -d, --debug         montru sencimigajn mesaĝojn al stdout\n"
-#~ "  -f, --force-online  devigu konektita, sendistinge je reta stato\n"
-#~ "  -h, --help          vidigu tiun helpon kaj finu\n"
-#~ "  -m, --multiple      ne devigu unuopa ruliĝo\n"
-#~ "  -n, --nologin       ne aŭtomate ensalutu\n"
-#~ "  -l, --login[=NOMO]  aŭtomate ensalutu (fakultativa argumento NOMO "
-#~ "specifas\n"
-#~ "                      konto(j)n uzendajn, disigitajn per komoj.\n"
-#~ "                      Sen tio, nur la unua konto estos ensalutita).\n"
-#~ "  --display=DISPLAY   X vidilo uzenda\n"
-#~ "  -v, --version       vidigu la aktualan version kaj finu\n"
-
-#~ msgid ""
-#~ "%s %s\n"
-#~ "Usage: %s [OPTION]...\n"
-#~ "\n"
-#~ "  -c, --config=DIR    use DIR for config files\n"
-#~ "  -d, --debug         print debugging messages to stdout\n"
-#~ "  -f, --force-online  force online, regardless of network status\n"
-#~ "  -h, --help          display this help and exit\n"
-#~ "  -m, --multiple      do not ensure single instance\n"
-#~ "  -n, --nologin       don't automatically login\n"
-#~ "  -l, --login[=NAME]  enable specified account(s) (optional argument "
-#~ "NAME\n"
-#~ "                      specifies account(s) to use, separated by commas.\n"
-#~ "                      Without this only the first account will be "
-#~ "enabled).\n"
-#~ "  -v, --version       display the current version and exit\n"
-#~ msgstr ""
-#~ "%s %s\n"
-#~ "Uzo: %s [OPCIOJ]...\n"
-#~ "\n"
-#~ "  -c, --config=UJO    uzu UJOn por agordo dosieroj\n"
-#~ "  -d, --debug         montru sencimigajn mesaĝojn al stdout\n"
-#~ "  -f, --force-online  devigu konektita, sendistinge je reta stato\n"
-#~ "  -h, --help          vidigu tiun helpon kaj finu\n"
-#~ "  -m, --multiple       ne devigu unuopa ruliĝo\n"
-#~ "  -n, --nologin       ne aŭtomate ensalutu\n"
-#~ "  -l, --login[=NOMO]  aŭtomate ensalutu (fakultativa argumento NOMO "
-#~ "specifas\n"
-#~ "                      konto(j)n uzendajn, disigitajn per komoj.\n"
-#~ "                      Sen tio, nur la unua konto estos ensalutita).\n"
-#~ "  --display=DISPLAY   X vidilo uzenda\n"
-#~ "  -v, --version       vidigu la aktualan version kaj finu\n"
-
-#~ msgid "Invitation Rejected"
-#~ msgstr "Invito malakceptita"
-
-#~ msgid "_Resume"
-#~ msgstr "_Rekomenci"
-
-#~ msgid "Connection failed."
-#~ msgstr "Konekto malsukcesis."
-
-#~ msgid "Server has disconnected"
-#~ msgstr "Servilo diskonektis"
-
-#~ msgid "Couldn't connect to host"
-#~ msgstr "Ne povis konekti al servilo"
-
-#~ msgid "Read error"
-#~ msgstr "Legeraro"
-
-#~ msgid "Write error"
-#~ msgstr "Skriberaro"
-
-#~ msgid "Service Discovery Info"
-#~ msgstr "Servico Malkovrado Informo"
-
-#~ msgid "Multi-User Chat"
-#~ msgstr "Multopa Babilejo"
-
-#~ msgid "Ad-Hoc Commands"
-#~ msgstr "Ad-Hoc Komandoj"
-
-#~ msgid "XHTML-IM"
-#~ msgstr "XHTML-IM"
-
-#~ msgid "In-Band Registration"
-#~ msgstr "En-Bando Registrado"
-
-#~ msgid "Chat State Notifications"
-#~ msgstr "Kunul Stato Avizoj"
-
-#~ msgid "Software Version"
-#~ msgstr "Programo Versio"
-
-#~ msgid "Entity Capabilities"
-#~ msgstr "Eraj Kapablecoj"
-
-#~ msgid "User Nickname"
-#~ msgstr "Uzanto Karesnomo"
-
-#~ msgid "Jingle Video"
-#~ msgstr "Viva Video"
-
-#~ msgid "Message Receipts"
-#~ msgstr "Mesaĝaj Ricevitaj Konfirmoj"
-
-#~ msgid "Public Key Publishing"
-#~ msgstr "Publika Ŝloŝilo Disdono"
-
-#~ msgid "User Chatting"
-#~ msgstr "Uzanto Babilante"
-
-#~ msgid "User Browsing"
-#~ msgstr "Uzanto Navigante"
-
-#~ msgid "User Viewing"
-#~ msgstr "Uzanto Rigardante"
-
-#~ msgid "Read Error"
-#~ msgstr "Legeraro"
-
-#~ msgid "Failed to connect to server."
-#~ msgstr "Malsukcesis konekti servilon."
-
-#~ msgid "Couldn't connect to host: %s (%d)"
-#~ msgstr "Ne povis konekti al servilo: %s (%d)"
-
-#~ msgid "Incorrect password."
-#~ msgstr "Misa pasvorto."
-
-#~ msgid ""
-#~ "Could not connect to BOS server:\n"
-#~ "%s"
-#~ msgstr ""
-#~ "Ne povis konekti al BOS servilo:\n"
-#~ "%s"
-
-#~ msgid "Could Not Connect"
-#~ msgstr "Ne Povas Konekti"
-
-#~ msgid "Connection closed (writing)"
-#~ msgstr "Koneto fermita (skribante)"
-
-#~ msgid "Yahoo Japan"
-#~ msgstr "Yahoo Japanio"
-
-#~ msgid "Japan Pager server"
-#~ msgstr "Japana Paĝila servilo"
-
-#~ msgid "Japan file transfer server"
-#~ msgstr "Japana dosieralŝuto servilo"
-
-#~ msgid ""
-#~ "Lost connection with server\n"
-#~ "%s"
-#~ msgstr ""
-#~ "Perdis konekto kun prokura servilo\n"
-#~ "%s"
-
-#~ msgid "Conversation Window Hiding"
-#~ msgstr "Konversacio Fenestroj Kaŝeco"
-
-#~ msgid "Activate which ID?"
-#~ msgstr "Ŝaltu kiun ID?"
-
-#~ msgid "Cursor Color"
-#~ msgstr "Kursoro Koloro"
-
-#~ msgid "Secondary Cursor Color"
-#~ msgstr "Dua Kursoro Koloro"
-
-#~ msgid "Interface colors"
-#~ msgstr "Interfaco koloroj"
-
-#~ msgid "Widget Sizes"
-#~ msgstr "Fenestraĵo Grandecoj"
-
-#~ msgid "Unable to retrieve MSN Address Book"
-#~ msgstr "Ne eblas ricevi MSN Adresaron"
-
-#~ msgid "Failed to send IM."
-#~ msgstr "Malsukcesis sendi tujmesaĝon."
-
-#~ msgid "Failure."
-#~ msgstr "Malsukceso."
-
-#~ msgid "Country not supported."
-#~ msgstr "Lando ne subtenita."
-
-#~ msgid "An unknown error, %d, has occurred.  Info: %s"
-#~ msgstr "Nekonata eraro, %d, okazis.  Informo: %s"
-
-#~ msgid "Invalid Groupname"
-#~ msgstr "Malvalida Gruponomo"
-
-#~ msgid "Connection Closed"
-#~ msgstr "Konekto Fermita"
-
-#~ msgid "Waiting for reply..."
-#~ msgstr "Atendante respondon..."
-
-#~ msgid "TOC has come back from its pause. You may now send messages again."
-#~ msgstr "TOC revenis el sia paŭzo. Vi nun povas sendi mesaĝojn denove."
-
-#~ msgid "Password Change Successful"
-#~ msgstr "Pasvorto Ŝanĝita Sukcese"
-
-#~ msgid "Get Dir Info"
-#~ msgstr "Ricevu Ujan Informon"
-
-#~ msgid "Set Dir Info"
-#~ msgstr "Difini Ujan Informon"
-
-#~ msgid "Save As..."
-#~ msgstr "Konservu Kiel..."
-
-#~ msgid "TOC Protocol Plugin"
-#~ msgstr "TOC Protokol-Kromaĵo"
-
-#~ msgid "%s Options"
-#~ msgstr "%s Opcioj"
-
-#~ msgid "Proxy Options"
-#~ msgstr "Prokurilo Opcioj"
-
-#~ msgid "By log size"
-#~ msgstr "Laŭ protokolo grandeco"
-
-#~ msgid "_Open Link in Browser"
-#~ msgstr "_Malfermu Ligilon en Retumilo"
-
-#~ msgid "A group with the name already exists."
-#~ msgstr "Samnomita grupo jam ekzistas."
-
-#~ msgid "Blood Type"
-#~ msgstr "Sanga Tipo"
-
-#~ msgid "Invalid QQ Face"
-#~ msgstr "Malvalida QQ Aspekto"
-
-#~ msgid "Group Description"
-#~ msgstr "Grupo Priskribo"
-
-#~ msgid "Auth"
-#~ msgstr "Permesi"
-
-#~ msgid "Approve"
-#~ msgstr "Aprobi"
-
-#~ msgid "I am a member"
-#~ msgstr "Mi estas membro"
-
-#~ msgid "Unknown status"
-#~ msgstr "Nekonata stato"
-
-#~ msgid "Are you sure you want to leave this Qun?"
-#~ msgstr "Ĉu vi certas vi volas forigi tiun Qun?"
-
-#~ msgid "Do you want to approve the request?"
-#~ msgstr "Ĉu vi volas jesi tiun demandon?"
-
-#~ msgid "System Message"
-#~ msgstr "Sistema Mesaĝo"
-
-#~ msgid "Set My Information"
-#~ msgstr "Difinu Mian Informon"
-
-#~ msgid "Block this buddy"
-#~ msgstr "Bloku tiun kunulon"
-
-#~ msgid "developer"
-#~ msgstr "programisto"
-
-#~ msgid "XMPP developer"
-#~ msgstr "XMPP programisto"
-
-#~ msgid "Artists"
-#~ msgstr "Artistoj"
-
-#~ msgid ""
-#~ "You are using %s version %s.  The current version is %s.  You can get it "
-#~ "from <a href=\"%s\">%s</a><hr>"
-#~ msgstr ""
-#~ "Vi uzas %s version %s.  La aktuala versio estas %s.  Vi povas obteni ĝin "
-#~ "el <a href=\"%s\">%s</a><hr>"
-
-#~ msgid "<b>ChangeLog:</b><br>%s"
-#~ msgstr "<b>Ŝanĝprotokolo:</b><br>%s"
-
-#~ msgid "Screen name:"
-#~ msgstr "Ekrannomo:"
-
-#~ msgid "Someone says your screen name in chat"
-#~ msgstr "Iun diras vian ekrannomon en babilejo"
-
-#~ msgid "Invalid screen name"
-#~ msgstr "Malvalida ekranonomo"
-
-#~ msgid "Screen name sent"
-#~ msgstr "Ekrannomo sendita"
-
-#~ msgid "Invalid screen name."
-#~ msgstr "Malvalida ekranonomo."
-
-#~ msgid "Available Message"
-#~ msgstr "Disponeblaj Mesaĝoj"
-
-#~ msgid "Screen name"
-#~ msgstr "Ekrannomo"
-
-#~ msgid "Away Message"
-#~ msgstr "Formesaĝo"
-
-#~ msgid "<i>(retrieving)</i>"
-#~ msgstr "<i>(ricevante)</i>"
-
-#~ msgid "Your information has been updated"
-#~ msgstr "Via informo estas aktualigita."
-
-#~ msgid "Input your reason:"
-#~ msgstr "Enigu vian kialon:"
-
-#~ msgid "You have successfully removed a buddy"
-#~ msgstr "Vi sukcese forigis kunulon"
-
-#~ msgid "You have successfully removed yourself from your friend's buddy list"
-#~ msgstr "Vi sukcese forigis vin el la listo de via kunul"
-
-#~ msgid "You have added %d to buddy list"
-#~ msgstr "Vi aldonis %d-n en kunulliston"
-
-#~ msgid "Invalid QQid"
-#~ msgstr "Malvalida QQid"
-
-#~ msgid "Please enter external group ID"
-#~ msgstr "Bonvolu enigi eksteran groupon ID-n"
-
-#~ msgid "I am applying to join"
-#~ msgstr "Mi aliĝpetas"
-
-#~ msgid "You have successfully left the group"
-#~ msgstr "Vi sukcese forlasis la grupon"
-
-#~ msgid "Code [0x%02X]: %s"
-#~ msgstr "Kodo [0x%02X]: %s"
-
-#~ msgid "Group Operation Error"
-#~ msgstr "Grupoperacio Eraro"
-
-#~ msgid "Enter your reason:"
-#~ msgstr "Enigu vian kialon:"
-
-#~ msgid "TCP Address"
-#~ msgstr "TCP adreso"
-
-#~ msgid "UDP Address"
-#~ msgstr "UDP adreso"
-
-#~ msgid "Show Login Information"
-#~ msgstr "Montru Ensalutan Informon"
-
-#~ msgid "Screen _name:"
-#~ msgstr "Ekran_nomo:"
-
-#~ msgid "_Merge"
-#~ msgstr "_Kunfandi"
-
-#~ msgid ""
-#~ "Please enter the screen name of the person you would like to add to your "
-#~ "buddy list. You may optionally enter an alias, or nickname,  for the "
-#~ "buddy. The alias will be displayed in place of the screen name whenever "
-#~ "possible.\n"
-#~ msgstr ""
-#~ "Bonvolu enigi la ekranan nomon de la persono kiun vi volas aldoni en via "
-#~ "kunullisto. Vi povas laŭ deziro enigi alinomon, aŭ karesnomon, pri la "
-#~ "kunul. La alinomo estos vidigita anstataŭ la erkrana nomo laŭ kaze.\n"
-
-#~ msgid "_Screen name:"
-#~ msgstr "_Ekrannomo:"
-
-#~ msgid ""
-#~ "%s%s<span weight=\"bold\">Written by:</span>\t%s\n"
-#~ "<span weight=\"bold\">Website:</span>\t\t%s\n"
-#~ "<span weight=\"bold\">Filename:</span>\t\t%s"
-#~ msgstr ""
-#~ "%s%s<span weight=\"bold\">Skribita de:</span>\t%s\n"
-#~ "<span weight=\"bold\">Retsituo:</span>\t\t%s\n"
-#~ "<span weight=\"bold\">Dosiernomo:</span>\t\t%s"

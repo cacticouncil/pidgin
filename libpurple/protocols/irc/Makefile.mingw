@@ -54,6 +54,13 @@ LIBS =	\
 			-lintl \
 			-lpurple
 
+
+ifeq ($(CYRUS_SASL), 1)
+INCLUDE_PATHS += -I$(CYRUS_SASL_TOP)/include
+LIB_PATHS += -L$(CYRUS_SASL_TOP)/lib
+LIBS += -llibsasl2
+endif
+
 include $(PIDGIN_COMMON_RULES)
 
 ##

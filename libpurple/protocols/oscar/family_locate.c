@@ -958,8 +958,7 @@ aim_info_extract(OscarData *od, ByteStream *bs, aim_userinfo_t *outinfo)
 			/*
 			 * My instance number.
 			 */
-			guint8 instance_number;
-			instance_number = byte_stream_get8(bs);
+			byte_stream_get8(bs);
 
 		} else if (type == 0x0019) {
 			/*
@@ -1082,7 +1081,7 @@ aim_info_extract(OscarData *od, ByteStream *bs, aim_userinfo_t *outinfo)
 						 * with no mood icon. */
 						if (*icqmood) {
 							for (i = 0; icqmoods[i].icqmood; i++) {
-								if (!strcmp(icqmood, icqmoods[i].icqmood)) {
+								if (purple_strequal(icqmood, icqmoods[i].icqmood)) {
 									mood = icqmoods[i].mood;
 									break; /* should only match once... */
 								}
@@ -1355,7 +1354,7 @@ aim_locate_setcaps(OscarData *od, guint64 caps)
 	aim_snacid_t snacid;
 	GSList *tlvlist = NULL;
 
-	if (!od || !(conn = flap_connection_findbygroup(od, SNAC_FAMILY_LOCATE)))
+	if (!(conn = flap_connection_findbygroup(od, SNAC_FAMILY_LOCATE)))
 		return -EINVAL;
 
 	aim_tlvlist_add_caps(&tlvlist, 0x0005, caps, mood);
@@ -1523,7 +1522,7 @@ icq_get_custom_icon_description(const char *mood)
 		/* We check that description is not NULL to exclude
 		 * duplicates, like the typing duplicate. */
 		if (icq_purple_moods[i].description &&
-		    !strcmp(mood, icq_custom_icons[i].mood)) {
+		    purple_strequal(mood, icq_custom_icons[i].mood)) {
 			return icq_purple_moods[i].description;
 		}
 	}
@@ -1543,7 +1542,7 @@ icq_get_custom_icon_data(const char *mood)
 		/* We check that description is not NULL to exclude
 		 * duplicates, like the typing duplicate. */
 		if (icq_purple_moods[i].description &&
-		    !strcmp(mood, icq_custom_icons[i].mood)) {
+		    purple_strequal(mood, icq_custom_icons[i].mood)) {
 			return (guint8 *)icq_custom_icons[i].data;
 		}
 	}

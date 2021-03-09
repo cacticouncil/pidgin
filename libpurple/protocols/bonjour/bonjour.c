@@ -97,7 +97,7 @@ bonjour_login(PurpleAccount *account)
 		purple_connection_error_reason(gc,
 				PURPLE_CONNECTION_ERROR_OTHER_ERROR,
 				_("Unable to find Apple's \"Bonjour for Windows\" toolkit, see "
-				  "http://d.pidgin.im/BonjourWindows for more information."));
+				  "https://developer.pidgin.im/BonjourWindows for more information."));
 		return;
 	}
 #endif /* _WIN32 */
@@ -536,7 +536,10 @@ static PurplePluginProtocolInfo prpl_info =
 	NULL,                                                    /* set_public_alias */
 	NULL,                                                    /* get_public_alias */
 	NULL,                                                    /* add_buddy_with_invite */
-	NULL                                                     /* add_buddies_with_invite */
+	NULL,                                                    /* add_buddies_with_invite */
+	NULL,                                                    /* get_cb_alias */
+	NULL,                                                    /* chat_can_receive_file */
+	NULL,                                                    /* chat_send_file */
 };
 
 static PurplePluginInfo info =
@@ -606,9 +609,9 @@ _set_default_name_cb(gpointer data) {
 
 	for(; tmp != NULL; tmp = tmp->next) {
 		option = tmp->data;
-		if (strcmp("first", purple_account_option_get_setting(option)) == 0)
+		if (purple_strequal("first", purple_account_option_get_setting(option)))
 			purple_account_option_set_default_string(option, default_firstname);
-		else if (strcmp("last", purple_account_option_get_setting(option)) == 0)
+		else if (purple_strequal("last", purple_account_option_get_setting(option)))
 			purple_account_option_set_default_string(option, default_lastname);
 	}
 

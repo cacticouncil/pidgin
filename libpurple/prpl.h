@@ -162,7 +162,7 @@ typedef enum
 	/**
 	 * Notify on new mail.
 	 *
-	 * MSN and Yahoo notify you when you have new mail.
+	 * If a protocol notifies you when you have new mail.
 	 */
 	OPT_PROTO_MAIL_CHECK = 0x00000020,
 
@@ -209,7 +209,14 @@ typedef enum
 	 * along with an invitation.
 	 * @since 2.8.0
 	 */
-	OPT_PROTO_INVITE_MESSAGE = 0x00000800
+	OPT_PROTO_INVITE_MESSAGE = 0x00000800,
+
+	/**
+	 * Indicates that this protocol supports creating invisible buddies for
+	 * reporting presence/alias of IM peers.
+	 * @since 2.14.0
+	 */
+	OPT_PROTO_TRANSIENT_BUDDIES = 0x00001000,
 
 } PurpleProtocolOptions;
 
@@ -417,14 +424,13 @@ struct _PurplePluginProtocolInfo
 	 * the account is not connected, return -ENOTCONN.  If the
 	 * PRPL is unable to send the message for another reason, return
 	 * some other negative value.  You can use one of the valid
-	 * errno values, or just big something.  If the message should
-	 * not be echoed to the conversation window, return 0.
+	 * errno values, or just big something.
 	 *
 	 * @param id      The id of the chat to send the message to.
 	 * @param message The message to send to the chat.
 	 * @param flags   A bitwise OR of #PurpleMessageFlags representing
 	 *                message flags.
-	 * @return 	  A positive number or 0 in case of succes,
+	 * @return 	  A positive number or 0 in case of success,
 	 *                a negative error number in case of failure.
 	 */
 	int  (*chat_send)(PurpleConnection *, int id, const char *message, PurpleMessageFlags flags);
@@ -647,6 +653,44 @@ struct _PurplePluginProtocolInfo
 	 */
 	void (*add_buddy_with_invite)(PurpleConnection *pc, PurpleBuddy *buddy, PurpleGroup *group, const char *message);
 	void (*add_buddies_with_invite)(PurpleConnection *pc, GList *buddies, GList *groups, const char *message);
+
+	/**
+	 *  Get the display alias of a participant in a chat.
+	 *
+	 *  @param gc  the connection on which the room is.
+	 *  @param id  the ID of the chat room.
+	 *  @param who the nickname of the chat participant.
+	 *  @return    the display alias of the participant.  This string must be
+	 *             freed by the caller.
+	 *
+	 * @since 2.14.0
+	 */
+	char *(*get_cb_alias)(PurpleConnection *gc, int id, const char *who);
+
+
+	/**
+	 *  Determine whether a chat can receive a file
+	 *
+	 *  @param gc  the connection on which the room is.
+	 *  @param id  the ID of the chat room.
+	 *  @return    whether it is OK to use chat_send_file() to send a
+	 *             file to this chat.
+	 *
+	 * @since 2.14.0
+	 */
+	gboolean (*chat_can_receive_file)(PurpleConnection *, int id);
+
+	/**
+	 *  Send a file to a chat room
+	 *
+	 *  @param gc  the connection on which the room is.
+	 *  @param id  the ID of the chat room.
+	 *  @param filename the file to be sent.
+	 *
+	 * @since 2.14.0
+	 */
+	void (*chat_send_file)(PurpleConnection *, int id, const char *filename);
+
 };
 
 #define PURPLE_PROTOCOL_PLUGIN_HAS_FUNC(prpl, member) \
@@ -922,8 +966,8 @@ GList *purple_prpl_get_statuses(PurpleAccount *account, PurplePresence *presence
  * @param gc The connection to send the message on.
  * @param who Whose attention to request.
  * @param type_code An index into the prpl's attention_types list determining the type
- *        of the attention request command to send. 0 if prpl only defines one
- *        (for example, Yahoo and MSN), but some protocols define more (MySpaceIM).
+ *        of the attention request command to send. 0 if prpl only defines one,
+ *        but protocols are allowed to define more.
  *
  * Note that you can't send arbitrary PurpleAttentionType's, because there is
  * only a fixed set of attention commands.
@@ -1010,6 +1054,11 @@ PurplePlugin *purple_find_prpl(const char *id);
 
 #ifdef __cplusplus
 }
+#endif
+
+#ifdef __COVERITY__
+#undef PURPLE_PROTOCOL_PLUGIN_HAS_FUNC
+#define PURPLE_PROTOCOL_PLUGIN_HAS_FUNC(prpl, member) (prpl->member != NULL)
 #endif
 
 #endif /* _PRPL_H_ */

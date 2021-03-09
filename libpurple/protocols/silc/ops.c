@@ -65,7 +65,7 @@ void silc_say(SilcClient client, SilcClientConnection conn,
 
 	purple_debug_error("silc", "silc_say error: %s\n", tmp);
 
-	if (!strcmp(tmp, "Authentication failed"))
+	if (purple_strequal(tmp, "Authentication failed"))
 		reason = PURPLE_CONNECTION_ERROR_AUTHENTICATION_FAILED;
 
 	if (client != NULL)
@@ -121,9 +121,8 @@ silcpurple_mime_message(SilcClient client, SilcClientConnection conn,
 		SilcMime p;
 		const char *mtype;
 		SilcDList parts = silc_mime_get_multiparts(mime, &mtype);
-		SilcBool ret;
 
-		if (!strcmp(mtype, "mixed")) {
+		if (purple_strequal(mtype, "mixed")) {
 			/* Contains multiple messages */
 			silc_dlist_start(parts);
 			while ((p = silc_dlist_get(parts)) != SILC_LIST_END) {
@@ -133,7 +132,7 @@ silcpurple_mime_message(SilcClient client, SilcClientConnection conn,
 			}
 		}
 
-		if (!strcmp(mtype, "alternative")) {
+		if (purple_strequal(mtype, "alternative")) {
 			/* Same message in alternative formats.  Kopete sends
 			   these.  Go in order from last to first. */
 			silc_dlist_end(parts);
@@ -214,13 +213,10 @@ silcpurple_mime_message(SilcClient client, SilcClientConnection conn,
 
 			if (channel)
 				serv_got_chat_in(gc, purple_conv_chat_get_id(PURPLE_CONV_CHAT(convo)),
-				 		 sender->nickname ?
-				 		  sender->nickname :
-						 "<unknown>", cflags,
+				 		 sender->nickname, cflags,
 						 tmp, time(NULL));
 			else
-				serv_got_im(gc, sender->nickname ?
-					    sender->nickname : "<unknown>",
+				serv_got_im(gc, sender->nickname,
 					    tmp, cflags, time(NULL));
 
 			purple_imgstore_unref_by_id(imgid);
@@ -332,10 +328,17 @@ silc_channel_message(SilcClient client, SilcClientConnection conn,
 	}
 
 	if (flags & SILC_MESSAGE_FLAG_UTF8) {
-		tmp = g_markup_escape_text((const char *)message, -1);
+		const char *msg = (const char *)message;
+		char *salvaged = NULL;
+		if (!g_utf8_validate((const char *)message, -1, NULL)) {
+			salvaged = purple_utf8_salvage((const char *)message);
+			msg = salvaged;
+		}
+		tmp = g_markup_escape_text(msg, -1);
 		/* Send to Purple */
 		serv_got_chat_in(gc, purple_conv_chat_get_id(PURPLE_CONV_CHAT(convo)),
 				 sender->nickname, 0, tmp, time(NULL));
+		g_free(salvaged);
 		g_free(tmp);
 	}
 }
@@ -355,15 +358,14 @@ silc_private_message(SilcClient client, SilcClientConnection conn,
 {
 	PurpleConnection *gc = client->application;
 	SilcPurple sg = gc->proto_data;
-	PurpleConversation *convo = NULL;
+	PurpleConversation *convo;
 	char *msg, *tmp;
 
 	if (!message)
 		return;
 
-	if (sender->nickname)
-		/* XXX - Should this be PURPLE_CONV_TYPE_IM? */
-		convo = purple_find_conversation_with_account(PURPLE_CONV_TYPE_ANY,
+	/* XXX - Should this be PURPLE_CONV_TYPE_IM? */
+	convo = purple_find_conversation_with_account(PURPLE_CONV_TYPE_ANY,
 							      sender->nickname, sg->account);
 
 	if (flags & SILC_MESSAGE_FLAG_SIGNED &&
@@ -408,9 +410,16 @@ silc_private_message(SilcClient client, SilcClientConnection conn,
 	}
 
 	if (flags & SILC_MESSAGE_FLAG_UTF8) {
-		tmp = g_markup_escape_text((const char *)message, -1);
+		const char *msg = (const char *)message;
+		char *salvaged = NULL;
+		if (!g_utf8_validate((const char *)message, -1, NULL)) {
+			salvaged = purple_utf8_salvage((const char *)message);
+			msg = salvaged;
+		}
+		tmp = g_markup_escape_text(msg, -1);
 		/* Send to Purple */
 		serv_got_im(gc, sender->nickname, tmp, 0, time(NULL));
+		g_free(salvaged);
 		g_free(tmp);
 	}
 }
@@ -446,7 +455,6 @@ silc_notify(SilcClient client, SilcClientConnection conn,
 	SilcNotifyType notify;
 	PurpleBuddy *b;
 	SilcDList list;
-	int i;
 
 	va_start(va, type);
 	memset(buf, 0, sizeof(buf));
@@ -585,7 +593,7 @@ silc_notify(SilcClient client, SilcClientConnection conn,
 		tmp = va_arg(va, char *);      /* Old nick */
 		name = va_arg(va, char *);     /* New nick */
 
-		if (!strcmp(tmp, name))
+		if (purple_strequal(tmp, name))
 			break;
 
 		/* Change nick on all channels */
@@ -842,6 +850,7 @@ silc_notify(SilcClient client, SilcClientConnection conn,
 			if (public_key) {
 				GSList *buddies;
 				const char *f;
+				gsize i;
 
 				pk = silc_pkcs_public_key_encode(public_key, &pk_len);
 				if (!pk)
@@ -946,7 +955,7 @@ silc_command(SilcClient client, SilcClientConnection conn,
 	switch (command) {
 
 	case SILC_COMMAND_CMODE:
-		if (argc == 3 && !strcmp((char *)argv[2], "+C"))
+		if (argc == 3 && purple_strequal((char *)argv[2], "+C"))
 			sg->chpk = TRUE;
 		else
 			sg->chpk = FALSE;
@@ -1159,7 +1168,7 @@ silc_command_reply(SilcClient client, SilcClientConnection conn,
 
 	case SILC_COMMAND_WHOIS:
 		{
-			SilcUInt32 idle, *user_modes;
+			SilcUInt32 *user_modes;
 			SilcDList channels;
 			SilcClientEntry client_entry;
 			char tmp[1024], *tmp2;
@@ -1179,7 +1188,7 @@ silc_command_reply(SilcClient client, SilcClientConnection conn,
 			(void)va_arg(ap, char *);
 			channels = va_arg(ap, SilcDList);
 			(void)va_arg(ap, SilcUInt32);
-			idle = va_arg(ap, SilcUInt32);
+			va_arg(ap, SilcUInt32); /* idle */
 			(void)va_arg(ap, unsigned char *);
 			user_modes = va_arg(ap, SilcUInt32 *);
 
@@ -1437,7 +1446,7 @@ silc_command_reply(SilcClient client, SilcClientConnection conn,
 				if (!convo)
 					continue;
 				oldnick = purple_conv_chat_get_nick(PURPLE_CONV_CHAT(convo));
-				if (strcmp(oldnick, purple_normalize(purple_conversation_get_account(convo), newnick))) {
+				if (!purple_strequal(oldnick, purple_normalize(purple_conversation_get_account(convo), newnick))) {
 					purple_conv_chat_rename_user(PURPLE_CONV_CHAT(convo),
 								     oldnick, newnick);
 					purple_conv_chat_set_nick(PURPLE_CONV_CHAT(convo), newnick);

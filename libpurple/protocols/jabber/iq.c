@@ -49,6 +49,18 @@
 static GHashTable *iq_handlers = NULL;
 static GHashTable *signal_iq_handlers = NULL;
 
+struct _JabberIqCallbackData {
+	JabberIqCallback *callback;
+	gpointer data;
+	JabberID *to;
+};
+
+void jabber_iq_callbackdata_free(JabberIqCallbackData *jcd)
+{
+	jabber_id_free(jcd->to);
+	g_free(jcd);
+}
+
 JabberIq *jabber_iq_new(JabberStream *js, JabberIqType type)
 {
 	JabberIq *iq;
@@ -98,11 +110,6 @@ JabberIq *jabber_iq_new_query(JabberStream *js, JabberIqType type,
 	return iq;
 }
 
-typedef struct _JabberCallbackData {
-	JabberIqCallback *callback;
-	gpointer data;
-} JabberCallbackData;
-
 void
 jabber_iq_set_callback(JabberIq *iq, JabberIqCallback *callback, gpointer data)
 {
@@ -125,15 +132,17 @@ void jabber_iq_set_id(JabberIq *iq, const char *id)
 
 void jabber_iq_send(JabberIq *iq)
 {
-	JabberCallbackData *jcd;
+	JabberIqCallbackData *jcd;
 	g_return_if_fail(iq != NULL);
 
 	jabber_send(iq->js, iq->node);
 
 	if(iq->id && iq->callback) {
-		jcd = g_new0(JabberCallbackData, 1);
+		jcd = g_new0(JabberIqCallbackData, 1);
 		jcd->callback = iq->callback;
 		jcd->data = iq->callback_data;
+		jcd->to = jabber_id_new(xmlnode_get_attrib(iq->node, "to"));
+
 		g_hash_table_insert(iq->js->iq_callbacks, g_strdup(iq->id), jcd);
 	}
 
@@ -274,18 +283,84 @@ void jabber_iq_remove_callback_by_id(JabberStream *js, const char *id)
 	g_hash_table_remove(js->iq_callbacks, id);
 }
 
+/**
+ * Verify that the 'from' attribute of an IQ reply is a valid match for
+ * a given IQ request. The expected behavior is outlined in section
+ * 8.1.2.1 of the XMPP CORE spec (RFC 6120). We consider the reply to
+ * be a valid match if any of the following is true:
+ * - Request 'to' matches reply 'from' (including the case where
+ *   neither are set).
+ * - Request 'to' was my JID (bare or full) and reply 'from' is empty.
+ * - Request 'to' was empty and reply 'from' is my JID. The spec says
+ *   we should only allow bare JID, but we also allow full JID for
+ *   compatibility with some servers.
+ * - Request 'to' was empty and reply 'from' is server JID. Not allowed by
+ *   any spec, but for compatibility with some servers.
+ *
+ * These rules should allow valid IQ replies while preventing spoofed
+ * ones.
+ *
+ * For more discussion see the "Spoofing of iq ids and misbehaving
+ * servers" email thread from January 2014 on the jdev and security
+ * mailing lists. Also see https://developer.pidgin.im/ticket/15879
+ *
+ * @return TRUE if this reply is valid for the given request.
+ */
+static gboolean does_reply_from_match_request_to(JabberStream *js, JabberID *to, JabberID *from)
+{
+	if (jabber_id_equal(to, from)) {
+		/* Request 'to' matches reply 'from' */
+		return TRUE;
+	}
+
+	if (!from && purple_strequal(to->node, js->user->node)
+			&& purple_strequal(to->domain, js->user->domain)) {
+		/* Request 'to' was my JID (bare or full) and reply 'from' is empty */
+		return TRUE;
+	}
+
+	if (!to && purple_strequal(from->domain, js->user->domain)) {
+		/* Request 'to' is empty and reply 'from' domain matches our domain */
+
+		if (!from->node && !from->resource) {
+			/* Reply 'from' is server bare JID */
+			return TRUE;
+		}
+
+		if (purple_strequal(from->node, js->user->node)
+				&& (!from->resource || purple_strequal(from->resource, js->user->resource))) {
+			/* Reply 'from' is my full or bare JID */
+			return TRUE;
+		}
+	}
+
+	return FALSE;
+}
+
 void jabber_iq_parse(JabberStream *js, xmlnode *packet)
 {
-	JabberCallbackData *jcd;
+	JabberIqCallbackData *jcd;
 	xmlnode *child, *error, *x;
 	const char *xmlns;
 	const char *iq_type, *id, *from;
 	JabberIqType type = JABBER_IQ_NONE;
 	gboolean signal_return;
+	JabberID *from_id;
 
 	from = xmlnode_get_attrib(packet, "from");
 	id = xmlnode_get_attrib(packet, "id");
 	iq_type = xmlnode_get_attrib(packet, "type");
+
+	/*
+	 * Ensure the 'from' attribute is valid. No point in handling a stanza
+	 * of which we don't understand where it came from.
+	 */
+	from_id = jabber_id_new(from);
+
+	if (from && !from_id) {
+		purple_debug_error("jabber", "Received an iq with an invalid from: %s\n", from);
+		return;
+	}
 
 	/*
 	 * child will be either the first tag child or NULL if there is no child.
@@ -299,19 +374,20 @@ void jabber_iq_parse(JabberStream *js, xmlnode *packet)
 	}
 
 	if (iq_type) {
-		if (!strcmp(iq_type, "get"))
+		if (purple_strequal(iq_type, "get"))
 			type = JABBER_IQ_GET;
-		else if (!strcmp(iq_type, "set"))
+		else if (purple_strequal(iq_type, "set"))
 			type = JABBER_IQ_SET;
-		else if (!strcmp(iq_type, "result"))
+		else if (purple_strequal(iq_type, "result"))
 			type = JABBER_IQ_RESULT;
-		else if (!strcmp(iq_type, "error"))
+		else if (purple_strequal(iq_type, "error"))
 			type = JABBER_IQ_ERROR;
 	}
 
 	if (type == JABBER_IQ_NONE) {
 		purple_debug_error("jabber", "IQ with invalid type ('%s') - ignoring.\n",
 						   iq_type ? iq_type : "(null)");
+		jabber_id_free(from_id);
 		return;
 	}
 
@@ -342,20 +418,39 @@ void jabber_iq_parse(JabberStream *js, xmlnode *packet)
 			purple_debug_error("jabber", "IQ of type '%s' missing id - ignoring.\n",
 			                   iq_type);
 
+		jabber_id_free(from_id);
 		return;
 	}
 
 	signal_return = GPOINTER_TO_INT(purple_signal_emit_return_1(purple_connection_get_prpl(js->gc),
 			"jabber-receiving-iq", js->gc, iq_type, id, from, packet));
-	if (signal_return)
+	if (signal_return) {
+		jabber_id_free(from_id);
 		return;
+	}
 
 	/* First, lets see if a special callback got registered */
 	if(type == JABBER_IQ_RESULT || type == JABBER_IQ_ERROR) {
-		if((jcd = g_hash_table_lookup(js->iq_callbacks, id))) {
-			jcd->callback(js, from, type, id, packet, jcd->data);
-			jabber_iq_remove_callback_by_id(js, id);
-			return;
+		jcd = g_hash_table_lookup(js->iq_callbacks, id);
+		if (jcd) {
+			if (does_reply_from_match_request_to(js, jcd->to, from_id)) {
+				jcd->callback(js, from, type, id, packet, jcd->data);
+				jabber_iq_remove_callback_by_id(js, id);
+				jabber_id_free(from_id);
+				return;
+			} else {
+				char *expected_to;
+
+				if (jcd->to) {
+					expected_to = jabber_id_get_full_jid(jcd->to);
+				} else {
+					expected_to = jabber_id_get_bare_jid(js->user);
+				}
+
+				purple_debug_error("jabber", "Got a result iq with id %s from %s instead of expected %s!\n", id, from ? from : "(null)", expected_to);
+
+				g_free(expected_to);
+			}
 		}
 	}
 
@@ -372,12 +467,15 @@ void jabber_iq_parse(JabberStream *js, xmlnode *packet)
 		if (signal_ref > 0) {
 			signal_return = GPOINTER_TO_INT(purple_signal_emit_return_1(purple_connection_get_prpl(js->gc), "jabber-watched-iq",
 					js->gc, iq_type, id, from, child));
-			if (signal_return)
+			if (signal_return) {
+				jabber_id_free(from_id);
 				return;
+			}
 		}
 
 		if(jih) {
 			jih(js, from, type, id, child);
+			jabber_id_free(from_id);
 			return;
 		}
 	}
@@ -404,6 +502,8 @@ void jabber_iq_parse(JabberStream *js, xmlnode *packet)
 
 		jabber_iq_send(iq);
 	}
+
+	jabber_id_free(from_id);
 }
 
 void jabber_iq_register_handler(const char *node, const char *xmlns, JabberIqHandler *handlerfunc)

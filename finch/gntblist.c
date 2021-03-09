@@ -167,6 +167,9 @@ static gboolean default_can_add_node(PurpleBlistNode *node)
 {
 	gboolean offline = purple_prefs_get_bool(PREF_ROOT "/showoffline");
 
+	if (!PURPLE_BLIST_NODE_IS_VISIBLE(node))
+		return FALSE;
+
 	if (PURPLE_BLIST_NODE_IS_BUDDY(node)) {
 		PurpleBuddy *buddy = (PurpleBuddy*)node;
 		FinchBlistNode *fnode = FINCH_GET_DATA(node);
@@ -1851,7 +1854,7 @@ draw_tooltip_real(FinchBlist *ggblist)
 	tree = GNT_TREE(widget);
 
 	if (!gnt_widget_has_focus(ggblist->tree) ||
-			(ggblist->context && !GNT_WIDGET_IS_FLAG_SET(ggblist->context, GNT_WIDGET_INVISIBLE)))
+			(ggblist->context && gnt_widget_get_visible(ggblist->context)))
 		return FALSE;
 
 	if (ggblist->tooltip)
@@ -1877,7 +1880,7 @@ draw_tooltip_real(FinchBlist *ggblist)
 
 	box = gnt_box_new(FALSE, FALSE);
 	gnt_box_set_toplevel(GNT_BOX(box), TRUE);
-	GNT_WIDGET_SET_FLAGS(box, GNT_WIDGET_NO_SHADOW);
+	gnt_widget_set_has_shadow(box, FALSE);
 	gnt_box_set_title(GNT_BOX(box), title);
 
 	str = make_sure_text_fits(str);
@@ -1891,8 +1894,8 @@ draw_tooltip_real(FinchBlist *ggblist)
 	if (x + w >= getmaxx(stdscr))
 		x -= w + width + 2;
 	gnt_widget_set_position(box, x, y);
-	GNT_WIDGET_UNSET_FLAGS(box, GNT_WIDGET_CAN_TAKE_FOCUS);
-	GNT_WIDGET_SET_FLAGS(box, GNT_WIDGET_TRANSIENT);
+	gnt_widget_set_take_focus(box, FALSE);
+	gnt_widget_set_transient(box, TRUE);
 	gnt_widget_draw(box);
 
 	gnt_text_view_append_text_with_flags(GNT_TEXT_VIEW(tv), str->str, GNT_TEXT_FLAG_NORMAL);
@@ -1942,16 +1945,16 @@ key_pressed(GntWidget *widget, const char *text, FinchBlist *ggblist)
 		if (gnt_tree_is_searching(GNT_TREE(ggblist->tree)))
 			gnt_bindable_perform_action_named(GNT_BINDABLE(ggblist->tree), "end-search", NULL);
 		remove_peripherals(ggblist);
-	} else if (strcmp(text, GNT_KEY_INS) == 0) {
+	} else if (purple_strequal(text, GNT_KEY_INS)) {
 		PurpleBlistNode *node = gnt_tree_get_selection_data(GNT_TREE(ggblist->tree));
 		purple_blist_request_add_buddy(NULL, NULL,
 				node && PURPLE_BLIST_NODE_IS_GROUP(node) ? purple_group_get_name(PURPLE_GROUP(node)) : NULL,
 				NULL);
 	} else if (!gnt_tree_is_searching(GNT_TREE(ggblist->tree))) {
-		if (strcmp(text, "t") == 0) {
+		if (purple_strequal(text, "t")) {
 			finch_blist_toggle_tag_buddy(gnt_tree_get_selection_data(GNT_TREE(ggblist->tree)));
 			gnt_bindable_perform_action_named(GNT_BINDABLE(ggblist->tree), "move-down", NULL);
-		} else if (strcmp(text, "a") == 0) {
+		} else if (purple_strequal(text, "a")) {
 			finch_blist_place_tagged(gnt_tree_get_selection_data(GNT_TREE(ggblist->tree)));
 		} else
 			return FALSE;
@@ -2060,13 +2063,13 @@ populate_buddylist(void)
 	if (ggblist->manager->init)
 		ggblist->manager->init();
 
-	if (strcmp(purple_prefs_get_string(PREF_ROOT "/sort_type"), "text") == 0) {
+	if (purple_strequal(purple_prefs_get_string(PREF_ROOT "/sort_type"), "text")) {
 		gnt_tree_set_compare_func(GNT_TREE(ggblist->tree),
 			(GCompareFunc)blist_node_compare_text);
-	} else if (strcmp(purple_prefs_get_string(PREF_ROOT "/sort_type"), "status") == 0) {
+	} else if (purple_strequal(purple_prefs_get_string(PREF_ROOT "/sort_type"), "status")) {
 		gnt_tree_set_compare_func(GNT_TREE(ggblist->tree),
 			(GCompareFunc)blist_node_compare_status);
-	} else if (strcmp(purple_prefs_get_string(PREF_ROOT "/sort_type"), "log") == 0) {
+	} else if (purple_strequal(purple_prefs_get_string(PREF_ROOT "/sort_type"), "log")) {
 		gnt_tree_set_compare_func(GNT_TREE(ggblist->tree),
 			(GCompareFunc)blist_node_compare_log);
 	}
@@ -3128,7 +3131,7 @@ blist_show(PurpleBuddyList *list)
 
 	ggblist->tree = gnt_tree_new();
 
-	GNT_WIDGET_SET_FLAGS(ggblist->tree, GNT_WIDGET_NO_BORDER);
+	gnt_widget_set_has_border(ggblist->tree, FALSE);
 	gnt_widget_set_size(ggblist->tree, purple_prefs_get_int(PREF_ROOT "/size/width"),
 			purple_prefs_get_int(PREF_ROOT "/size/height"));
 	gnt_widget_set_position(ggblist->window, purple_prefs_get_int(PREF_ROOT "/position/x"),
@@ -3240,7 +3243,7 @@ void finch_blist_install_manager(const FinchBlistManager *manager)
 	if (!g_list_find(managers, manager)) {
 		managers = g_list_append(managers, (gpointer)manager);
 		reconstruct_grouping_menu();
-		if (strcmp(manager->id, purple_prefs_get_string(PREF_ROOT "/grouping")) == 0)
+		if (purple_strequal(manager->id, purple_prefs_get_string(PREF_ROOT "/grouping")))
 			purple_prefs_trigger_callback(PREF_ROOT "/grouping");
 	}
 }
@@ -3250,7 +3253,7 @@ void finch_blist_uninstall_manager(const FinchBlistManager *manager)
 	if (g_list_find(managers, manager)) {
 		managers = g_list_remove(managers, manager);
 		reconstruct_grouping_menu();
-		if (strcmp(manager->id, purple_prefs_get_string(PREF_ROOT "/grouping")) == 0)
+		if (purple_strequal(manager->id, purple_prefs_get_string(PREF_ROOT "/grouping")))
 			purple_prefs_trigger_callback(PREF_ROOT "/grouping");
 	}
 }
@@ -3263,7 +3266,7 @@ FinchBlistManager * finch_blist_manager_find(const char *id)
 
 	for (; iter; iter = iter->next) {
 		FinchBlistManager *m = iter->data;
-		if (strcmp(id, m->id) == 0)
+		if (purple_strequal(id, m->id))
 			return m;
 	}
 	return NULL;

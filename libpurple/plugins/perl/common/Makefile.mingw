@@ -7,6 +7,9 @@
 PIDGIN_TREE_TOP := ../../../..
 include $(PIDGIN_TREE_TOP)/libpurple/win32/global.mak
 
+#we cannot include win32dep.h, but we need struct sockaddr_in6 definition
+CFLAGS += -include ws2tcpip.h
+
 GCCWARNINGS += -Wno-comment -Wno-unused -Wno-nested-externs
 
 DEFINES := $(subst -DWIN32_LEAN_AND_MEAN,,$(DEFINES))
@@ -25,9 +28,9 @@ INCLUDE_PATHS +=		-I. \
 			-I$(GTK_TOP)/include \
 			-I$(GTK_TOP)/include/glib-2.0 \
 			-I$(GTK_TOP)/lib/glib-2.0/include \
-			-I$(PERL_LIB_TOP)/CORE
+			-I$(PERL_LIB_TOP)/lib/CORE
 
-LIB_PATHS += 		-L$(PERL_LIB_TOP) \
+LIB_PATHS += 		-L$(PERL_LIB_TOP)/lib/CORE \
 			-L$(PERL_PLUGIN_TOP) \
 			-L$(PURPLE_TOP) \
 			-L$(GTK_TOP)/lib
@@ -81,7 +84,7 @@ OBJECTS = $(C_FILES:%.c=%.o)
 ##
 ## LIBRARIES
 ##
-LIBS =			-lperl510 \
+LIBS =			-lperl520 \
 			-lperl \
 			-lpurple \
 			-lglib-2.0
@@ -112,7 +115,7 @@ $(AUTOSPLIT):
 	$(PERL) -MAutoSplit -e 'autosplit("lib/Purple.pm")'
 
 $(TARGET).dll: $(PURPLE_DLL).a $(PURPLE_PERL_DLL).a $(FALLBACKS) $(OBJECTS)
-	$(CC) -shared $(OBJECTS) $(LIB_PATHS) $(LIBS) -o $(TARGET).dll
+	$(CC) -shared $(OBJECTS) $(LIB_PATHS) $(LIBS) $(DLL_LD_FLAGS) -o $(TARGET).dll
 
 ##
 ## CLEAN

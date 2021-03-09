@@ -15,11 +15,13 @@ If concerns are raised as to the copyright holder of a particular
 piece of code, then that code should be traced through our version
 control system to see from where it came and who has modified it.
 
-Copyright (C) 1998-2009 by the following:
+Copyright (C) 1998-2017 by the following:
 
+Mark
 Saleem Abdulrasool
 Jakub Adam
 Dave Ahlswede
+Haval A. Ahmed
 Thijs Alkemade
 Manuel Amador
 Matt Amato
@@ -39,6 +41,7 @@ R. Tyler Ballance
 Chris Banal
 Luca Barbato
 Levi Bard
+Mark Barfield
 Ryan Barrett
 Kevin Barry
 Lukas Barth
@@ -49,6 +52,7 @@ Stefan Becker
 Carlos Bederian
 Dave Bell
 Matthew W.S. Bell
+Fabrice Bellet <fabrice@bellet.info>
 Igor Belyi
 David Benjamin
 Brian Bernas
@@ -71,6 +75,8 @@ Craig Boston
 Éric Boumaour
 Chris Boyle
 Stanislav Brabec
+Bartosz Brachaczek
+Quentin Brandon
 Derrick J Brashear
 Mauro Sérgio Ferreira Brasil
 Luke Bratch
@@ -127,11 +133,13 @@ Glauber de Oliveira Costa
 Adam Cowell
 Palmer Cox
 Jeramey Crawford
+Olivier Crete
 Michael Culbertson
 Steven Danna
 Simon Danner
 Chris Davies
 Josh Davis
+defanor
 Martijn Dekker
 Florian Delizy
 Jiri Denemark
@@ -140,12 +148,15 @@ Marc Dequènes
 Philip Derrin
 Taso N. Devetzis
 Balwinder Singh Dheeman
+Chandrakant Dhutadmal
 Andrew Dieffenbach
+Ingmārs Dīriņš
 Finlay Dobbie
 Mark Doliner
 Nuno Donato
 Jim Duchek
 Alex Duggan
+dx
 Tom Dyas
 Marc E.
 Andrew Echols
@@ -155,6 +166,7 @@ William Ehlhardt
 Markus Elfring
 Nelson Elhage
 Ignacio J. Elia
+Kai Engert
 Brian Enigma
 Mattias Eriksson
 Pat Erley
@@ -170,6 +182,7 @@ Jesse Farmer
 Gavan Fantom (gavan)
 Leonardo Fernandes
 David Fiander
+Michael Fiedler
 Ryan Flegel
 Rob Flynn <gaim@robflynn.com>
 Rob Foehl (rwf)
@@ -196,8 +209,10 @@ Ike Gingerich
 Gustavo Giráldez
 Richard Gobeille
 Ian Goldberg
+Jon Goldberg
 Matthew Goldstein
 Michael Golden
+Issa Gorissen
 Charlie Gordon
 Ryan C. Gordon
 Konrad Gräfe
@@ -207,6 +222,7 @@ Christian Grothoff
 Vladislav Guberinić
 Gideon N. Guillen
 Aman Gupta
+Ashish Gupta
 Christian Hammond
 Erick Hamness
 Fred Hampton
@@ -262,15 +278,18 @@ Tomáš Kebert
 John Kelm
 Jochen Kemnade
 Yann Kerherve
+Akmal Khushvakov
 Gordian Klein
 Marten Klencke
 Krzysztof Klinikowski
+KNTRO
 Akuke Kok
 Kir Kolyshkin
 Ivan Komarov
 F.W. Kong
 Konstantin Korikov
 Cole Kowalski
+Daniel Kamil Kozar
 Nikita Kozlov
 Matt Kramer
 Gary Kramlich
@@ -294,9 +313,11 @@ Ho-seok Lee
 Jean-Yves Lefort
 Moses Lei
 Ambrose C. Li
+Tom Li
 Nicolas Lichtmaier
 Wesley Lin
 Shaun Lindsay
+Shivaram Lingamneni
 Artem Litvinovich
 Josh Littlefield
 Daniel Ljungborg
@@ -327,21 +348,27 @@ John Matthews
 Simo Mattila
 Robert Matusewicz
 Michal Matyska
+Rudolfs Mazurs
 Ryan McCabe
 Peter McCurdy
 Kurt McKee
+James McLaughlin
 Torrey McMahon
 Greg McNew
 Robert McQueen
+Christof Meerwald
 Mihály Mészáros
 Robert Mibus
+David Michael
 Lars T. Mikkelsen
+Mantas Mikulėnas
 Benjamin Miller
 Kevin Miller
 Paul Miller
 Arkadiusz Miskiewicz
 David Mohr
 Kartik Mohta
+Mihai Moldovan
 Andrew Molloy
 Tomasz Mon
 Michael Monreal
@@ -352,15 +379,18 @@ John Moody
 Tim Mooney
 Sergio Moretto
 Nader Morshed
+Evert Mouw
 Keith Moyer
 Andrei Mozzhuhin
 Christian Muise
 MXit Lifestyle (Pty) Ltd.
+Shawn Napora
 Alexander Nartov
 Richard Nelson
 Dennis Nezic
 Matthew A. Nicholson
 Andreas Nilsson
+Allan Nordhøy
 Henning Norén
 Szilard Novaki
 Novell
@@ -376,12 +406,14 @@ Bartosz Oler
 Oliver
 The openSUSE Project
 Jürgen Orschiedt
+Michael Osborne
 Stefan Ott
 Shawn Outman
 Nathan Owens (pianocomp81)
 John Oyler
 Matt Pandina
 Laszlo Pandy
+Paradox
 Giulio 'Twain28' Pascali
 Ricardo Fernandez Pascual
 Riley Patterson
@@ -438,6 +470,7 @@ Luciano Miguel Ferreira Rocha
 Andrew Rodland
 Miguel Rodríguez (migrax)
 Adi Roiban
+Ivan Romanov
 Martin Rosinski
 Bob Rossi
 Jason Roth
@@ -448,6 +481,7 @@ Sam S.
 Thanumalayan S.
 Jonathan Sailor
 Elliott Sales de Andrade
+Catalin Salgau
 Tomasz Sałaciński <tsalacinski@gmail.com>
 Pradyumna Sampath
 Arvind Samptur
@@ -460,6 +494,7 @@ Carsten Schaar
 Toby Schaffer
 Jonathan Schleifer <js-pidgin@webkeks.org>
 Luke Schierer
+Sebastian Schmidt <yath@yath.de>
 Ralph Schmieder
 David Schmitt
 Heiko Schmitt
@@ -471,6 +506,7 @@ Federico Schwindt
 Torrey Searle
 Peter Seebach
 Don Seiler
+Mihai Serban
 Leonardo Serra
 Matteo Settenvini
 Colin Seymour
@@ -483,6 +519,7 @@ Michael Shkutkov
 Shreevatsa R
 Dylan Simon <dylan@dylex.net>
 Ettore Simone
+Renato Silva
 John Silvestri
 Mukund Sivaraman
 Craig Slusher
@@ -499,6 +536,8 @@ Peter Speybrouck
 Lex Spoon
 Chris Stafford
 Kevin Stange
+Stars
+Ferdinand Stehle
 Joshua Stein
 Jakub Steiner
 Richard Stellingwerff
@@ -510,6 +549,7 @@ Oleg Sukhodolsky
 Sun Microsystems
 Marcus Sundberg
 Mårten Svantesson (fursten)
+Jan Synacek <jsynacek@redhat.com>
 Amir Szekely (kichik)
 Gábor Szuromi (kukkerman)
 Jakub Szypulka
@@ -522,9 +562,11 @@ Peter Teichman
 Philip Tellis
 Michael Terry
 Arun A. Tharuvai
+Samuel Thibault
 Cestonaro Thilo
 Will Thompson
 Douglas Thrift (douglaswth)
+tiagosalem
 Mark Tiefenbruck
 Andrew Tinney
 Jeffery To
@@ -546,6 +588,8 @@ Max Ulidtko
 Dmitry Utkin
 Igor Vlasenko
 István Váradi
+ILDAR Valeev
+Cédric Valmary
 Martijn van Beers
 Gideon van Melle
 Arjan van de Ven
@@ -591,7 +635,9 @@ The Written Word, Inc.
 Kevin Wu Won
 Pui Lam Wong
 Justin Wood
+David Woodhouse
 Ximian
+Colin Xu
 Ma Xuan
 Yonas Yanfa
 Jared Yanovich
@@ -599,6 +645,7 @@ Timmy Yee
 Li Yuan
 Yuriy Yevgrafov
 Jan Zachorowski
+zelch
 Nickolai Zeldovich
 Tom Zickel
 Marco Ziech

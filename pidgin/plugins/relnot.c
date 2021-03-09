@@ -85,7 +85,7 @@ version_fetch_cb(PurpleUtilFetchUrlData *url_data, gpointer user_data,
 		}
 	}
 
-	if (strcmp(response_code, "200") != 0) {
+	if (!purple_strequal(response_code, "200")) {
 		purple_debug_error("relnot", "Didn't recieve a HTTP status code of 200.\n");
 		return;
 	}
@@ -134,7 +134,7 @@ do_check(void)
 		gchar *url, *request;
 		const char *host = "pidgin.im";
 
-		url = g_strdup_printf("http://%s/version.php?version=%s&build=%s",
+		url = g_strdup_printf("https://%s/version.php?version=%s&build=%s",
 				host,
 				purple_core_get_version(),
 #ifdef _WIN32

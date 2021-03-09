@@ -29,12 +29,12 @@ ShowInstDetails show
 ShowUninstDetails show
 SetDateSave on
 RequestExecutionLevel highest
+Unicode true
 
 ; $name and $INSTDIR are set in .onInit function..
 
 !include "MUI.nsh"
 !include "Sections.nsh"
-!include "WinVer.nsh"
 !include "LogicLib.nsh"
 !include "Memento.nsh"
 
@@ -68,11 +68,8 @@ RequestExecutionLevel highest
 !define PIDGIN_UNINST_EXE			"pidgin-uninst.exe"
 
 !define GTK_MIN_VERSION				"2.14.0"
-!define PERL_REG_KEY				"SOFTWARE\Perl"
-!define PERL_DLL				"perl510.dll"
 
-!define DOWNLOADER_URL				"http://pidgin.im/win32/download_redir.php"
-!define SPELL_DOWNLOAD_URL			"http://ftp.services.openoffice.org/pub/OpenOffice.org/contrib/dictionaries"
+!define DOWNLOADER_URL				"https://pidgin.im/win32/download_redir.php?version=${PIDGIN_VERSION}"
 
 !define MEMENTO_REGISTRY_ROOT			HKLM
 !define MEMENTO_REGISTRY_KEY			"${PIDGIN_UNINSTALL_KEY}"
@@ -94,6 +91,7 @@ VIAddVersionKey "FileDescription" "Pidgin Installer"
 ;Reserve files used in .onInit
 ;for faster start-up
 ReserveFile "${NSISDIR}\Plugins\System.dll"
+ReserveFile "${NSISDIR}\Plugins\UserInfo.dll"
 !insertmacro MUI_RESERVEFILE_INSTALLOPTIONS
 !insertmacro MUI_RESERVEFILE_LANGDLL
 
@@ -119,10 +117,10 @@ ReserveFile "${NSISDIR}\Plugins\System.dll"
 
   ;Finish Page config
   !define MUI_FINISHPAGE_NOAUTOCLOSE
-  !define MUI_FINISHPAGE_RUN			"$INSTDIR\pidgin.exe"
-  !define MUI_FINISHPAGE_RUN_NOTCHECKED
+  ;!define MUI_FINISHPAGE_RUN			"$INSTDIR\pidgin.exe"
+  ;!define MUI_FINISHPAGE_RUN_NOTCHECKED
   !define MUI_FINISHPAGE_LINK			$(PIDGINFINISHVISITWEBSITE)
-  !define MUI_FINISHPAGE_LINK_LOCATION		"http://pidgin.im"
+  !define MUI_FINISHPAGE_LINK_LOCATION		"https://pidgin.im"
 
 ;--------------------------------
 ;Pages
@@ -149,13 +147,6 @@ ReserveFile "${NSISDIR}\Plugins\System.dll"
   !include "${PIDGIN_NSIS_INCLUDE_PATH}\langmacros.nsh"
 
 ;--------------------------------
-;Reserve Files
-  ; Only need this if using bzip2 compression
-
-  !insertmacro MUI_RESERVEFILE_INSTALLOPTIONS
-  !insertmacro MUI_RESERVEFILE_LANGDLL
-  ReserveFile "${NSISDIR}\Plugins\UserInfo.dll"
-
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Start Install Sections ;;
@@ -264,14 +255,23 @@ Section $(GTKSECTIONTITLE) SecGtk
 
   ; We need to download the GTK+ runtime
   retry:
-  StrCpy $R2 "${DOWNLOADER_URL}?version=${PIDGIN_VERSION}&gtk_version=${GTK_INSTALL_VERSION}&dl_pkg=gtk"
+  StrCpy $R2 "${DOWNLOADER_URL}&gtk_version=${GTK_INSTALL_VERSION}&dl_pkg=gtk"
   DetailPrint "Downloading GTK+ Runtime ... ($R2)"
-  NSISdl::download /TIMEOUT=10000 $R2 $R1
+  NSISdl::download /TIMEOUT=10000 "$R2" "$R1"
   Pop $R0
   ;StrCmp $R0 "cancel" done
-  StrCmp $R0 "success" +2
+  StrCmp $R0 "success" 0 prompt_retry
+
+  Push "${GTK_SHA1SUM}"
+  Push "$R1" ; Filename
+  Call CheckSHA1Sum
+  Pop $R0
+
+  StrCmp "$R0" "0" extract
+    prompt_retry:
     MessageBox MB_RETRYCANCEL "$(PIDGINGTKDOWNLOADERROR)" /SD IDCANCEL IDRETRY retry IDCANCEL done
 
+  extract:
 !endif
 
   ;Delete the old Gtk directory
@@ -283,7 +283,9 @@ Section $(GTKSECTIONTITLE) SecGtk
   StrCmp $R0 "success" +2
     DetailPrint "$R0" ;print error message to log
 
+!ifndef OFFLINE_INSTALLER
   done:
+!endif
 SectionEnd ; end of GTK+ section
 
 ;--------------------------------
@@ -307,7 +309,7 @@ Section $(PIDGINSECTIONTITLE) SecPidgin
     WriteRegStr HKLM "${PIDGIN_UNINSTALL_KEY}" "DisplayIcon" "$INSTDIR\pidgin.exe"
     WriteRegStr HKLM "${PIDGIN_UNINSTALL_KEY}" "DisplayName" "Pidgin"
     WriteRegStr HKLM "${PIDGIN_UNINSTALL_KEY}" "DisplayVersion" "${PIDGIN_VERSION}"
-    WriteRegStr HKLM "${PIDGIN_UNINSTALL_KEY}" "HelpLink" "http://developer.pidgin.im/wiki/Using Pidgin"
+    WriteRegStr HKLM "${PIDGIN_UNINSTALL_KEY}" "HelpLink" "https://developer.pidgin.im/wiki/Using Pidgin"
     WriteRegDWORD HKLM "${PIDGIN_UNINSTALL_KEY}" "NoModify" 1
     WriteRegDWORD HKLM "${PIDGIN_UNINSTALL_KEY}" "NoRepair" 1
     WriteRegStr HKLM "${PIDGIN_UNINSTALL_KEY}" "UninstallString" "$INSTDIR\${PIDGIN_UNINST_EXE}"
@@ -321,7 +323,7 @@ Section $(PIDGINSECTIONTITLE) SecPidgin
     WriteRegStr HKCU "${PIDGIN_UNINSTALL_KEY}" "DisplayIcon" "$INSTDIR\pidgin.exe"
     WriteRegStr HKCU "${PIDGIN_UNINSTALL_KEY}" "DisplayName" "Pidgin"
     WriteRegStr HKCU "${PIDGIN_UNINSTALL_KEY}" "DisplayVersion" "${PIDGIN_VERSION}"
-    WriteRegStr HKCU "${PIDGIN_UNINSTALL_KEY}" "HelpLink" "http://developer.pidgin.im/wiki/Using Pidgin"
+    WriteRegStr HKCU "${PIDGIN_UNINSTALL_KEY}" "HelpLink" "https://developer.pidgin.im/wiki/Using Pidgin"
     WriteRegDWORD HKCU "${PIDGIN_UNINSTALL_KEY}" "NoModify" 1
     WriteRegDWORD HKCU "${PIDGIN_UNINSTALL_KEY}" "NoRepair" 1
     WriteRegStr HKCU "${PIDGIN_UNINSTALL_KEY}" "UninstallString" "$INSTDIR\${PIDGIN_UNINST_EXE}"
@@ -335,37 +337,10 @@ Section $(PIDGINSECTIONTITLE) SecPidgin
     ;Delete old liboscar and libjabber since they tend to be problematic
     Delete "$INSTDIR\plugins\liboscar.dll"
     Delete "$INSTDIR\plugins\libjabber.dll"
+    ;Delete misnamed nss-prefs plugin from 2.10.11
+    Delete "$INSTDIR\plugins\.dll"
 
-    File /r /x locale ..\..\..\${PIDGIN_INSTALL_DIR}\*.*
-
-    ; Check if Perl is installed, if so add it to the AppPaths
-    ReadRegStr $R2 HKLM ${PERL_REG_KEY} ""
-    StrCmp $R2 "" 0 perl_exists
-      ReadRegStr $R2 HKCU ${PERL_REG_KEY} ""
-      StrCmp $R2 "" perl_done perl_exists
-
-      perl_exists:
-        IfFileExists "$R2\bin\${PERL_DLL}" 0 perl_done
-        StrCmp $R0 "HKLM" 0 perl_done
-          ReadRegStr $R3 HKLM "${HKLM_APP_PATHS_KEY}" "Path"
-          WriteRegStr HKLM "${HKLM_APP_PATHS_KEY}" "Path" "$R3;$R2\bin"
-
-    perl_done:
-
-    ; If this is under NT4, delete the SILC support stuff
-    ; there is a bug that will prevent any account from connecting
-    ; See https://lists.silcnet.org/pipermail/silc-devel/2005-January/001588.html
-    ; Also, remove the GSSAPI SASL plugin and associated files as they aren't
-    ; compatible with NT4.
-    ${If} ${IsNT}
-    ${AndIf} ${IsWinNT4}
-      ;SILC
-      Delete "$INSTDIR\plugins\libsilc.dll"
-      Delete "$INSTDIR\libsilcclient-1-1-2.dll"
-      Delete "$INSTDIR\libsilc-1-1-2.dll"
-      ;GSSAPI
-      Delete "$INSTDIR\sasl2\saslGSSAPI.dll"
-    ${EndIf}
+    File /r /x locale /x Gtk ..\..\..\${PIDGIN_INSTALL_DIR}\*.*
 
     SetOutPath "$INSTDIR"
 
@@ -414,9 +389,6 @@ SectionGroupEnd
 !macroend
 SectionGroup /e $(URIHANDLERSSECTIONTITLE) SecURIHandlers
   !insertmacro URI_SECTION "aim"
-  !insertmacro URI_SECTION "msnim"
-  !insertmacro URI_SECTION "myim"
-  !insertmacro URI_SECTION "ymsgr"
   !insertmacro URI_SECTION "xmpp"
 SectionGroupEnd
 
@@ -447,7 +419,7 @@ ${MementoSectionDone}
   SectionEnd
 !macroend
 SectionGroup $(PIDGINSPELLCHECKSECTIONTITLE) SecSpellCheck
-  !include "pidgin-spellcheck.nsh"
+  !include /CHARSET=ACP "pidgin-spellcheck.nsh"
 SectionGroupEnd
 
 Section /o $(DEBUGSYMBOLSSECTIONTITLE) SecDebugSymbols
@@ -463,14 +435,23 @@ Section /o $(DEBUGSYMBOLSSECTIONTITLE) SecDebugSymbols
 
   ; We need to download the debug symbols
   retry:
-  StrCpy $R2 "${DOWNLOADER_URL}?version=${PIDGIN_VERSION}&dl_pkg=dbgsym"
+  StrCpy $R2 "${DOWNLOADER_URL}&dl_pkg=dbgsym"
   DetailPrint "Downloading Debug Symbols... ($R2)"
-  NSISdl::download /TIMEOUT=10000 $R2 $R1
+  NSISdl::download /TIMEOUT=10000 "$R2" "$R1"
   Pop $R0
   StrCmp $R0 "cancel" done
-  StrCmp $R0 "success" +2
+  StrCmp $R0 "success" 0 prompt_retry
+
+  Push "${DEBUG_SYMBOLS_SHA1SUM}"
+  Push "$R1" ; Filename
+  Call CheckSHA1Sum
+  Pop $R0
+
+  StrCmp "$R0" "0" extract
+    prompt_retry:
     MessageBox MB_RETRYCANCEL "$(PIDGINDEBUGSYMBOLSERROR)" /SD IDCANCEL IDRETRY retry IDCANCEL done
 
+  extract:
 !endif
 
   SetOutPath "$INSTDIR"
@@ -479,7 +460,9 @@ Section /o $(DEBUGSYMBOLSSECTIONTITLE) SecDebugSymbols
   StrCmp $R0 "success" +2
     DetailPrint "$R0" ;print error message to log
 
+!ifndef OFFLINE_INSTALLER
   done:
+!endif
 SectionEnd
 
 ;--------------------------------
@@ -521,22 +504,19 @@ Section Uninstall
     ; I can't think of an easy way to maintain a list in a single place
     Push "aim"
     Call un.UnregisterURIHandler
-    Push "msnim"
-    Call un.UnregisterURIHandler
-    Push "myim"
-    Call un.UnregisterURIHandler
-    Push "ymsgr"
-    Call un.UnregisterURIHandler
     Push "xmpp"
     Call un.UnregisterURIHandler
 
+    ; Some of these aren't shipped anymore. Delete them anyway.
     Delete "$INSTDIR\ca-certs\AddTrust_External_Root.pem"
     Delete "$INSTDIR\ca-certs\America_Online_Root_Certification_Authority_1.pem"
     Delete "$INSTDIR\ca-certs\AOL_Member_CA.pem"
+    Delete "$INSTDIR\ca-certs\Baltimore_CyberTrust_Root.pem"
     Delete "$INSTDIR\ca-certs\CAcert_Class3.pem"
     Delete "$INSTDIR\ca-certs\CAcert_Root.pem"
     Delete "$INSTDIR\ca-certs\Deutsche_Telekom_Root_CA_2.pem"
     Delete "$INSTDIR\ca-certs\DigiCertHighAssuranceCA-3.pem"
+    Delete "$INSTDIR\ca-certs\DigiCertHighAssuranceEVRootCA.pem"
     Delete "$INSTDIR\ca-certs\Entrust.net_Secure_Server_CA.pem"
     Delete "$INSTDIR\ca-certs\Equifax_Secure_CA.pem"
     Delete "$INSTDIR\ca-certs\Equifax_Secure_Global_eBusiness_CA-1.pem"
@@ -550,14 +530,15 @@ Section Uninstall
     Delete "$INSTDIR\ca-certs\StartCom_Free_SSL_CA.pem"
     Delete "$INSTDIR\ca-certs\Thawte_Premium_Server_CA.pem"
     Delete "$INSTDIR\ca-certs\Thawte_Primary_Root_CA.pem"
-    Delete "$INSTDIR\ca-certs\ValiCert_Class_2_VA.crt"
+    Delete "$INSTDIR\ca-certs\ValiCert_Class_2_VA.pem"
     Delete "$INSTDIR\ca-certs\VeriSign_Class3_Extended_Validation_CA.pem"
     Delete "$INSTDIR\ca-certs\Verisign_Class3_Primary_CA.pem"
-    Delete "$INSTDIR\ca-certs\VeriSign_Class_3_Public_Primary_Certification_Authority_-_G2.pem"
-    Delete "$INSTDIR\ca-certs\VeriSign_Class_3_Public_Primary_Certification_Authority_-_G5.pem"
-    Delete "$INSTDIR\ca-certs\VeriSign_Class_3_Public_Primary_Certification_Authority_-_G5_2.pem"
+    Delete "$INSTDIR\ca-certs\VeriSign_Class_3_Primary_CA-G2.pem"
+    Delete "$INSTDIR\ca-certs\VeriSign_Class_3_Primary_CA-G5.pem"
+    Delete "$INSTDIR\ca-certs\VeriSign_Class_3_Primary_CA-G5-2.pem"
     Delete "$INSTDIR\ca-certs\VeriSign_International_Server_Class_3_CA.pem"
     Delete "$INSTDIR\ca-certs\Verisign_RSA_Secure_Server_CA.pem"
+    Delete "$INSTDIR\ca-certs\mozilla.pem"
     RMDir "$INSTDIR\ca-certs"
     RMDir /r "$INSTDIR\locale"
     RMDir /r "$INSTDIR\pixmaps"
@@ -575,22 +556,18 @@ Section Uninstall
     Delete "$INSTDIR\plugins\libgg.dll"
     Delete "$INSTDIR\plugins\libicq.dll"
     Delete "$INSTDIR\plugins\libirc.dll"
-    Delete "$INSTDIR\plugins\libmsn.dll"
-    Delete "$INSTDIR\plugins\libmxit.dll"
-    Delete "$INSTDIR\plugins\libmyspace.dll"
     Delete "$INSTDIR\plugins\libnapster.dll"
     Delete "$INSTDIR\plugins\libnovell.dll"
     Delete "$INSTDIR\plugins\libsametime.dll"
     Delete "$INSTDIR\plugins\libsilc.dll"
     Delete "$INSTDIR\plugins\libsimple.dll"
     Delete "$INSTDIR\plugins\libtoc.dll"
-    Delete "$INSTDIR\plugins\libyahoo.dll"
-    Delete "$INSTDIR\plugins\libyahoojp.dll"
     Delete "$INSTDIR\plugins\libxmpp.dll"
     Delete "$INSTDIR\plugins\log_reader.dll"
     Delete "$INSTDIR\plugins\markerline.dll"
     Delete "$INSTDIR\plugins\newline.dll"
     Delete "$INSTDIR\plugins\notify.dll"
+    Delete "$INSTDIR\plugins\nss-prefs.dll"
     Delete "$INSTDIR\plugins\offlinemsg.dll"
     Delete "$INSTDIR\plugins\perl.dll"
     Delete "$INSTDIR\plugins\pidginrc.dll"
@@ -601,7 +578,6 @@ Section Uninstall
     Delete "$INSTDIR\plugins\ssl-nss.dll"
     Delete "$INSTDIR\plugins\ssl.dll"
     Delete "$INSTDIR\plugins\statenotify.dll"
-    Delete "$INSTDIR\plugins\tcl.dll"
     Delete "$INSTDIR\plugins\themeedit.dll"
     Delete "$INSTDIR\plugins\ticker.dll"
     Delete "$INSTDIR\plugins\timestamp.dll"
@@ -610,9 +586,21 @@ Section Uninstall
     Delete "$INSTDIR\plugins\winprefs.dll"
     Delete "$INSTDIR\plugins\xmppconsole.dll"
     Delete "$INSTDIR\plugins\xmppdisco.dll"
-    RMDir /r "$INSTDIR\plugins\perl"
+    Delete "$INSTDIR\plugins\perl\auto\Pidgin\Pidgin.dll"
+    RMDir "$INSTDIR\plugins\perl\auto\Pidgin"
+    Delete "$INSTDIR\plugins\perl\auto\Purple\autosplit.ix"
+    Delete "$INSTDIR\plugins\perl\auto\Purple\Purple.dll"
+    RMDir "$INSTDIR\plugins\perl\auto\Purple"
+    RMDir "$INSTDIR\plugins\perl\auto"
+    Delete "$INSTDIR\plugins\perl\Pidgin.pm"
+    Delete "$INSTDIR\plugins\perl\Purple.pm"
+    RMDir "$INSTDIR\plugins\perl"
     RMDir "$INSTDIR\plugins"
-    RMDir /r "$INSTDIR\sasl2"
+    Delete "$INSTDIR\sasl2\libanonymous-3.dll"
+    Delete "$INSTDIR\sasl2\libcrammd5-3.dll"
+    Delete "$INSTDIR\sasl2\libdigestmd5-3.dll"
+    Delete "$INSTDIR\sasl2\libplain-3.dll"
+    RMDir "$INSTDIR\sasl2"
     Delete "$INSTDIR\sounds\purple\alert.wav"
     Delete "$INSTDIR\sounds\purple\login.wav"
     Delete "$INSTDIR\sounds\purple\logout.wav"
@@ -636,14 +624,14 @@ Section Uninstall
     Delete "$INSTDIR\libplc4.dll"
     Delete "$INSTDIR\libplds4.dll"
     Delete "$INSTDIR\libpurple.dll"
-    Delete "$INSTDIR\libsasl.dll"
-    Delete "$INSTDIR\libsilc-1-1-2.dll"
-    Delete "$INSTDIR\libsilcclient-1-1-2.dll"
+    Delete "$INSTDIR\libsasl2-3.dll"
+    Delete "$INSTDIR\libsilc-1-1-4.dll"
+    Delete "$INSTDIR\libsilcclient-1-1-4.dll"
+    Delete "$INSTDIR\libssp-0.dll"
     Delete "$INSTDIR\libxml2-2.dll"
     Delete "$INSTDIR\libymsg.dll"
     Delete "$INSTDIR\nss3.dll"
     Delete "$INSTDIR\nssutil3.dll"
-    Delete "$INSTDIR\nssckbi.dll"
     Delete "$INSTDIR\pidgin.dll"
     Delete "$INSTDIR\pidgin.exe"
     Delete "$INSTDIR\smime3.dll"
@@ -993,7 +981,7 @@ Function ${UN}RunCheck
   ; Close the Handle (needed if we're retrying)
   IntCmp $R1 0 +2
     System::Call 'kernel32::CloseHandle(i $R1) i .R1'
-  System::Call 'kernel32::CreateMutexA(i 0, i 0, t "pidgin_is_running") i .R1 ?e'
+  System::Call 'kernel32::CreateMutexW(i 0, i 0, t "pidgin_is_running") i .R1 ?e'
   Pop $R0
   IntCmp $R0 0 +3 ;This could check for ERROR_ALREADY_EXISTS(183), but lets just assume
     MessageBox MB_RETRYCANCEL|MB_ICONEXCLAMATION $(PIDGINISRUNNING) /SD IDCANCEL IDRETRY retry_runcheck
@@ -1023,7 +1011,7 @@ Function .onInit
   ; Close the Handle (needed if we're retrying)
   IntCmp $R1 0 +2
     System::Call 'kernel32::CloseHandle(i $R1) i .R1'
-  System::Call 'kernel32::CreateMutexA(i 0, i 0, t "pidgin_installer_running") i .R1 ?e'
+  System::Call 'kernel32::CreateMutexW(i 0, i 0, t "pidgin_installer_running") i .R1 ?e'
   Pop $R0
   IntCmp $R0 0 +3 ;This could check for ERROR_ALREADY_EXISTS(183), but lets just assume
     MessageBox MB_RETRYCANCEL|MB_ICONEXCLAMATION $(INSTALLERISRUNNING) /SD IDCANCEL IDRETRY retry_runcheck
@@ -1274,7 +1262,7 @@ Function InstallDict
 
   ; We need to download and install dictionary
   StrCpy $R2 "$PLUGINSDIR\$R1"
-  StrCpy $R3 "${SPELL_DOWNLOAD_URL}/$R1"
+  StrCpy $R3 "${DOWNLOADER_URL}&dl_pkg=oo_dict&lang=$R1&lang_file=$R1"
   DetailPrint "Downloading the $R0 Dictionary... ($R3)"
   retry:
   NSISdl::download /TIMEOUT=10000 "$R3" "$R2"
@@ -1301,3 +1289,42 @@ Function InstallDict
   Pop $R0
   Exch $R1
 FunctionEnd
+
+!ifndef OFFLINE_INSTALLER
+; Input Stack: Filename, SHA1sum
+; Output Return Code: 0=Match; 1=FileSum error; 2=Mismatch
+Function CheckSHA1Sum
+  Push $R0
+  Exch
+  Pop $R0 ;Filename
+  Push $R2
+  Exch 2
+  Pop $R2 ;SHA1sum
+  Push $R1
+
+  ClearErrors
+  Crypto::HashFile "SHA1" "$R0"
+  Pop $R0
+
+  IfErrors 0 +4
+    DetailPrint "SHA1Sum calculation error"
+    IntOp $R1 0 + 1
+    Goto done
+
+  ; Compare the SHA1Sums
+  StrCmp $R2 $R0 +4
+    DetailPrint "SHA1Sum mismatch... Expected $R2; got $R0"
+    IntOp $R1 0 + 2
+    Goto done
+
+  IntOp $R1 0 + 0
+
+  done:
+  Exch $R1 ;$R1 has the return code
+  Exch
+  Pop $R2
+  Exch
+  Pop $R0
+FunctionEnd
+!endif
+

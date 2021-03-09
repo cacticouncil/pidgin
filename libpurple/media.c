@@ -141,6 +141,8 @@ enum {
 	NEW_CANDIDATE,
 	STATE_CHANGED,
 	STREAM_INFO,
+	CANDIDATE_PAIR_ESTABLISHED,
+	VIDEO_CAPS,
 	LAST_SIGNAL
 };
 static guint purple_media_signals[LAST_SIGNAL] = {0};
@@ -274,6 +276,16 @@ purple_media_class_init (PurpleMediaClass *klass)
 					 purple_smarshal_VOID__ENUM_STRING_STRING_BOOLEAN,
 					 G_TYPE_NONE, 4, PURPLE_MEDIA_TYPE_INFO_TYPE,
 					 G_TYPE_STRING, G_TYPE_STRING, G_TYPE_BOOLEAN);
+	purple_media_signals[CANDIDATE_PAIR_ESTABLISHED] = g_signal_new("candidate-pair-established", G_TYPE_FROM_CLASS(klass),
+					 G_SIGNAL_RUN_LAST, 0, NULL, NULL,
+					 purple_smarshal_VOID__POINTER_POINTER_OBJECT_OBJECT,
+					 G_TYPE_NONE, 4, G_TYPE_POINTER, G_TYPE_POINTER,
+					 PURPLE_TYPE_MEDIA_CANDIDATE, PURPLE_TYPE_MEDIA_CANDIDATE);
+	purple_media_signals[VIDEO_CAPS] = g_signal_new("video-caps", G_TYPE_FROM_CLASS(klass),
+					 G_SIGNAL_RUN_LAST, 0, NULL, NULL,
+					 purple_smarshal_VOID__STRING_STRING_POINTER,
+					 G_TYPE_NONE, 3, G_TYPE_STRING,
+					 G_TYPE_STRING, GST_TYPE_CAPS);
 	g_type_class_add_private(klass, sizeof(PurpleMediaPrivate));
 }
 
@@ -335,6 +347,11 @@ purple_media_dispose(GObject *media)
 	if (priv->manager) {
 		g_object_unref(priv->manager);
 		priv->manager = NULL;
+	}
+
+	if (priv->conference_type) {
+		g_free(priv->conference_type);
+		priv->conference_type = NULL;
 	}
 
 	G_OBJECT_CLASS(parent_class)->dispose(media);
@@ -476,8 +493,8 @@ purple_media_get_stream(PurpleMedia *media, const gchar *session, const gchar *p
 
 	for (; streams; streams = g_list_next(streams)) {
 		PurpleMediaStream *stream = streams->data;
-		if (!strcmp(stream->session->id, session) &&
-				!strcmp(stream->participant, participant))
+		if (purple_strequal(stream->session->id, session) &&
+				purple_strequal(stream->participant, participant))
 			return stream;
 	}
 
@@ -498,9 +515,9 @@ purple_media_get_streams(PurpleMedia *media, const gchar *session,
 	for (; streams; streams = g_list_next(streams)) {
 		PurpleMediaStream *stream = streams->data;
 		if ((session == NULL ||
-				!strcmp(stream->session->id, session)) &&
+				purple_strequal(stream->session->id, session)) &&
 				(participant == NULL ||
-				!strcmp(stream->participant, participant)))
+				purple_strequal(stream->participant, participant)))
 			ret = g_list_append(ret, stream);
 	}
 
@@ -951,7 +968,7 @@ purple_media_param_is_supported(PurpleMedia *media, const gchar *param)
 
 	params = purple_media_backend_get_available_params(media->priv->backend);
 	for (; *params != NULL; ++params)
-		if (!strcmp(*params, param))
+		if (purple_strequal(*params, param))
 			return TRUE;
 #endif
 	return FALSE;
@@ -1048,6 +1065,8 @@ purple_media_candidate_pair_established_cb(PurpleMediaBackend *backend,
 				purple_media_candidate_copy(
 				remote_candidate));
 
+	g_signal_emit(media, purple_media_signals[CANDIDATE_PAIR_ESTABLISHED],
+		0, sess_id, name, local_candidate, remote_candidate);
 	purple_debug_info("media", "candidate pair established\n");
 }
 
@@ -1067,7 +1086,6 @@ purple_media_add_stream(PurpleMedia *media, const gchar *sess_id,
 {
 #ifdef USE_VV
 	PurpleMediaSession *session;
-	PurpleMediaStream *stream = NULL;
 
 	g_return_val_if_fail(PURPLE_IS_MEDIA(media), FALSE);
 
@@ -1103,7 +1121,7 @@ purple_media_add_stream(PurpleMedia *media, const gchar *sess_id,
 	}
 
 	if (purple_media_get_stream(media, sess_id, who) == NULL) {
-		stream = purple_media_insert_stream(session, who, initiator);
+		purple_media_insert_stream(session, who, initiator);
 
 		g_signal_emit(media, purple_media_signals[STATE_CHANGED],
 				0, PURPLE_MEDIA_STATE_NEW,
@@ -1277,6 +1295,47 @@ purple_media_set_send_codec(PurpleMedia *media, const gchar *sess_id, PurpleMedi
 }
 
 gboolean
+purple_media_set_encryption_parameters(PurpleMedia *media, const gchar *sess_id,
+		const gchar *cipher, const gchar *auth,
+		const gchar *key, gsize key_len)
+{
+#ifdef USE_VV
+	g_return_val_if_fail(PURPLE_IS_MEDIA(media), FALSE);
+	return purple_media_backend_set_encryption_parameters(media->priv->backend,
+			sess_id, cipher, auth, key, key_len);
+#else
+	return FALSE;
+#endif
+}
+
+gboolean
+purple_media_set_decryption_parameters(PurpleMedia *media, const gchar *sess_id,
+		const gchar *participant, const gchar *cipher,
+		const gchar *auth, const gchar *key, gsize key_len)
+{
+#ifdef USE_VV
+	g_return_val_if_fail(PURPLE_IS_MEDIA(media), FALSE);
+	return purple_media_backend_set_decryption_parameters(media->priv->backend,
+			sess_id, participant, cipher, auth, key, key_len);
+#else
+	return FALSE;
+#endif
+}
+
+gboolean
+purple_media_set_require_encryption(PurpleMedia *media, const gchar *sess_id,
+		const gchar *participant, gboolean require_encryption)
+{
+#ifdef USE_VV
+	g_return_val_if_fail(PURPLE_IS_MEDIA(media), FALSE);
+	return purple_media_backend_set_require_encryption(media->priv->backend,
+			sess_id, participant, require_encryption);
+#else
+	return FALSE;
+#endif
+}
+
+gboolean
 purple_media_codecs_ready(PurpleMedia *media, const gchar *sess_id)
 {
 #ifdef USE_VV
@@ -1284,6 +1343,20 @@ purple_media_codecs_ready(PurpleMedia *media, const gchar *sess_id)
 
 	return purple_media_backend_codecs_ready(
 			media->priv->backend, sess_id);
+#else
+	return FALSE;
+#endif
+}
+
+gboolean
+purple_media_set_send_rtcp_mux(PurpleMedia *media, const gchar *sess_id,
+                               const gchar *participant, gboolean send_rtcp_mux)
+{
+#ifdef USE_VV
+	g_return_val_if_fail(PURPLE_IS_MEDIA(media), FALSE);
+
+	return purple_media_backend_set_send_rtcp_mux(media->priv->backend,
+			sess_id, participant, send_rtcp_mux);
 #else
 	return FALSE;
 #endif
@@ -1440,3 +1513,35 @@ purple_media_get_tee(PurpleMedia *media,
 }
 #endif /* USE_GSTREAMER */
 
+gboolean
+purple_media_send_dtmf(PurpleMedia *media, const gchar *session_id,
+		gchar dtmf, guint8 volume, guint16 duration)
+{
+#ifdef USE_VV
+	PurpleMediaBackendIface *backend_iface = NULL;
+
+	if (media)
+	{
+		backend_iface = PURPLE_MEDIA_BACKEND_GET_INTERFACE(media->priv->backend);
+	}
+
+	if (dtmf == 'a')
+		dtmf = 'A';
+	else if (dtmf == 'b')
+		dtmf = 'B';
+	else if (dtmf == 'c')
+		dtmf = 'C';
+	else if (dtmf == 'd')
+		dtmf = 'D';
+
+	g_return_val_if_fail(strchr("0123456789ABCD#*", dtmf), FALSE);
+
+	if (backend_iface && backend_iface->send_dtmf
+		&& backend_iface->send_dtmf(media->priv->backend,
+				session_id, dtmf, volume, duration))
+	{
+		return TRUE;
+	}
+#endif
+	return FALSE;
+}

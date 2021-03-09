@@ -126,7 +126,8 @@ make_word_proper(const gchar *word)
 	gchar *ret;
 
 	bytes = g_unichar_to_utf8(g_unichar_toupper(g_utf8_get_char(word)), buf);
-	buf[MIN(bytes, sizeof(buf) - 1)] = '\0';
+	g_assert(bytes >= 0);
+	buf[MIN((gsize)bytes, sizeof(buf) - 1)] = '\0';
 
 	ret = g_strconcat(buf, g_utf8_offset_to_pointer(lower, 1), NULL);
 	g_free(lower);
@@ -236,10 +237,10 @@ substitute_word(gchar *word)
 			gtk_tree_model_get_value(GTK_TREE_MODEL(model), &iter, BAD_COLUMN, &val1);
 			bad = g_value_get_string(&val1);
 
-			if ((case_sensitive && !strcmp(bad, word)) ||
-			    (!case_sensitive && (!strcmp(bad, lowerword) ||
+			if ((case_sensitive && purple_strequal(bad, word)) ||
+			    (!case_sensitive && (purple_strequal(bad, lowerword) ||
 			                        (!is_word_lowercase(bad) &&
-			                         !strcmp((tmpbad = g_utf8_casefold(bad, -1)), foldedword)))))
+			                         purple_strequal((tmpbad = g_utf8_casefold(bad, -1)), foldedword)))))
 			{
 				GValue val2;
 				const char *good;
@@ -675,10 +676,10 @@ spellchk_new_attach(PurpleConversation *conv)
 	return;
 }
 
-static int buf_get_line(char *ibuf, char **buf, int *position, gsize len)
+static int buf_get_line(char *ibuf, char **buf, gsize *position, gsize len)
 {
-	int pos = *position;
-	int spos = pos;
+	gsize pos = *position;
+	gsize spos = pos;
 
 	if (pos == len)
 		return 0;
@@ -1775,23 +1776,22 @@ static void load_conf(void)
 	GHashTable *hashes;
 	char bad[82] = "";
 	char good[256] = "";
-	int pnt = 0;
+	gsize pnt = 0;
 	gsize size;
 	gboolean complete = TRUE;
 	gboolean case_sensitive = FALSE;
 
 	buf = g_build_filename(purple_user_dir(), "dict", NULL);
-	g_file_get_contents(buf, &ibuf, &size, NULL);
-	g_free(buf);
-	if (!ibuf) {
+	if (!(g_file_get_contents(buf, &ibuf, &size, NULL) && ibuf)) {
 		ibuf = g_strdup(defaultconf);
 		size = strlen(defaultconf);
 	}
+	g_free(buf);
 
 	model = gtk_list_store_new((gint)N_COLUMNS, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_BOOLEAN, G_TYPE_BOOLEAN);
 	hashes = g_hash_table_new_full(g_str_hash, g_str_equal, g_free, NULL);
 
-	while (buf_get_line(ibuf, &buf, &pnt, size)) {
+	while (ibuf && buf_get_line(ibuf, &buf, &pnt, size)) {
 		if (*buf != '#') {
 			if (!g_ascii_strncasecmp(buf, "BAD ", 4))
 			{
@@ -1865,7 +1865,7 @@ static void on_edited(GtkCellRendererText *cellrenderertext,
 	val.g_type = 0;
 	gtk_tree_model_get_value(GTK_TREE_MODEL(model), &iter, GPOINTER_TO_INT(data), &val);
 
-	if (strcmp(arg2, g_value_get_string(&val))) {
+	if (!purple_strequal(arg2, g_value_get_string(&val))) {
 		gtk_list_store_set(model, &iter, GPOINTER_TO_INT(data), arg2, -1);
 		save_list();
 	}
@@ -1947,12 +1947,12 @@ static void list_add_new(void)
 				 * Otherwise, they overlap. */
 				if (g_value_get_boolean(&case_sensitive_val))
 				{
-					match = !strcmp(g_value_get_string(&bad_val), word);
+					match = purple_strequal(g_value_get_string(&bad_val), word);
 				}
 				else
 				{
 					char *bad = g_utf8_casefold(g_value_get_string(&bad_val), -1);
-					match = !strcmp(bad, tmpword);
+					match = purple_strequal(bad, tmpword);
 					g_free(bad);
 				}
 				g_value_unset(&case_sensitive_val);
@@ -1960,7 +1960,7 @@ static void list_add_new(void)
 			else
 			{
 				char *bad = g_utf8_casefold(g_value_get_string(&bad_val), -1);
-				match = !strcmp(bad, tmpword);
+				match = purple_strequal(bad, tmpword);
 				g_free(bad);
 			}
 
@@ -2231,8 +2231,8 @@ get_config_frame(PurplePlugin *plugin)
 
 	gtk_tree_selection_set_mode(gtk_tree_view_get_selection(GTK_TREE_VIEW(tree)),
 		 GTK_SELECTION_MULTIPLE);
-	gtk_box_pack_start(GTK_BOX(vbox), 
-		pidgin_make_scrollable(tree, GTK_POLICY_NEVER, GTK_POLICY_ALWAYS, GTK_SHADOW_IN, -1, -1), 
+	gtk_box_pack_start(GTK_BOX(vbox),
+		pidgin_make_scrollable(tree, GTK_POLICY_NEVER, GTK_POLICY_ALWAYS, GTK_SHADOW_IN, -1, -1),
 		TRUE, TRUE, 0);
 	gtk_widget_show(tree);
 

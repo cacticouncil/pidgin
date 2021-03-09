@@ -41,50 +41,6 @@ static GList *cert_verifiers = NULL;
 /** List of registered Pools */
 static GList *cert_pools = NULL;
 
-/*
- * TODO: Merge this with PurpleCertificateVerificationStatus for 3.0.0 */
-typedef enum {
-	PURPLE_CERTIFICATE_UNKNOWN_ERROR = -1,
-
-	/* Not an error */
-	PURPLE_CERTIFICATE_NO_PROBLEMS = 0,
-
-	/* Non-fatal */
-	PURPLE_CERTIFICATE_NON_FATALS_MASK = 0x0000FFFF,
-
-	/* The certificate is self-signed. */
-	PURPLE_CERTIFICATE_SELF_SIGNED = 0x01,
-
-	/* The CA is not in libpurple's pool of certificates. */
-	PURPLE_CERTIFICATE_CA_UNKNOWN = 0x02,
-
-	/* The current time is before the certificate's specified
-	 * activation time.
-	 */
-	PURPLE_CERTIFICATE_NOT_ACTIVATED = 0x04,
-
-	/* The current time is after the certificate's specified expiration time */
-	PURPLE_CERTIFICATE_EXPIRED = 0x08,
-
-	/* The certificate's subject name doesn't match the expected */
-	PURPLE_CERTIFICATE_NAME_MISMATCH = 0x10,
-
-	/* No CA pool was found. This shouldn't happen... */
-	PURPLE_CERTIFICATE_NO_CA_POOL = 0x20,
-
-	/* Fatal */
-	PURPLE_CERTIFICATE_FATALS_MASK = 0xFFFF0000,
-
-	/* The signature chain could not be validated. Due to limitations in the
-	 * the current API, this also indicates one of the CA certificates in the
-	 * chain is expired (or not yet activated). FIXME 3.0.0 */
-	PURPLE_CERTIFICATE_INVALID_CHAIN = 0x10000,
-
-	/* The signature has been revoked. */
-	PURPLE_CERTIFICATE_REVOKED = 0x20000,
-
-	PURPLE_CERTIFICATE_LAST = 0x40000,
-} PurpleCertificateInvalidityFlags;
 
 static const gchar *
 invalidity_reason_to_string(PurpleCertificateInvalidityFlags flag)
@@ -125,6 +81,29 @@ invalidity_reason_to_string(PurpleCertificateInvalidityFlags flag)
 		default:
 			return _("An unknown certificate error occurred.");
 			break;
+	}
+}
+
+static void
+get_ascii_fingerprints (PurpleCertificate *crt, gchar **sha1, gchar **sha256)
+{
+	GByteArray *sha_bin;
+
+	if (sha1 != NULL) {
+		sha_bin = purple_certificate_get_fingerprint_sha1(crt);
+
+		*sha1 = purple_base16_encode_chunked(sha_bin->data, sha_bin->len);
+
+		g_byte_array_free(sha_bin, TRUE);
+	}
+
+	if (sha256 != NULL) {
+		sha_bin = purple_certificate_get_fingerprint_sha256(crt, FALSE);
+
+		*sha256 = (sha_bin == NULL) ? g_strdup("(null)") :
+			purple_base16_encode_chunked(sha_bin->data, sha_bin->len);
+
+		g_byte_array_free(sha_bin, TRUE);
 	}
 }
 
@@ -432,6 +411,30 @@ purple_certificate_get_fingerprint_sha1(PurpleCertificate *crt)
 	return fpr;
 }
 
+GByteArray *
+purple_certificate_get_fingerprint_sha256(PurpleCertificate *crt, gboolean sha1_fallback)
+{
+	PurpleCertificateScheme *scheme;
+	GByteArray *fpr = NULL;
+
+	g_return_val_if_fail(crt, NULL);
+	g_return_val_if_fail(crt->scheme, NULL);
+
+	scheme = crt->scheme;
+
+	if (!PURPLE_CERTIFICATE_SCHEME_HAS_FUNC(scheme, get_fingerprint_sha256)) {
+		/* outdated ssl module? fallback to sha1 and print a warning */
+		if (sha1_fallback) {
+			fpr = purple_certificate_get_fingerprint_sha1(crt);
+		}
+		g_return_val_if_reached(fpr);
+	}
+
+	fpr = (scheme->get_fingerprint_sha256)(crt);
+
+	return fpr;
+}
+
 gchar *
 purple_certificate_get_unique_id(PurpleCertificate *crt)
 {
@@ -505,6 +508,24 @@ purple_certificate_get_times(PurpleCertificate *crt, time_t *activation, time_t 
 	return (scheme->get_times)(crt, activation, expiration);
 }
 
+gboolean
+purple_certificate_compare_pubkeys(PurpleCertificate *crt1, PurpleCertificate *crt2)
+{
+	PurpleCertificateScheme *scheme;
+
+	g_return_val_if_fail(crt1 && crt2, FALSE);
+	g_return_val_if_fail(crt1->scheme && crt2->scheme, FALSE);
+	g_return_val_if_fail(crt1->scheme == crt2->scheme, FALSE);
+
+	scheme = crt1->scheme;
+
+	if (!(PURPLE_CERTIFICATE_SCHEME_HAS_FUNC(scheme, compare_pubkeys))) {
+		return FALSE;
+	}
+
+	return (scheme->compare_pubkeys)(crt1, crt2);
+}
+
 gchar *
 purple_certificate_pool_mkpath(PurpleCertificatePool *pool, const gchar *id)
 {
@@ -516,8 +537,8 @@ purple_certificate_pool_mkpath(PurpleCertificatePool *pool, const gchar *id)
 	g_return_val_if_fail(pool->name, NULL);
 
 	/* Escape all the elements for filesystem-friendliness */
-	esc_scheme_name = pool ? g_strdup(purple_escape_filename(pool->scheme_name)) : NULL;
-	esc_name = pool ? g_strdup(purple_escape_filename(pool->name)) : NULL;
+	esc_scheme_name = g_strdup(purple_escape_filename(pool->scheme_name));
+	esc_name = g_strdup(purple_escape_filename(pool->name));
 	esc_id = id ? g_strdup(purple_escape_filename(id)) : NULL;
 
 	path = g_build_filename(purple_user_dir(),
@@ -674,18 +695,13 @@ x509_singleuse_verify_cb (PurpleCertificateVerificationRequest *vrq, gint id)
 static void
 x509_singleuse_start_verify (PurpleCertificateVerificationRequest *vrq)
 {
-	gchar *sha_asc;
-	GByteArray *sha_bin;
+	gchar *sha1_asc, *sha256_asc;
 	gchar *cn;
 	const gchar *cn_match;
-	gchar *primary, *secondary;
+	gchar *primary, *secondary, *secondary_extra;
 	PurpleCertificate *crt = (PurpleCertificate *) vrq->cert_chain->data;
 
-	/* Pull out the SHA1 checksum */
-	sha_bin = purple_certificate_get_fingerprint_sha1(crt);
-	/* Now decode it for display */
-	sha_asc = purple_base16_encode_chunked(sha_bin->data,
-					       sha_bin->len);
+	get_ascii_fingerprints(crt, &sha1_asc, &sha256_asc);
 
 	/* Get the cert Common Name */
 	cn = purple_certificate_get_subject_name(crt);
@@ -699,14 +715,17 @@ x509_singleuse_start_verify (PurpleCertificateVerificationRequest *vrq)
 
 	/* Make messages */
 	primary = g_strdup_printf(_("%s has presented the following certificate for just-this-once use:"), vrq->subject_name);
-	secondary = g_strdup_printf(_("Common name: %s %s\nFingerprint (SHA1): %s"), cn, cn_match, sha_asc);
+	secondary = g_strdup_printf(_("Common name: %s %s\nFingerprint (SHA1): %s"), cn, cn_match, sha1_asc);
+
+	/* TODO: make this part of the translatable string above */
+	secondary_extra = g_strdup_printf("%s\nSHA256: %s", secondary, sha256_asc);
 
 	/* Make a semi-pretty display */
 	purple_request_accept_cancel(
 		vrq->cb_data, /* TODO: Find what the handle ought to be */
 		_("Single-use Certificate Verification"),
 		primary,
-		secondary,
+		secondary_extra,
 		0,            /* Accept by default */
 		NULL,         /* No account */
 		NULL,         /* No other user */
@@ -719,8 +738,9 @@ x509_singleuse_start_verify (PurpleCertificateVerificationRequest *vrq)
 	g_free(cn);
 	g_free(primary);
 	g_free(secondary);
-	g_free(sha_asc);
-	g_byte_array_free(sha_bin, TRUE);
+	g_free(secondary_extra);
+	g_free(sha1_asc);
+	g_free(sha256_asc);
 }
 
 static void
@@ -776,10 +796,11 @@ static GList *x509_ca_certs = NULL;
 /** Used for lazy initialization purposes. */
 static gboolean x509_ca_initialized = FALSE;
 
-/** Adds a certificate to the in-memory cache, doing nothing else */
+/** Adds a certificate to the in-memory cache, and mark it as trusted */
 static gboolean
 x509_ca_quiet_put_cert(PurpleCertificate *crt)
 {
+	gboolean ret;
 	x509_ca_element *el;
 
 	/* lazy_init calls this function, so calling lazy_init here is a
@@ -791,12 +812,20 @@ x509_ca_quiet_put_cert(PurpleCertificate *crt)
 	/* TODO: Perhaps just check crt->scheme->name instead? */
 	g_return_val_if_fail(crt->scheme == purple_certificate_find_scheme(x509_ca.scheme_name), FALSE);
 
-	el = g_new0(x509_ca_element, 1);
-	el->dn = purple_certificate_get_unique_id(crt);
-	el->crt = purple_certificate_copy(crt);
-	x509_ca_certs = g_list_prepend(x509_ca_certs, el);
+	ret = TRUE;
 
-	return TRUE;
+	if (crt->scheme->register_trusted_tls_cert) {
+		ret = (crt->scheme->register_trusted_tls_cert)(crt, TRUE);
+	}
+
+	if (ret) {
+		el = g_new0(x509_ca_element, 1);
+		el->dn = purple_certificate_get_unique_id(crt);
+		el->crt = purple_certificate_copy(crt);
+		x509_ca_certs = g_list_prepend(x509_ca_certs, el);
+	}
+
+	return ret;
 }
 
 /* Since the libpurple CertificatePools get registered before plugins are
@@ -927,6 +956,7 @@ x509_ca_uninit(void)
 	g_list_free(x509_ca_certs);
 	x509_ca_certs = NULL;
 	x509_ca_initialized = FALSE;
+	/** TODO: the cert store in the SSL implementation wouldn't be cleared by this */
 	g_list_foreach(x509_ca_paths, (GFunc)g_free, NULL);
 	g_list_free(x509_ca_paths);
 	x509_ca_paths = NULL;
@@ -1184,6 +1214,10 @@ x509_tls_peers_put_cert(const gchar *id, PurpleCertificate *crt)
 	/* Work out the filename and export */
 	keypath = purple_certificate_pool_mkpath(&x509_tls_peers, id);
 	ret = purple_certificate_export(keypath, crt);
+
+	if (crt->scheme->register_trusted_tls_cert) {
+		ret = (crt->scheme->register_trusted_tls_cert)(crt, FALSE);
+	}
 
 	g_free(keypath);
 	return ret;
@@ -1536,10 +1570,10 @@ x509_tls_cached_cert_in_cache(PurpleCertificateVerificationRequest *vrq,
 		return;
 	}
 
-	/* Now get SHA1 sums for both and compare them */
+	/* Now get SHA256 sums for both and compare them */
 	/* TODO: This is not an elegant way to compare certs */
-	peer_fpr = purple_certificate_get_fingerprint_sha1(peer_crt);
-	cached_fpr = purple_certificate_get_fingerprint_sha1(cached_crt);
+	peer_fpr = purple_certificate_get_fingerprint_sha256(peer_crt, TRUE);
+	cached_fpr = purple_certificate_get_fingerprint_sha256(cached_crt, TRUE);
 	if (!memcmp(peer_fpr->data, cached_fpr->data, peer_fpr->len)) {
 		purple_debug_info("certificate/x509/tls_cached",
 				  "Peer cert matched cached\n");
@@ -1606,6 +1640,14 @@ x509_tls_cached_unknown_peer(PurpleCertificateVerificationRequest *vrq,
 
 	peer_crt = (PurpleCertificate *) chain->data;
 
+	if (peer_crt->scheme->verify_cert) {
+		/** Make sure we've loaded the CA certs (which causes NSS to trust them) */
+		g_return_if_fail(x509_ca_lazy_init());
+		peer_crt->scheme->verify_cert(vrq, &flags);
+		x509_tls_cached_complete(vrq, flags);
+		return;
+	}
+
 	/* TODO: Figure out a way to check for a bad signature, as opposed to
 	   "not self-signed" */
 	if ( purple_certificate_signed_by(peer_crt, peer_crt) ) {
@@ -1638,8 +1680,8 @@ x509_tls_cached_unknown_peer(PurpleCertificateVerificationRequest *vrq,
 			if (ca_crt != NULL) {
 				GByteArray *failing_fpr;
 				GByteArray *ca_fpr;
-				failing_fpr = purple_certificate_get_fingerprint_sha1(failing_crt);
-				ca_fpr = purple_certificate_get_fingerprint_sha1(ca_crt);
+				failing_fpr = purple_certificate_get_fingerprint_sha256(failing_crt, TRUE);
+				ca_fpr = purple_certificate_get_fingerprint_sha256(ca_crt, TRUE);
 				if (byte_arrays_equal(failing_fpr, ca_fpr)) {
 					purple_debug_info("certificate/x509/tls_cached",
 							"Full chain verification failed (probably a bad "
@@ -1721,12 +1763,18 @@ x509_tls_cached_unknown_peer(PurpleCertificateVerificationRequest *vrq,
 	 * If the fingerprints don't match, we'll fall back to checking the
 	 * signature.
 	 */
-	last_fpr = purple_certificate_get_fingerprint_sha1(end_crt);
+	last_fpr = purple_certificate_get_fingerprint_sha256(end_crt, TRUE);
+
+	ca_id = purple_certificate_get_unique_id(end_crt);
+
 	for (cur = ca_crts; cur; cur = cur->next) {
 		ca_crt = cur->data;
-		ca_fpr = purple_certificate_get_fingerprint_sha1(ca_crt);
+		ca_fpr = purple_certificate_get_fingerprint_sha256(ca_crt, TRUE);
+		ca2_id = purple_certificate_get_unique_id(ca_crt);
 
 		if ( byte_arrays_equal(last_fpr, ca_fpr) ||
+				(purple_strequal(ca_id, ca2_id) &&
+				 purple_certificate_compare_pubkeys(end_crt, ca_crt)) ||
 				purple_certificate_signed_by(end_crt, ca_crt) )
 		{
 			/* TODO: If signed_by ever returns a reason, maybe mention
@@ -1736,11 +1784,14 @@ x509_tls_cached_unknown_peer(PurpleCertificateVerificationRequest *vrq,
 			   user's poor, leaky eyes. */
 			valid = TRUE;
 			g_byte_array_free(ca_fpr, TRUE);
+			g_free(ca2_id);
 			break;
 		}
 
 		g_byte_array_free(ca_fpr, TRUE);
+		g_free(ca2_id);
 	}
+	g_free(ca_id);
 
 	if (valid == FALSE)
 		flags |= PURPLE_CERTIFICATE_INVALID_CHAIN;
@@ -2153,25 +2204,41 @@ purple_certificate_unregister_pool(PurpleCertificatePool *pool)
 /* Scheme-specific functions                                                */
 /****************************************************************************/
 
+static void display_x509_issuer(gchar *issuer_id) {
+	PurpleCertificate *issuer_crt;
+
+	issuer_crt = x509_ca_get_cert(issuer_id);
+
+	if (issuer_crt) {
+		purple_certificate_display_x509(issuer_crt);
+		purple_certificate_destroy(issuer_crt);
+	} else {
+		purple_notify_info(NULL, /* TODO: Find what the handle ought to be */
+			_("Certificate Information"),
+			"",
+			_("Unable to find Issuer Certificate"));
+	}
+
+	g_free(issuer_id);
+}
+
 void
 purple_certificate_display_x509(PurpleCertificate *crt)
 {
-	gchar *sha_asc;
-	GByteArray *sha_bin;
-	gchar *cn;
+	gchar *sha1_asc, *sha256_asc;
+	gchar *cn, *issuer_id;
 	time_t activation, expiration;
 	gchar *activ_str, *expir_str;
-	gchar *secondary;
+	gchar *secondary, *secondary_extra;
+	gboolean self_signed;
 
-	/* Pull out the SHA1 checksum */
-	sha_bin = purple_certificate_get_fingerprint_sha1(crt);
-	/* Now decode it for display */
-	sha_asc = purple_base16_encode_chunked(sha_bin->data,
-					       sha_bin->len);
+	get_ascii_fingerprints(crt, &sha1_asc, &sha256_asc);
 
 	/* Get the cert Common Name */
 	/* TODO: Will break on CA certs */
 	cn = purple_certificate_get_subject_name(crt);
+
+	issuer_id = purple_certificate_get_issuer_unique_id(crt);
 
 	/* Get the certificate times */
 	/* TODO: Check the times against localtime */
@@ -2184,30 +2251,50 @@ purple_certificate_display_x509(PurpleCertificate *crt)
 	activ_str = g_strdup(ctime(&activation));
 	expir_str = g_strdup(ctime(&expiration));
 
+	self_signed = purple_certificate_signed_by(crt, crt);
+
 	/* Make messages */
 	secondary = g_strdup_printf(_("Common name: %s\n\n"
-								  "Fingerprint (SHA1): %s\n\n"
-								  "Activation date: %s\n"
-								  "Expiration date: %s\n"),
-								cn ? cn : "(null)",
-								sha_asc ? sha_asc : "(null)",
-								activ_str ? activ_str : "(null)",
-								expir_str ? expir_str : "(null)");
+				  "Issued By: %s\n\n"
+				  "Fingerprint (SHA1): %s\n\n"
+				  "Activation date: %s\n"
+				  "Expiration date: %s\n"),
+				cn ? cn : "(null)",
+				self_signed ? _("(self-signed)") : (issuer_id ? issuer_id : "(null)"),
+				sha1_asc ? sha1_asc : "(null)",
+				activ_str ? activ_str : "(null)",
+				expir_str ? expir_str : "(null)");
+
+	/* TODO: make this part of the translatable string above */
+	secondary_extra = g_strdup_printf("%sSHA256: %s", secondary, sha256_asc);
 
 	/* Make a semi-pretty display */
-	purple_notify_info(
-		NULL,         /* TODO: Find what the handle ought to be */
-		_("Certificate Information"),
-		"",
-		secondary);
+	if (self_signed) {
+		purple_notify_info(NULL, /* TODO: Find what the handle ought to be */
+			_("Certificate Information"),
+			"",
+			secondary_extra);
+	} else {
+		purple_request_action(NULL, /* TODO: Find what the handle ought to be */
+			_("Certificate Information"), _("Certificate Information"),
+			secondary_extra, 2, NULL, NULL, NULL,
+			issuer_id, 2,
+			_("View Issuer Certificate"), PURPLE_CALLBACK(display_x509_issuer),
+			_("Close"), PURPLE_CALLBACK(g_free));
+
+		/* purple_request_action has taken ownership of issuer_id */
+		issuer_id = NULL;
+	}
 
 	/* Cleanup */
 	g_free(cn);
+	g_free(issuer_id);
 	g_free(secondary);
-	g_free(sha_asc);
+	g_free(secondary_extra);
+	g_free(sha1_asc);
+	g_free(sha256_asc);
 	g_free(activ_str);
 	g_free(expir_str);
-	g_byte_array_free(sha_bin, TRUE);
 }
 
 void purple_certificate_add_ca_search_path(const char *path)

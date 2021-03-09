@@ -1,5 +1,5 @@
 /**
- * @file backend-fs2.c Farsight 2 backend for media API
+ * @file backend-fs2.c Farstream backend for media API
  * @ingroup core
  */
 
@@ -34,8 +34,19 @@
 #include "network.h"
 #include "media-gst.h"
 
+#ifdef HAVE_FARSIGHT
 #include <gst/farsight/fs-conference-iface.h>
 #include <gst/farsight/fs-element-added-notifier.h>
+#else
+#include <farstream/fs-conference.h>
+#include <farstream/fs-element-added-notifier.h>
+#include <farstream/fs-utils.h>
+#include <gst/gststructure.h>
+#endif
+
+#if !GST_CHECK_VERSION(1,0,0)
+#define gst_registry_get() gst_registry_get_default()
+#endif
 
 /** @copydoc _PurpleMediaBackendFs2Class */
 typedef struct _PurpleMediaBackendFs2Class PurpleMediaBackendFs2Class;
@@ -78,6 +89,18 @@ static GList *purple_media_backend_fs2_get_codecs(PurpleMediaBackend *self,
 static GList *purple_media_backend_fs2_get_local_candidates(
 		PurpleMediaBackend *self,
 		const gchar *sess_id, const gchar *participant);
+#if GST_CHECK_VERSION(1,0,0)
+static gboolean purple_media_backend_fs2_set_encryption_parameters (
+	PurpleMediaBackend *self, const gchar *sess_id, const gchar *cipher,
+	const gchar *auth, const gchar *key, gsize key_len);
+static gboolean purple_media_backend_fs2_set_decryption_parameters(
+		PurpleMediaBackend *self, const gchar *sess_id,
+		const gchar *participant, const gchar *cipher,
+		const gchar *auth, const gchar *key, gsize key_len);
+static gboolean purple_media_backend_fs2_set_require_encryption(
+		PurpleMediaBackend *self, const gchar *sess_id,
+		const gchar *participant, gboolean require_encryption);
+#endif
 static gboolean purple_media_backend_fs2_set_remote_codecs(
 		PurpleMediaBackend *self,
 		const gchar *sess_id, const gchar *participant,
@@ -88,6 +111,15 @@ static gboolean purple_media_backend_fs2_set_send_codec(
 static void purple_media_backend_fs2_set_params(PurpleMediaBackend *self,
 		guint num_params, GParameter *params);
 static const gchar **purple_media_backend_fs2_get_available_params(void);
+static gboolean purple_media_backend_fs2_send_dtmf(
+		PurpleMediaBackend *self, const gchar *sess_id,
+		gchar dtmf, guint8 volume, guint16 duration);
+static gboolean purple_media_backend_fs2_set_send_rtcp_mux(
+		PurpleMediaBackend *self,
+		const gchar *sess_id, const gchar *participant,
+		gboolean send_rtcp_mux);
+
+static void remove_element(GstElement *element);
 
 static void free_stream(PurpleMediaBackendFs2Stream *stream);
 static void free_session(PurpleMediaBackendFs2Session *session);
@@ -111,6 +143,10 @@ struct _PurpleMediaBackendFs2Stream
 	PurpleMediaBackendFs2Session *session;
 	gchar *participant;
 	FsStream *stream;
+
+#ifndef HAVE_FARSIGHT
+	gboolean supports_add;
+#endif
 
 	GstElement *src;
 	GstElement *tee;
@@ -147,6 +183,10 @@ struct _PurpleMediaBackendFs2Private
 	FsConference *conference;
 	gchar *conference_type;
 
+#ifndef HAVE_FARSIGHT
+	FsElementAddedNotifier *notifier;
+#endif
+
 	GHashTable *sessions;
 	GHashTable *participants;
 
@@ -165,9 +205,91 @@ static void
 purple_media_backend_fs2_init(PurpleMediaBackendFs2 *self)
 {}
 
+static FsCandidateType
+purple_media_candidate_type_to_fs(PurpleMediaCandidateType type)
+{
+	switch (type) {
+		case PURPLE_MEDIA_CANDIDATE_TYPE_HOST:
+			return FS_CANDIDATE_TYPE_HOST;
+		case PURPLE_MEDIA_CANDIDATE_TYPE_SRFLX:
+			return FS_CANDIDATE_TYPE_SRFLX;
+		case PURPLE_MEDIA_CANDIDATE_TYPE_PRFLX:
+			return FS_CANDIDATE_TYPE_PRFLX;
+		case PURPLE_MEDIA_CANDIDATE_TYPE_RELAY:
+			return FS_CANDIDATE_TYPE_RELAY;
+		case PURPLE_MEDIA_CANDIDATE_TYPE_MULTICAST:
+			return FS_CANDIDATE_TYPE_MULTICAST;
+	}
+	g_return_val_if_reached(FS_CANDIDATE_TYPE_HOST);
+}
+
+static PurpleMediaCandidateType
+purple_media_candidate_type_from_fs(FsCandidateType type)
+{
+	switch (type) {
+		case FS_CANDIDATE_TYPE_HOST:
+			return PURPLE_MEDIA_CANDIDATE_TYPE_HOST;
+		case FS_CANDIDATE_TYPE_SRFLX:
+			return PURPLE_MEDIA_CANDIDATE_TYPE_SRFLX;
+		case FS_CANDIDATE_TYPE_PRFLX:
+			return PURPLE_MEDIA_CANDIDATE_TYPE_PRFLX;
+		case FS_CANDIDATE_TYPE_RELAY:
+			return PURPLE_MEDIA_CANDIDATE_TYPE_RELAY;
+		case FS_CANDIDATE_TYPE_MULTICAST:
+			return PURPLE_MEDIA_CANDIDATE_TYPE_MULTICAST;
+	}
+	g_return_val_if_reached(PURPLE_MEDIA_CANDIDATE_TYPE_HOST);
+}
+
+static FsNetworkProtocol
+purple_media_network_protocol_to_fs(PurpleMediaNetworkProtocol protocol)
+{
+	switch (protocol) {
+		case PURPLE_MEDIA_NETWORK_PROTOCOL_UDP:
+			return FS_NETWORK_PROTOCOL_UDP;
+#if GST_CHECK_VERSION(1,0,0)
+		case PURPLE_MEDIA_NETWORK_PROTOCOL_TCP_PASSIVE:
+			return FS_NETWORK_PROTOCOL_TCP_PASSIVE;
+		case PURPLE_MEDIA_NETWORK_PROTOCOL_TCP_ACTIVE:
+			return FS_NETWORK_PROTOCOL_TCP_ACTIVE;
+		case PURPLE_MEDIA_NETWORK_PROTOCOL_TCP_SO:
+			return FS_NETWORK_PROTOCOL_TCP_SO;
+#endif
+		default:
+			g_return_val_if_reached(FS_NETWORK_PROTOCOL_TCP);
+	}
+}
+
+static PurpleMediaNetworkProtocol
+purple_media_network_protocol_from_fs(FsNetworkProtocol protocol)
+{
+	switch (protocol) {
+		case FS_NETWORK_PROTOCOL_UDP:
+			return PURPLE_MEDIA_NETWORK_PROTOCOL_UDP;
+#if GST_CHECK_VERSION(1,0,0)
+		case FS_NETWORK_PROTOCOL_TCP_PASSIVE:
+			return PURPLE_MEDIA_NETWORK_PROTOCOL_TCP_PASSIVE;
+		case FS_NETWORK_PROTOCOL_TCP_ACTIVE:
+			return PURPLE_MEDIA_NETWORK_PROTOCOL_TCP_ACTIVE;
+		case FS_NETWORK_PROTOCOL_TCP_SO:
+			return PURPLE_MEDIA_NETWORK_PROTOCOL_TCP_SO;
+#endif
+		default:
+			g_return_val_if_reached(PURPLE_MEDIA_NETWORK_PROTOCOL_TCP_PASSIVE);
+	}
+}
+
+#if GST_CHECK_VERSION(1,0,0)
+static GstPadProbeReturn
+event_probe_cb(GstPad *srcpad, GstPadProbeInfo *info, gpointer unused)
+#else
 static gboolean
 event_probe_cb(GstPad *srcpad, GstEvent *event, gboolean release_pad)
+#endif
 {
+#if GST_CHECK_VERSION(1,0,0)
+	GstEvent *event = GST_PAD_PROBE_INFO_EVENT(info);
+#endif
 	if (GST_EVENT_TYPE(event) == GST_EVENT_CUSTOM_DOWNSTREAM
 		&& gst_event_has_name(event, "purple-unlink-tee")) {
 
@@ -175,22 +297,40 @@ event_probe_cb(GstPad *srcpad, GstEvent *event, gboolean release_pad)
 
 		gst_pad_unlink(srcpad, gst_pad_get_peer(srcpad));
 
+#if GST_CHECK_VERSION(1,0,0)
+		gst_pad_remove_probe(srcpad,
+			g_value_get_ulong(gst_structure_get_value(s, "handler-id")));
+#else
 		gst_pad_remove_event_probe(srcpad,
 			g_value_get_uint(gst_structure_get_value(s, "handler-id")));
+#endif
 
 		if (g_value_get_boolean(gst_structure_get_value(s, "release-pad")))
 			gst_element_release_request_pad(GST_ELEMENT_PARENT(srcpad), srcpad);
 
+#if GST_CHECK_VERSION(1,0,0)
+		return GST_PAD_PROBE_DROP;
+#else
 		return FALSE;
+#endif
 	}
 
+#if GST_CHECK_VERSION(1,0,0)
+	return GST_PAD_PROBE_OK;
+#else
 	return TRUE;
+#endif
 }
 
 static void
 unlink_teepad_dynamic(GstPad *srcpad, gboolean release_pad)
 {
+#if GST_CHECK_VERSION(1,0,0)
+	gulong id = gst_pad_add_probe(srcpad, GST_PAD_PROBE_TYPE_EVENT_DOWNSTREAM,
+	                              event_probe_cb, NULL, NULL);
+#else
 	guint id = gst_pad_add_event_probe(srcpad, G_CALLBACK(event_probe_cb), NULL);
+#endif
 
 	if (GST_IS_GHOST_PAD(srcpad))
 		srcpad = gst_ghost_pad_get_target(GST_GHOST_PAD(srcpad));
@@ -199,7 +339,11 @@ unlink_teepad_dynamic(GstPad *srcpad, gboolean release_pad)
 		gst_event_new_custom(GST_EVENT_CUSTOM_DOWNSTREAM,
 			gst_structure_new("purple-unlink-tee",
 				"release-pad", G_TYPE_BOOLEAN, release_pad,
+#if GST_CHECK_VERSION(1,0,0)
+				"handler-id", G_TYPE_ULONG, id,
+#else
 				"handler-id", G_TYPE_UINT, id,
+#endif
 				NULL)));
 }
 
@@ -211,6 +355,13 @@ purple_media_backend_fs2_dispose(GObject *obj)
 	GList *iter = NULL;
 
 	purple_debug_info("backend-fs2", "purple_media_backend_fs2_dispose\n");
+
+#ifndef HAVE_FARSIGHT
+	if (priv->notifier) {
+		g_object_unref(priv->notifier);
+		priv->notifier = NULL;
+	}
+#endif
 
 	if (priv->confbin) {
 		GstElement *pipeline;
@@ -391,6 +542,8 @@ static void
 purple_media_backend_fs2_class_init(PurpleMediaBackendFs2Class *klass)
 {
 	GObjectClass *gobject_class = (GObjectClass*)klass;
+	GList *features;
+	GList *it;
 
 	gobject_class->dispose = purple_media_backend_fs2_dispose;
 	gobject_class->finalize = purple_media_backend_fs2_finalize;
@@ -402,6 +555,15 @@ purple_media_backend_fs2_class_init(PurpleMediaBackendFs2Class *klass)
 	g_object_class_override_property(gobject_class, PROP_MEDIA, "media");
 
 	g_type_class_add_private(klass, sizeof(PurpleMediaBackendFs2Private));
+
+	/* VA-API elements aren't well supported in Farstream. Ignore them. */
+	features = gst_registry_get_feature_list_by_plugin(gst_registry_get(),
+			"vaapi");
+	for (it = features; it; it = it->next) {
+		gst_plugin_feature_set_rank((GstPluginFeature *)it->data,
+				GST_RANK_NONE);
+	}
+	gst_plugin_feature_list_free(features);
 }
 
 static void
@@ -416,8 +578,18 @@ purple_media_backend_iface_init(PurpleMediaBackendIface *iface)
 			purple_media_backend_fs2_get_local_candidates;
 	iface->set_remote_codecs = purple_media_backend_fs2_set_remote_codecs;
 	iface->set_send_codec = purple_media_backend_fs2_set_send_codec;
+#if GST_CHECK_VERSION(1,0,0)
+	iface->set_encryption_parameters =
+			purple_media_backend_fs2_set_encryption_parameters;
+	iface->set_decryption_parameters =
+			purple_media_backend_fs2_set_decryption_parameters;
+	iface->set_require_encryption =
+			purple_media_backend_fs2_set_require_encryption;
+#endif
 	iface->set_params = purple_media_backend_fs2_set_params;
 	iface->get_available_params = purple_media_backend_fs2_get_available_params;
+	iface->send_dtmf = purple_media_backend_fs2_send_dtmf;
+	iface->set_send_rtcp_mux = purple_media_backend_fs2_set_send_rtcp_mux;
 }
 
 static FsMediaType
@@ -427,6 +599,10 @@ session_type_to_fs_media_type(PurpleMediaSessionType type)
 		return FS_MEDIA_TYPE_AUDIO;
 	else if (type & PURPLE_MEDIA_VIDEO)
 		return FS_MEDIA_TYPE_VIDEO;
+#ifdef HAVE_MEDIA_APPLICATION
+	else if (type & PURPLE_MEDIA_APPLICATION)
+		return FS_MEDIA_TYPE_APPLICATION;
+#endif
 	else
 		return 0;
 }
@@ -435,7 +611,7 @@ static FsStreamDirection
 session_type_to_fs_stream_direction(PurpleMediaSessionType type)
 {
 	if ((type & PURPLE_MEDIA_AUDIO) == PURPLE_MEDIA_AUDIO ||
-			(type & PURPLE_MEDIA_VIDEO) == PURPLE_MEDIA_VIDEO)
+		(type & PURPLE_MEDIA_VIDEO) == PURPLE_MEDIA_VIDEO)
 		return FS_DIRECTION_BOTH;
 	else if ((type & PURPLE_MEDIA_SEND_AUDIO) ||
 			(type & PURPLE_MEDIA_SEND_VIDEO))
@@ -443,6 +619,14 @@ session_type_to_fs_stream_direction(PurpleMediaSessionType type)
 	else if ((type & PURPLE_MEDIA_RECV_AUDIO) ||
 			(type & PURPLE_MEDIA_RECV_VIDEO))
 		return FS_DIRECTION_RECV;
+#ifdef HAVE_MEDIA_APPLICATION
+	else if ((type & PURPLE_MEDIA_APPLICATION) == PURPLE_MEDIA_APPLICATION)
+		return FS_DIRECTION_BOTH;
+	else if (type & PURPLE_MEDIA_SEND_APPLICATION)
+		return FS_DIRECTION_SEND;
+	else if (type & PURPLE_MEDIA_RECV_APPLICATION)
+		return FS_DIRECTION_RECV;
+#endif
 	else
 		return FS_DIRECTION_NONE;
 }
@@ -461,6 +645,13 @@ session_type_from_fs(FsMediaType type, FsStreamDirection direction)
 			result |= PURPLE_MEDIA_SEND_VIDEO;
 		if (direction & FS_DIRECTION_RECV)
 			result |= PURPLE_MEDIA_RECV_VIDEO;
+#ifdef HAVE_MEDIA_APPLICATION
+	} else if (type == FS_MEDIA_TYPE_APPLICATION) {
+		if (direction & FS_DIRECTION_SEND)
+			result |= PURPLE_MEDIA_SEND_APPLICATION;
+		if (direction & FS_DIRECTION_RECV)
+			result |= PURPLE_MEDIA_RECV_APPLICATION;
+#endif
 	}
 	return result;
 }
@@ -501,8 +692,8 @@ candidate_to_fs(PurpleMediaCandidate *candidate)
 			NULL);
 
 	fscandidate = fs_candidate_new(foundation,
-			component_id, type,
-			proto, ip, port);
+			component_id, purple_media_candidate_type_to_fs(type),
+			purple_media_network_protocol_to_fs(proto), ip, port);
 
 	fscandidate->base_ip = base_ip;
 	fscandidate->base_port = base_port;
@@ -539,8 +730,10 @@ candidate_from_fs(FsCandidate *fscandidate)
 		return NULL;
 
 	candidate = purple_media_candidate_new(fscandidate->foundation,
-		fscandidate->component_id, fscandidate->type,
-		fscandidate->proto, fscandidate->ip, fscandidate->port);
+		fscandidate->component_id,
+		purple_media_candidate_type_from_fs(fscandidate->type),
+		purple_media_network_protocol_from_fs(fscandidate->proto),
+		fscandidate->ip, fscandidate->port);
 	g_object_set(candidate,
 			"base-ip", fscandidate->base_ip,
 			"base-port", fscandidate->base_port,
@@ -700,8 +893,8 @@ get_stream(PurpleMediaBackendFs2 *self,
 
 	for (; streams; streams = g_list_next(streams)) {
 		PurpleMediaBackendFs2Stream *stream = streams->data;
-		if (!strcmp(stream->session->id, sess_id) &&
-				!strcmp(stream->participant, name))
+		if (purple_strequal(stream->session->id, sess_id) &&
+				purple_strequal(stream->participant, name))
 			return stream;
 	}
 
@@ -723,9 +916,9 @@ get_streams(PurpleMediaBackendFs2 *self,
 	for (; streams; streams = g_list_next(streams)) {
 		PurpleMediaBackendFs2Stream *stream = streams->data;
 
-		if (sess_id != NULL && strcmp(stream->session->id, sess_id))
+		if (sess_id != NULL && !purple_strequal(stream->session->id, sess_id))
 			continue;
-		else if (name != NULL && strcmp(stream->participant, name))
+		else if (name != NULL && !purple_strequal(stream->participant, name))
 			continue;
 		else
 			ret = g_list_prepend(ret, stream);
@@ -772,12 +965,28 @@ gst_msg_db_to_percent(GstMessage *msg, gchar *value_name)
 	gdouble value_db;
 	gdouble percent;
 
-	list = gst_structure_get_value(
-				gst_message_get_structure(msg), value_name);
+	list = gst_structure_get_value(gst_message_get_structure(msg), value_name);
+#if GST_CHECK_VERSION(1,0,0)
+G_GNUC_BEGIN_IGNORE_DEPRECATIONS
+	value = g_value_array_get_nth(g_value_get_boxed(list), 0);
+G_GNUC_END_IGNORE_DEPRECATIONS
+#else
 	value = gst_value_list_get_value(list, 0);
+#endif
 	value_db = g_value_get_double(value);
 	percent = pow(10, value_db / 20);
 	return (percent > 1.0) ? 1.0 : percent;
+}
+
+static void
+purple_media_error_fs(PurpleMedia *media, const gchar *error,
+		const GstStructure *fs_error)
+{
+	const gchar *error_msg = gst_structure_get_string(fs_error, "error-msg");
+
+	purple_media_error(media, "%s%s%s", error,
+	                   error_msg ? _("\n\nMessage from Farsight: ") : "",
+	                   error_msg ? error_msg : "");
 }
 
 static void
@@ -788,11 +997,12 @@ gst_handle_message_element(GstBus *bus, GstMessage *msg,
 			PURPLE_MEDIA_BACKEND_FS2_GET_PRIVATE(self);
 	GstElement *src = GST_ELEMENT(GST_MESSAGE_SRC(msg));
 	static guint level_id = 0;
+	const GstStructure *structure = gst_message_get_structure(msg);
 
 	if (level_id == 0)
 		level_id = g_signal_lookup("level", PURPLE_TYPE_MEDIA);
 
-	if (gst_structure_has_name(msg->structure, "level")) {
+	if (gst_structure_has_name(structure, "level")) {
 		GstElement *src = GST_ELEMENT(GST_MESSAGE_SRC(msg));
 		gchar *name;
 		gchar *participant = NULL;
@@ -846,50 +1056,101 @@ gst_handle_message_element(GstBus *bus, GstMessage *msg,
 			priv->conference != FS_CONFERENCE(src))
 		return;
 
-	if (gst_structure_has_name(msg->structure, "farsight-error")) {
+#ifdef HAVE_FARSIGHT
+	if (gst_structure_has_name(structure, "farsight-error")) {
+#else
+	if (gst_structure_has_name(structure, "farstream-error")) {
+#endif
 		FsError error_no;
-		gst_structure_get_enum(msg->structure, "error-no",
+		gboolean error_emitted = FALSE;
+		gst_structure_get_enum(structure, "error-no",
 				FS_TYPE_ERROR, (gint*)&error_no);
 		switch (error_no) {
-			case FS_ERROR_NO_CODECS:
-				purple_media_error(priv->media, _("No codecs"
-						" found. Install some"
-						" GStreamer codecs found"
-						" in GStreamer plugins"
-						" packages."));
+			case FS_ERROR_CONSTRUCTION:
+				purple_media_error_fs(priv->media,
+				                      _("Error initializing the call. "
+				                        "This probably denotes problem in "
+#ifdef HAVE_FARSIGHT
+				                        "installation of GStreamer or Farsight."),
+#else
+				                        "installation of GStreamer or Farstream."),
+#endif
+				                      structure);
+				error_emitted = TRUE;
+				break;
+			case FS_ERROR_NETWORK:
+				purple_media_error_fs(priv->media, _("Network error."),
+				                      structure);
+				error_emitted = TRUE;
 				purple_media_end(priv->media, NULL, NULL);
 				break;
-			case FS_ERROR_NO_CODECS_LEFT:
-				purple_media_error(priv->media, _("No codecs"
-						" left. Your codec"
-						" preferences in"
-						" fs-codecs.conf are too"
-						" strict."));
+			case FS_ERROR_NEGOTIATION_FAILED:
+				purple_media_error_fs(priv->media,
+				                      _("Codec negotiation failed. "
+				                        "This problem might be resolved by installing "
+				                        "more GStreamer codecs."),
+				                      structure);
+				error_emitted = TRUE;
 				purple_media_end(priv->media, NULL, NULL);
+				break;
+			case FS_ERROR_NO_CODECS:
+				purple_media_error(priv->media,
+				                   _("No codecs found. "
+				                     "Install some GStreamer codecs found "
+				                     "in GStreamer plugins packages."));
+				error_emitted = TRUE;
+				purple_media_end(priv->media, NULL, NULL);
+				break;
+#ifdef HAVE_FARSIGHT
+			case FS_ERROR_NO_CODECS_LEFT:
+				purple_media_error(priv->media,
+				                   _("No codecs left. Your codec preferences "
+				                     "in fs-codecs.conf are too strict."));
+				error_emitted = TRUE;
+				purple_media_end(priv->media, NULL, NULL);
+				break;
+			case FS_ERROR_CONNECTION_FAILED:
+				purple_media_error(priv->media,
+				                   _("Could not connect to the remote party"));
+				error_emitted = TRUE;
 				break;
 			case FS_ERROR_UNKNOWN_CNAME:
-			/*
-			 * Unknown CName is only a problem for the
-			 * multicast transmitter which isn't used.
-			 * It is also deprecated.
-			 */
+				/*
+				 * Unknown CName is only a problem for the
+				 * multicast transmitter which isn't used.
+				 * It is also deprecated.
+				 */
 				break;
+#endif
 			default:
 				purple_debug_error("backend-fs2",
+#ifdef HAVE_FARSIGHT
 						"farsight-error: %i: %s\n",
+#else
+						"farstream-error: %i: %s\n",
+#endif
 						error_no,
-					  	gst_structure_get_string(
-						msg->structure, "error-msg"));
+						gst_structure_get_string(structure, "error-msg"));
 				break;
 		}
 
 		if (FS_ERROR_IS_FATAL(error_no)) {
-			purple_media_error(priv->media, _("A non-recoverable "
-					"Farsight2 error has occurred."));
+			if (!error_emitted)
+#ifdef HAVE_FARSIGHT
+			purple_media_error(priv->media,
+			                   _("A non-recoverable Farsight2 error has occurred."));
+#else
+			purple_media_error(priv->media,
+			                   _("A non-recoverable Farstream error has occurred."));
+#endif
 			purple_media_end(priv->media, NULL, NULL);
 		}
-	} else if (gst_structure_has_name(msg->structure,
+	} else if (gst_structure_has_name(structure,
+#ifdef HAVE_FARSIGHT
 			"farsight-new-local-candidate")) {
+#else
+			"farstream-new-local-candidate")) {
+#endif
 		const GValue *value;
 		FsStream *stream;
 		FsCandidate *local_candidate;
@@ -897,11 +1158,11 @@ gst_handle_message_element(GstBus *bus, GstMessage *msg,
 		FsParticipant *participant;
 		PurpleMediaBackendFs2Session *session;
 		PurpleMediaBackendFs2Stream *media_stream;
-		gchar *name;
+		const gchar *name;
 
-		value = gst_structure_get_value(msg->structure, "stream");
+		value = gst_structure_get_value(structure, "stream");
 		stream = g_value_get_object(value);
-		value = gst_structure_get_value(msg->structure, "candidate");
+		value = gst_structure_get_value(structure, "candidate");
 		local_candidate = g_value_get_boxed(value);
 
 		session = get_session_from_fs_stream(self, stream);
@@ -911,8 +1172,7 @@ gst_handle_message_element(GstBus *bus, GstMessage *msg,
 				local_candidate->foundation);
 
 		g_object_get(stream, "participant", &participant, NULL);
-		g_object_get(participant, "cname", &name, NULL);
-		g_object_unref(participant);
+		name = g_object_get_data(G_OBJECT(participant), "purple-name");
 
 		media_stream = get_stream(self, session->id, name);
 		media_stream->local_candidates = g_list_append(
@@ -923,26 +1183,35 @@ gst_handle_message_element(GstBus *bus, GstMessage *msg,
 		g_signal_emit_by_name(self, "new-candidate",
 				session->id, name, candidate);
 		g_object_unref(candidate);
-	} else if (gst_structure_has_name(msg->structure,
+		g_object_unref(participant);
+	} else if (gst_structure_has_name(structure,
+#ifdef HAVE_FARSIGHT
 			"farsight-local-candidates-prepared")) {
+#else
+			"farstream-local-candidates-prepared")) {
+#endif
 		const GValue *value;
 		FsStream *stream;
 		FsParticipant *participant;
 		PurpleMediaBackendFs2Session *session;
-		gchar *name;
 
-		value = gst_structure_get_value(msg->structure, "stream");
+		value = gst_structure_get_value(structure, "stream");
 		stream = g_value_get_object(value);
 		session = get_session_from_fs_stream(self, stream);
 
 		g_object_get(stream, "participant", &participant, NULL);
-		g_object_get(participant, "cname", &name, NULL);
-		g_object_unref(participant);
 
 		g_signal_emit_by_name(self, "candidates-prepared",
-				session->id, name);
-	} else if (gst_structure_has_name(msg->structure,
+				session->id,
+				g_object_get_data(G_OBJECT(participant), "purple-name"));
+
+		g_object_unref(participant);
+	} else if (gst_structure_has_name(structure,
+#ifdef HAVE_FARSIGHT
 			"farsight-new-active-candidate-pair")) {
+#else
+			"farstream-new-active-candidate-pair")) {
+#endif
 		const GValue *value;
 		FsStream *stream;
 		FsCandidate *local_candidate;
@@ -950,20 +1219,15 @@ gst_handle_message_element(GstBus *bus, GstMessage *msg,
 		FsParticipant *participant;
 		PurpleMediaBackendFs2Session *session;
 		PurpleMediaCandidate *lcandidate, *rcandidate;
-		gchar *name;
 
-		value = gst_structure_get_value(msg->structure, "stream");
+		value = gst_structure_get_value(structure, "stream");
 		stream = g_value_get_object(value);
-		value = gst_structure_get_value(msg->structure,
-				"local-candidate");
+		value = gst_structure_get_value(structure, "local-candidate");
 		local_candidate = g_value_get_boxed(value);
-		value = gst_structure_get_value(msg->structure,
-				"remote-candidate");
+		value = gst_structure_get_value(structure, "remote-candidate");
 		remote_candidate = g_value_get_boxed(value);
 
 		g_object_get(stream, "participant", &participant, NULL);
-		g_object_get(participant, "cname", &name, NULL);
-		g_object_unref(participant);
 
 		session = get_session_from_fs_stream(self, stream);
 
@@ -971,33 +1235,48 @@ gst_handle_message_element(GstBus *bus, GstMessage *msg,
 		rcandidate = candidate_from_fs(remote_candidate);
 
 		g_signal_emit_by_name(self, "active-candidate-pair",
-				session->id, name, lcandidate, rcandidate);
+				session->id,
+				g_object_get_data(G_OBJECT(participant), "purple-name"),
+				lcandidate, rcandidate);
 
+		g_object_unref(participant);
 		g_object_unref(lcandidate);
 		g_object_unref(rcandidate);
-	} else if (gst_structure_has_name(msg->structure,
+	} else if (gst_structure_has_name(structure,
+#ifdef HAVE_FARSIGHT
 			"farsight-recv-codecs-changed")) {
+#else
+			"farstream-recv-codecs-changed")) {
+#endif
 		const GValue *value;
 		GList *codecs;
 		FsCodec *codec;
 
-		value = gst_structure_get_value(msg->structure, "codecs");
+		value = gst_structure_get_value(structure, "codecs");
 		codecs = g_value_get_boxed(value);
 		codec = codecs->data;
 
 		purple_debug_info("backend-fs2",
+#ifdef HAVE_FARSIGHT
 				"farsight-recv-codecs-changed: %s\n",
+#else
+				"farstream-recv-codecs-changed: %s\n",
+#endif
 				codec->encoding_name);
-	} else if (gst_structure_has_name(msg->structure,
+	} else if (gst_structure_has_name(structure,
+#ifdef HAVE_FARSIGHT
 			"farsight-component-state-changed")) {
+#else
+			"farstream-component-state-changed")) {
+#endif
 		const GValue *value;
 		FsStreamState fsstate;
 		guint component;
 		const gchar *state;
 
-		value = gst_structure_get_value(msg->structure, "state");
+		value = gst_structure_get_value(structure, "state");
 		fsstate = g_value_get_enum(value);
-		value = gst_structure_get_value(msg->structure, "component");
+		value = gst_structure_get_value(structure, "component");
 		component = g_value_get_uint(value);
 
 		switch (fsstate) {
@@ -1025,31 +1304,47 @@ gst_handle_message_element(GstBus *bus, GstMessage *msg,
 		}
 
 		purple_debug_info("backend-fs2",
+#ifdef HAVE_FARSIGHT
 				"farsight-component-state-changed: "
+#else
+				"farstream-component-state-changed: "
+#endif
 				"component: %u state: %s\n",
 				component, state);
-	} else if (gst_structure_has_name(msg->structure,
+	} else if (gst_structure_has_name(structure,
+#ifdef HAVE_FARSIGHT
 			"farsight-send-codec-changed")) {
+#else
+			"farstream-send-codec-changed")) {
+#endif
 		const GValue *value;
 		FsCodec *codec;
 		gchar *codec_str;
 
-		value = gst_structure_get_value(msg->structure, "codec");
+		value = gst_structure_get_value(structure, "codec");
 		codec = g_value_get_boxed(value);
 		codec_str = fs_codec_to_string(codec);
 
 		purple_debug_info("backend-fs2",
+#ifdef HAVE_FARSIGHT
 				"farsight-send-codec-changed: codec: %s\n",
+#else
+				"farstream-send-codec-changed: codec: %s\n",
+#endif
 				codec_str);
 
 		g_free(codec_str);
-	} else if (gst_structure_has_name(msg->structure,
+	} else if (gst_structure_has_name(structure,
+#ifdef HAVE_FARSIGHT
 			"farsight-codecs-changed")) {
+#else
+			"farstream-codecs-changed")) {
+#endif
 		const GValue *value;
 		FsSession *fssession;
 		GList *sessions;
 
-		value = gst_structure_get_value(msg->structure, "session");
+		value = gst_structure_get_value(structure, "session");
 		fssession = g_value_get_object(value);
 		sessions = g_hash_table_get_values(priv->sessions);
 
@@ -1071,6 +1366,82 @@ gst_handle_message_element(GstBus *bus, GstMessage *msg,
 	}
 }
 
+static gboolean
+downgrade_video_source(PurpleMediaBackendFs2 *self, GstBin *srcbin)
+{
+	PurpleMediaBackendFs2Private *priv;
+	GstElement *src;
+	GstPad *srcpad = NULL;
+	GstPad *p;
+
+	priv = PURPLE_MEDIA_BACKEND_FS2_GET_PRIVATE(self);
+
+	src = gst_bin_get_by_name(srcbin, "purplevideodowngrade");
+	if (src) {
+		/* The failing source has already been downgraded. Stop here in
+		 * order not to cause an infinite loop. */
+		gst_object_unref(src);
+		return FALSE;
+	}
+
+	src = gst_bin_get_by_name(srcbin, "tee");
+	if (!src) {
+		return FALSE;
+	}
+
+	while((p = gst_element_get_static_pad(src, "sink"))) {
+		if (srcpad) {
+			gst_object_unref(srcpad);
+		}
+		srcpad = gst_pad_get_peer(p);
+		gst_object_unref(src);
+		src = gst_pad_get_parent_element(srcpad);
+		gst_object_unref(p);
+	};
+
+	if (srcpad) {
+		PurpleMediaManager *manager;
+		GstElement *pipeline;
+		GstElement *dest;
+		GstElement *newsrc;
+
+		manager = purple_media_get_manager(priv->media);
+		pipeline = purple_media_manager_get_pipeline(manager);
+
+		dest = gst_pad_get_parent_element(GST_PAD_PEER(srcpad));
+
+		remove_element(src);
+
+		newsrc = gst_element_factory_make("videotestsrc",
+				"purplevideodowngrade");
+		g_object_set(newsrc, "is-live", TRUE, NULL);
+		gst_bin_add_many(srcbin, newsrc, NULL);
+		gst_element_link(newsrc, dest);
+		gst_element_set_state(newsrc, GST_STATE_PLAYING);
+
+		/* Pipeline with an error might not be any longer PLAYING. */
+		gst_element_set_state(pipeline, GST_STATE_PLAYING);
+
+		gst_object_unref(srcpad);
+
+		/* Flush the video pipeline. */
+		srcpad = gst_element_get_static_pad(newsrc, "src");
+		gst_pad_push_event(srcpad, gst_event_new_flush_start());
+#if GST_CHECK_VERSION(1,0,0)
+		gst_pad_push_event(srcpad, gst_event_new_flush_stop(FALSE));
+#else
+		gst_pad_push_event(srcpad, gst_event_new_flush_stop());
+#endif
+		gst_object_unref(srcpad);
+
+		gst_object_unref(dest);
+	}
+
+	gst_object_unref(src);
+
+	return TRUE;
+}
+
 static void
 gst_handle_message_error(GstBus *bus, GstMessage *msg,
 		PurpleMediaBackendFs2 *self)
@@ -1080,6 +1451,7 @@ gst_handle_message_error(GstBus *bus, GstMessage *msg,
 	GstElement *element = GST_ELEMENT(GST_MESSAGE_SRC(msg));
 	GstElement *lastElement = NULL;
 	GList *sessions;
+	gboolean fatal = TRUE;
 
 	GError *error = NULL;
 	gchar *debug_msg = NULL;
@@ -1105,25 +1477,37 @@ gst_handle_message_error(GstBus *bus, GstMessage *msg,
 	sessions = purple_media_get_session_ids(priv->media);
 
 	for (; sessions; sessions = g_list_delete_link(sessions, sessions)) {
+		PurpleMediaSessionType session_type;
+
 		if (purple_media_get_src(priv->media, sessions->data)
 				!= lastElement)
 			continue;
 
-		if (purple_media_get_session_type(priv->media, sessions->data)
-				& PURPLE_MEDIA_AUDIO)
+		session_type = purple_media_get_session_type(priv->media,
+				sessions->data);
+
+		if (session_type & PURPLE_MEDIA_AUDIO) {
 			purple_media_error(priv->media,
 					_("Error with your microphone"));
-		else
-			purple_media_error(priv->media,
-					_("Error with your webcam"));
+		} else if (session_type & PURPLE_MEDIA_VIDEO) {
+			fatal = !downgrade_video_source(self,
+					GST_BIN(lastElement));
+
+			if (fatal) {
+				purple_media_error(priv->media,
+						_("Error with your webcam"));
+			}
+		}
 
 		break;
 	}
 
 	g_list_free(sessions);
 
-	purple_media_error(priv->media, _("Conference error"));
-	purple_media_end(priv->media, NULL, NULL);
+	if (fatal) {
+		purple_media_error(priv->media, _("Conference error"));
+		purple_media_end(priv->media, NULL, NULL);
+	}
 }
 
 static gboolean
@@ -1186,10 +1570,16 @@ state_changed_cb(PurpleMedia *media, PurpleMediaState state,
 			gst_object_unref(session->session);
 			g_hash_table_remove(priv->sessions, session->id);
 
-			pad = gst_pad_get_peer(session->srcpad);
-			gst_element_remove_pad(GST_ELEMENT_PARENT(pad), pad);
-			gst_object_unref(pad);
-			gst_object_unref(session->srcpad);
+			if (session->srcpad) {
+				pad = gst_pad_get_peer(session->srcpad);
+				if (pad) {
+					gst_element_remove_pad(
+							GST_PAD_PARENT(pad),
+							pad);
+					gst_object_unref(pad);
+				}
+				gst_object_unref(session->srcpad);
+			}
 
 			remove_element(session->srcvalve);
 			remove_element(session->tee);
@@ -1220,8 +1610,17 @@ stream_info_cb(PurpleMedia *media, PurpleMediaInfoType type,
 				purple_media_is_initiator(media, sid, name))
 			return;
 
+#ifdef HAVE_FARSIGHT
 		fs_stream_set_remote_candidates(stream->stream,
 				stream->remote_candidates, &err);
+#else
+		if (stream->supports_add)
+			fs_stream_add_remote_candidates(stream->stream,
+					stream->remote_candidates, &err);
+		else
+			fs_stream_force_remote_candidates(stream->stream,
+					stream->remote_candidates, &err);
+#endif
 
 		if (err == NULL)
 			return;
@@ -1301,6 +1700,9 @@ init_conference(PurpleMediaBackendFs2 *self)
 	GstElement *pipeline;
 	GstBus *bus;
 	gchar *name;
+#ifndef HAVE_FARSIGHT
+	GKeyFile *default_props;
+#endif
 
 	priv->conference = FS_CONFERENCE(
 			gst_element_factory_make(priv->conference_type, NULL));
@@ -1342,6 +1744,16 @@ init_conference(PurpleMediaBackendFs2 *self)
 				"Couldn't get the pipeline's bus.\n");
 		return FALSE;
 	}
+
+#ifndef HAVE_FARSIGHT
+	default_props = fs_utils_get_default_element_properties(GST_ELEMENT(priv->conference));
+	if (default_props != NULL) {
+		priv->notifier = fs_element_added_notifier_new();
+		fs_element_added_notifier_add(priv->notifier,
+				GST_BIN(priv->confbin));
+		fs_element_added_notifier_set_properties_from_keyfile(priv->notifier, default_props);
+	}
+#endif
 
 	g_signal_connect(G_OBJECT(bus), "message",
 			G_CALLBACK(gst_bus_cb), self);
@@ -1471,7 +1883,11 @@ create_src(PurpleMediaBackendFs2 *self, const gchar *sess_id,
 		srcpad = gst_element_get_static_pad(session->srcvalve, "src");
 		g_object_set(volume, "volume", input_volume, NULL);
 	} else {
+#if GST_CHECK_VERSION(1,0,0)
+		srcpad = gst_element_get_request_pad(session->tee, "src_%u");
+#else
 		srcpad = gst_element_get_request_pad(session->tee, "src%d");
+#endif
 	}
 
 	purple_debug_info("backend-fs2", "connecting pad: %s\n",
@@ -1480,11 +1896,15 @@ create_src(PurpleMediaBackendFs2 *self, const gchar *sess_id,
 	gst_element_set_locked_state(session->src, FALSE);
 	gst_object_unref(session->src);
 	gst_object_unref(sinkpad);
-
-	gst_element_set_state(session->src, GST_STATE_PLAYING);
+	gst_object_unref(srcpad);
 
 	purple_media_manager_create_output_window(purple_media_get_manager(
 			priv->media), priv->media, sess_id, NULL);
+
+	purple_debug_info("backend-fs2", "create_src: setting source "
+		"state to GST_STATE_PLAYING - it may hang here on win32\n");
+	gst_element_set_state(session->src, GST_STATE_PLAYING);
+	purple_debug_info("backend-fs2", "create_src: state set\n");
 
 	return TRUE;
 }
@@ -1500,13 +1920,28 @@ create_session(PurpleMediaBackendFs2 *self, const gchar *sess_id,
 	GError *err = NULL;
 	GList *codec_conf = NULL, *iter = NULL;
 	gchar *filename = NULL;
-	gboolean is_nice = !strcmp(transmitter, "nice");
+	gboolean is_nice = purple_strequal(transmitter, "nice");
 
 	session = g_new0(PurpleMediaBackendFs2Session, 1);
 
 	session->session = fs_conference_new_session(priv->conference,
 			session_type_to_fs_media_type(type), &err);
 
+#ifdef HAVE_MEDIA_APPLICATION
+	if (type == PURPLE_MEDIA_APPLICATION) {
+		GstCaps *caps;
+		GObject *rtpsession = NULL;
+
+		caps = gst_caps_new_empty_simple ("application/octet-stream");
+		fs_session_set_allowed_caps (session->session, caps, caps, NULL);
+		gst_caps_unref (caps);
+		g_object_get (session->session, "internal-session", &rtpsession, NULL);
+		if (rtpsession) {
+			g_object_set (rtpsession, "probation", 0, NULL);
+			g_object_unref (rtpsession);
+		}
+	}
+#endif
 	if (err != NULL) {
 		purple_media_error(priv->media,
 				_("Error creating session: %s"),
@@ -1559,14 +1994,14 @@ create_session(PurpleMediaBackendFs2 *self, const gchar *sess_id,
 	 * receiving the src-pad-added signal.
 	 * Only works for non-multicast FsRtpSessions.
 	 */
-	if (is_nice || !strcmp(transmitter, "rawudp"))
+	if (!purple_strequal(transmitter, "multicast"))
 		g_object_set(G_OBJECT(session->session),
 				"no-rtcp-timeout", 0, NULL);
 
 	/*
 	 * Hack to make x264 work with Gmail video.
 	 */
-	if (is_nice && !strcmp(sess_id, "google-video")) {
+	if (is_nice && purple_strequal(sess_id, "google-video")) {
 		FsElementAddedNotifier *notifier =
 				fs_element_added_notifier_new();
 		g_signal_connect(G_OBJECT(notifier), "element-added",
@@ -1612,7 +2047,11 @@ create_participant(PurpleMediaBackendFs2 *self, const gchar *name)
 	GError *err = NULL;
 
 	participant = fs_conference_new_participant(
+#ifdef HAVE_FARSIGHT
 			priv->conference, name, &err);
+#else
+			priv->conference, &err);
+#endif
 
 	if (err) {
 		purple_debug_error("backend-fs2",
@@ -1621,6 +2060,16 @@ create_participant(PurpleMediaBackendFs2 *self, const gchar *name)
 		g_error_free(err);
 		return FALSE;
 	}
+
+	g_object_set_data_full(G_OBJECT(participant), "purple-name",
+			g_strdup(name), g_free);
+
+#ifndef HAVE_FARSIGHT
+	if (g_object_class_find_property(G_OBJECT_GET_CLASS(participant),
+			"cname")) {
+		g_object_set(participant, "cname", name, NULL);
+	}
+#endif
 
 	if (!priv->participants) {
 		purple_debug_info("backend-fs2",
@@ -1643,6 +2092,18 @@ src_pad_added_cb_cb(PurpleMediaBackendFs2Stream *stream)
 
 	priv = PURPLE_MEDIA_BACKEND_FS2_GET_PRIVATE(stream->session->backend);
 	stream->connected_cb_id = 0;
+
+	if (stream->src == NULL) {
+		GstElement *pipeline = purple_media_manager_get_pipeline(
+			purple_media_get_manager(priv->media));
+		GST_DEBUG_BIN_TO_DOT_FILE(GST_BIN(pipeline),
+					  GST_DEBUG_GRAPH_SHOW_ALL, "media-fail");
+
+		purple_media_error(priv->media,
+				   _("Could not create media pipeline"));
+		purple_media_end(priv->media, NULL, NULL);
+		return FALSE;
+	}
 
 	purple_media_manager_create_output_window(
 			purple_media_get_manager(priv->media), priv->media,
@@ -1672,20 +2133,12 @@ src_pad_added_cb(FsStream *fsstream, GstPad *srcpad,
 		if (codec->media_type == FS_MEDIA_TYPE_AUDIO) {
 			double output_volume = purple_prefs_get_int(
 					"/purple/media/audio/volume/output")/10.0;
-			/*
-			 * Should this instead be:
-			 *  audioconvert ! audioresample ! liveadder !
-			 *   audioresample ! audioconvert ! realsink
-			 */
 			stream->queue = gst_element_factory_make("queue", NULL);
-			stream->volume = gst_element_factory_make(
-					"volume", NULL);
-			g_object_set(stream->volume, "volume",
-					output_volume, NULL);
-			stream->level = gst_element_factory_make(
-					"level", NULL);
-			stream->src = gst_element_factory_make(
-					"liveadder", NULL);
+			stream->volume = gst_element_factory_make("volume", NULL);
+			g_object_set(stream->volume, "volume", output_volume, NULL);
+			stream->level = gst_element_factory_make("level", NULL);
+			stream->src = gst_element_factory_make("audiomixer", NULL);
+			g_object_set(stream->src, "start-time-selection", 1, NULL);
 			sink = purple_media_manager_get_element(
 					purple_media_get_manager(priv->media),
 					PURPLE_MEDIA_RECV_AUDIO, priv->media,
@@ -1704,14 +2157,31 @@ src_pad_added_cb(FsStream *fsstream, GstPad *srcpad,
 			gst_element_link(stream->queue, stream->volume);
 			sink = stream->queue;
 		} else if (codec->media_type == FS_MEDIA_TYPE_VIDEO) {
-			stream->src = gst_element_factory_make(
-					"fsfunnel", NULL);
-			sink = gst_element_factory_make(
-					"fakesink", NULL);
+#if GST_CHECK_VERSION(1,0,0)
+			stream->src = gst_element_factory_make("funnel", NULL);
+#else
+			stream->src = gst_element_factory_make("fsfunnel", NULL);
+#endif
+			sink = gst_element_factory_make("fakesink", NULL);
 			g_object_set(G_OBJECT(sink), "async", FALSE, NULL);
 			gst_bin_add(GST_BIN(priv->confbin), sink);
 			gst_element_set_state(sink, GST_STATE_PLAYING);
 			stream->fakesink = sink;
+#ifdef HAVE_MEDIA_APPLICATION
+		} else if (codec->media_type == FS_MEDIA_TYPE_APPLICATION) {
+#if GST_CHECK_VERSION(1,0,0)
+			stream->src = gst_element_factory_make("funnel", NULL);
+#else
+			stream->src = gst_element_factory_make("fsfunnel", NULL);
+#endif
+			sink = purple_media_manager_get_element(
+					purple_media_get_manager(priv->media),
+					PURPLE_MEDIA_RECV_APPLICATION, priv->media,
+					stream->session->id,
+					stream->participant);
+			gst_bin_add(GST_BIN(priv->confbin), sink);
+			gst_element_set_state(sink, GST_STATE_PLAYING);
+#endif
 		}
 		stream->tee = gst_element_factory_make("tee", NULL);
 		gst_bin_add_many(GST_BIN(priv->confbin),
@@ -1719,9 +2189,46 @@ src_pad_added_cb(FsStream *fsstream, GstPad *srcpad,
 		gst_element_set_state(stream->tee, GST_STATE_PLAYING);
 		gst_element_set_state(stream->src, GST_STATE_PLAYING);
 		gst_element_link_many(stream->src, stream->tee, sink, NULL);
+	} else {
+		if (codec->media_type == FS_MEDIA_TYPE_AUDIO) {
+			GstElement *convert, *resample, *capsfilter;
+			GstPad *mixer_srcpad;
+			GstCaps *caps;
+
+			/* The audiomixer element requires that all input
+			 * streams have the same rate, so resample if
+			 * needed
+			 */
+			mixer_srcpad = gst_element_get_static_pad(stream->src, "src");
+			caps = gst_pad_get_current_caps(mixer_srcpad);
+
+			if (caps) {
+				convert = gst_element_factory_make("audioconvert", NULL);
+				resample = gst_element_factory_make("audioresample", NULL);
+				capsfilter = gst_element_factory_make("capsfilter", NULL);
+
+				gst_bin_add_many(GST_BIN(priv->confbin), convert,
+						resample, capsfilter, NULL);
+				gst_element_link_many(gst_pad_get_parent_element(srcpad),
+						convert, resample, capsfilter, NULL);
+
+				g_object_set(capsfilter, "caps", caps, NULL);
+				gst_element_set_state(convert, GST_STATE_PLAYING);
+				gst_element_set_state(resample, GST_STATE_PLAYING);
+				gst_element_set_state(capsfilter, GST_STATE_PLAYING);
+
+				srcpad = gst_element_get_static_pad(capsfilter, "src");
+				gst_object_unref(caps);
+			}
+			gst_object_unref(mixer_srcpad);
+		}
 	}
 
+#if GST_CHECK_VERSION(1,0,0)
+	sinkpad = gst_element_get_request_pad(stream->src, "sink_%u");
+#else
 	sinkpad = gst_element_get_request_pad(stream->src, "sink%d");
+#endif
 	gst_pad_link(srcpad, sinkpad);
 	gst_object_unref(sinkpad);
 
@@ -1729,6 +2236,7 @@ src_pad_added_cb(FsStream *fsstream, GstPad *srcpad,
 			(GSourceFunc)src_pad_added_cb_cb, stream);
 }
 
+#ifdef HAVE_FARSIGHT
 static GValueArray *
 append_relay_info(GValueArray *relay_info, const gchar *ip, gint port,
 	const gchar *username, const gchar *password, const gchar *type)
@@ -1739,19 +2247,22 @@ append_relay_info(GValueArray *relay_info, const gchar *ip, gint port,
 				"port", G_TYPE_UINT, port,
 				"username", G_TYPE_STRING, username,
 				"password", G_TYPE_STRING, password,
-	            "relay-type", G_TYPE_STRING, type,
+				"relay-type", G_TYPE_STRING, type,
 				NULL);
 
 	if (turn_setup) {
 		memset(&value, 0, sizeof(GValue));
 		g_value_init(&value, GST_TYPE_STRUCTURE);
 		gst_value_set_structure(&value, turn_setup);
+G_GNUC_BEGIN_IGNORE_DEPRECATIONS
 		relay_info = g_value_array_append(relay_info, &value);
+G_GNUC_END_IGNORE_DEPRECATIONS
 		gst_structure_free(turn_setup);
 	}
 
 	return relay_info;
 }
+#endif
 
 static gboolean
 create_stream(PurpleMediaBackendFs2 *self,
@@ -1767,7 +2278,7 @@ create_stream(PurpleMediaBackendFs2 *self,
 	const gchar *stun_ip = purple_network_get_stun_ip();
 	const gchar *turn_ip = purple_network_get_turn_ip();
 	guint _num_params = num_params;
-	GParameter *_params = g_new0(GParameter, num_params + 3);
+	GParameter *_params;
 	FsStreamDirection type_direction =
 			session_type_to_fs_stream_direction(type);
 	PurpleMediaBackendFs2Session *session;
@@ -1777,7 +2288,46 @@ create_stream(PurpleMediaBackendFs2 *self,
 	  we need to do this to allow them to override when using non-standard
 	  TURN modes, like Google f.ex. */
 	gboolean got_turn_from_prpl = FALSE;
-	int i;
+	guint i;
+#ifndef HAVE_FARSIGHT
+	GPtrArray *relay_info = g_ptr_array_new_full (1, (GDestroyNotify) gst_structure_free);
+	gboolean ret;
+#endif
+
+	session = get_session(self, sess_id);
+
+	if (session == NULL) {
+		purple_debug_error("backend-fs2",
+				"Couldn't find session to create stream.\n");
+		return FALSE;
+	}
+
+	participant = get_participant(self, who);
+
+	if (participant == NULL) {
+		purple_debug_error("backend-fs2", "Couldn't find "
+				"participant to create stream.\n");
+		return FALSE;
+	}
+
+#ifndef HAVE_FARSIGHT
+	fsstream = fs_session_new_stream(session->session, participant,
+			initiator == TRUE ? type_direction :
+			(type_direction & FS_DIRECTION_RECV), &err);
+
+	if (fsstream == NULL) {
+		if (err) {
+			purple_debug_error("backend-fs2",
+					"Error creating stream: %s\n",
+					err && err->message ?
+					err->message : "NULL");
+			g_error_free(err);
+		} else
+			purple_debug_error("backend-fs2",
+					"Error creating stream\n");
+		return FALSE;
+	}
+#endif
 
 	for (i = 0 ; i < num_params ; i++) {
 		if (purple_strequal(params[i].name, "relay-info")) {
@@ -1786,6 +2336,7 @@ create_stream(PurpleMediaBackendFs2 *self,
 		}
 	}
 
+	_params = g_new0(GParameter, num_params + 3);
 	memcpy(_params, params, sizeof(GParameter) * num_params);
 
 	/* set the controlling mode parameter */
@@ -1804,8 +2355,12 @@ create_stream(PurpleMediaBackendFs2 *self,
 		++_num_params;
 	}
 
-	if (turn_ip && !strcmp("nice", transmitter) && !got_turn_from_prpl) {
+	if (turn_ip && purple_strequal("nice", transmitter) && !got_turn_from_prpl) {
+G_GNUC_BEGIN_IGNORE_DEPRECATIONS
+#ifdef HAVE_FARSIGHT
 		GValueArray *relay_info = g_value_array_new(0);
+#endif
+G_GNUC_END_IGNORE_DEPRECATIONS
 		gint port;
 		const gchar *username =	purple_prefs_get_string(
 				"/purple/network/turn_username");
@@ -1815,15 +2370,37 @@ create_stream(PurpleMediaBackendFs2 *self,
 		/* UDP */
 		port = purple_prefs_get_int("/purple/network/turn_port");
 		if (port > 0) {
+#ifdef HAVE_FARSIGHT
 			relay_info = append_relay_info(relay_info, turn_ip, port, username,
 				password, "udp");
+#else
+			g_ptr_array_add (relay_info,
+				gst_structure_new ("relay-info",
+				"ip", G_TYPE_STRING, turn_ip,
+				"port", G_TYPE_UINT, port,
+				"username", G_TYPE_STRING, username,
+				"password", G_TYPE_STRING, password,
+				"relay-type", G_TYPE_STRING, "udp",
+				NULL));
+#endif
 		}
-		
+
 		/* TCP */
 		port = purple_prefs_get_int("/purple/network/turn_port_tcp");
 		if (port > 0) {
+#ifdef HAVE_FARSIGHT
 			relay_info = append_relay_info(relay_info, turn_ip, port, username,
 				password, "tcp");
+#else
+			g_ptr_array_add (relay_info,
+				gst_structure_new ("relay-info",
+				"ip", G_TYPE_STRING, turn_ip,
+				"port", G_TYPE_UINT, port,
+				"username", G_TYPE_STRING, username,
+				"password", G_TYPE_STRING, password,
+				"relay-type", G_TYPE_STRING, "tcp",
+				NULL));
+#endif
 		}
 
 		/* TURN over SSL is only supported by libnice for Google's "psuedo" SSL mode
@@ -1832,30 +2409,20 @@ create_stream(PurpleMediaBackendFs2 *self,
 		purple_debug_info("backend-fs2",
 			"Setting relay-info on new stream\n");
 		_params[_num_params].name = "relay-info";
-		g_value_init(&_params[_num_params].value,
-			G_TYPE_VALUE_ARRAY);
-		g_value_set_boxed(&_params[_num_params].value,
-			relay_info);
+G_GNUC_BEGIN_IGNORE_DEPRECATIONS
+#ifdef HAVE_FARSIGHT
+		g_value_init(&_params[_num_params].value, G_TYPE_VALUE_ARRAY);
+		g_value_set_boxed(&_params[_num_params].value, relay_info);
 		g_value_array_free(relay_info);
+#else
+		g_value_init(&_params[_num_params].value, G_TYPE_PTR_ARRAY);
+		g_value_set_boxed(&_params[_num_params].value, relay_info);
+#endif
+G_GNUC_END_IGNORE_DEPRECATIONS
 		_num_params++;
 	}
 
-	session = get_session(self, sess_id);
-
-	if (session == NULL) {
-		purple_debug_error("backend-fs2",
-				"Couldn't find session to create stream.\n");
-		return FALSE;
-	}
-
-	participant = get_participant(self, who);
-
-	if (participant == NULL) {
-		purple_debug_error("backend-fs2", "Couldn't find "
-				"participant to create stream.\n");
-		return FALSE;
-	}
-
+#ifdef HAVE_FARSIGHT
 	fsstream = fs_session_new_stream(session->session, participant,
 			initiator == TRUE ? type_direction :
 			(type_direction & FS_DIRECTION_RECV), transmitter,
@@ -1874,11 +2441,30 @@ create_stream(PurpleMediaBackendFs2 *self,
 					"Error creating stream\n");
 		return FALSE;
 	}
+#else
+	ret = fs_stream_set_transmitter(fsstream, transmitter,
+			_params, _num_params, &err);
+	for (i = 0 ; i < _num_params ; i++)
+		g_value_unset (&_params[i].value);
+	g_free(_params);
+        if (relay_info)
+		g_ptr_array_unref (relay_info);
+	if (ret == FALSE) {
+		purple_debug_error("backend-fs2",
+			"Could not set transmitter %s: %s.\n",
+			transmitter, err ? err->message : NULL);
+		g_clear_error(&err);
+		return FALSE;
+	}
+#endif
 
 	stream = g_new0(PurpleMediaBackendFs2Stream, 1);
 	stream->participant = g_strdup(who);
 	stream->session = session;
 	stream->stream = fsstream;
+#ifndef HAVE_FARSIGHT
+	stream->supports_add = purple_strequal(transmitter, "nice");
+#endif
 
 	priv->streams =	g_list_append(priv->streams, stream);
 
@@ -1991,8 +2577,17 @@ purple_media_backend_fs2_add_remote_candidates(PurpleMediaBackend *self,
 	if (purple_media_is_initiator(priv->media, sess_id, participant) ||
 			purple_media_accepted(
 			priv->media, sess_id, participant)) {
+#ifdef HAVE_FARSIGHT
 		fs_stream_set_remote_candidates(stream->stream,
 				stream->remote_candidates, &err);
+#else
+		if (stream->supports_add)
+			fs_stream_add_remote_candidates(stream->stream,
+					stream->remote_candidates, &err);
+		else
+			fs_stream_force_remote_candidates(stream->stream,
+					stream->remote_candidates, &err);
+#endif
 
 		if (err) {
 			purple_debug_error("backend-fs2", "Error adding remote"
@@ -2021,25 +2616,56 @@ purple_media_backend_fs2_codecs_ready(PurpleMediaBackend *self,
 			return FALSE;
 
 		if (session->type & (PURPLE_MEDIA_SEND_AUDIO |
-				PURPLE_MEDIA_SEND_VIDEO))
+#ifdef HAVE_MEDIA_APPLICATION
+				PURPLE_MEDIA_SEND_APPLICATION |
+#endif
+				PURPLE_MEDIA_SEND_VIDEO)) {
+#ifdef HAVE_FARSIGHT
 			g_object_get(session->session,
 					"codecs-ready", &ret, NULL);
-		else
+#else
+			GList *codecs = NULL;
+
+			g_object_get(session->session,
+					"codecs", &codecs, NULL);
+			if (codecs) {
+				fs_codec_list_destroy (codecs);
+				ret = TRUE;
+			}
+#endif
+		} else
 			ret = TRUE;
 	} else {
 		GList *values = g_hash_table_get_values(priv->sessions);
 
 		for (; values; values = g_list_delete_link(values, values)) {
 			PurpleMediaBackendFs2Session *session = values->data;
+
 			if (session->type & (PURPLE_MEDIA_SEND_AUDIO |
-					PURPLE_MEDIA_SEND_VIDEO))
+#ifdef HAVE_MEDIA_APPLICATION
+					PURPLE_MEDIA_SEND_APPLICATION |
+#endif
+					PURPLE_MEDIA_SEND_VIDEO)) {
+#ifdef HAVE_FARSIGHT
 				g_object_get(session->session,
 						"codecs-ready", &ret, NULL);
-			else
-				ret = TRUE;
+				if (ret == FALSE)
+					break;
+#else
+				GList *codecs = NULL;
 
-			if (ret == FALSE)
-				break;
+				g_object_get(session->session,
+						"codecs", &codecs, NULL);
+				if (codecs) {
+					fs_codec_list_destroy (codecs);
+					ret = TRUE;
+				} else {
+					ret = FALSE;
+					break;
+				}
+#endif
+			} else
+				ret = TRUE;
 		}
 
 		if (values != NULL)
@@ -2121,6 +2747,117 @@ purple_media_backend_fs2_set_remote_codecs(PurpleMediaBackend *self,
 	return TRUE;
 }
 
+#if GST_CHECK_VERSION(1,0,0)
+static GstStructure *
+create_fs2_srtp_structure(const gchar *cipher, const gchar *auth,
+	const gchar *key, gsize key_len)
+{
+	GstStructure *result;
+	GstBuffer *buffer;
+	GstMapInfo info;
+
+	buffer = gst_buffer_new_allocate(NULL, key_len, NULL);
+	gst_buffer_map(buffer, &info, GST_MAP_WRITE);
+	memcpy(info.data, key, key_len);
+	gst_buffer_unmap(buffer, &info);
+
+	result = gst_structure_new("FarstreamSRTP",
+			"cipher", G_TYPE_STRING, cipher,
+			"auth", G_TYPE_STRING, auth,
+			"key", GST_TYPE_BUFFER, buffer,
+			NULL);
+	gst_buffer_unref(buffer);
+
+	return result;
+}
+
+static gboolean
+purple_media_backend_fs2_set_encryption_parameters (PurpleMediaBackend *self,
+		const gchar *sess_id, const gchar *cipher, const gchar *auth,
+		const gchar *key, gsize key_len)
+{
+	PurpleMediaBackendFs2Session *session;
+	GstStructure *srtp;
+	GError *err = NULL;
+	gboolean result;
+
+	g_return_val_if_fail(PURPLE_IS_MEDIA_BACKEND_FS2(self), FALSE);
+
+	session = get_session(PURPLE_MEDIA_BACKEND_FS2(self), sess_id);
+	if (!session)
+		return FALSE;
+
+	srtp = create_fs2_srtp_structure(cipher, auth, key, key_len);
+	if (!srtp)
+		return FALSE;
+
+	result = fs_session_set_encryption_parameters(session->session, srtp,
+						&err);
+	if (!result) {
+		purple_debug_error("backend-fs2",
+				"Error setting encryption parameters: %s\n", err->message);
+		g_error_free(err);
+	}
+
+	gst_structure_free(srtp);
+	return result;
+}
+
+static gboolean
+purple_media_backend_fs2_set_decryption_parameters (PurpleMediaBackend *self,
+		const gchar *sess_id, const gchar *participant,
+		const gchar *cipher, const gchar *auth,
+		const gchar *key, gsize key_len)
+{
+	PurpleMediaBackendFs2Stream *stream;
+	GstStructure *srtp;
+	GError *err = NULL;
+	gboolean result;
+
+	g_return_val_if_fail(PURPLE_IS_MEDIA_BACKEND_FS2(self), FALSE);
+
+	stream = get_stream(PURPLE_MEDIA_BACKEND_FS2(self), sess_id,
+			participant);
+	if (!stream)
+		return FALSE;
+
+	srtp = create_fs2_srtp_structure(cipher, auth, key, key_len);
+	if (!srtp)
+		return FALSE;
+
+	result = fs_stream_set_decryption_parameters(stream->stream, srtp,
+						&err);
+	if (!result) {
+		purple_debug_error("backend-fs2",
+				"Error setting decryption parameters: %s\n", err->message);
+		g_error_free(err);
+	}
+
+	gst_structure_free(srtp);
+	return result;
+}
+
+static gboolean
+purple_media_backend_fs2_set_require_encryption(PurpleMediaBackend *self,
+		const gchar *sess_id, const gchar *participant,
+		gboolean require_encryption)
+{
+	PurpleMediaBackendFs2Stream *stream;
+	gboolean result;
+
+	stream = get_stream(PURPLE_MEDIA_BACKEND_FS2(self), sess_id,
+			participant);
+	if (!stream) {
+		return FALSE;
+	}
+
+	g_object_set(stream->stream, "require-encryption",
+			require_encryption, NULL);
+	return TRUE;
+}
+
+#endif /* GST 1.0+ */
+
 static gboolean
 purple_media_backend_fs2_set_send_codec(PurpleMediaBackend *self,
 		const gchar *sess_id, PurpleMediaCodec *codec)
@@ -2149,14 +2886,44 @@ purple_media_backend_fs2_set_send_codec(PurpleMediaBackend *self,
 	return TRUE;
 }
 
+static const gchar **
+purple_media_backend_fs2_get_available_params(void)
+{
+	static const gchar *supported_params[] = {
+		"sdes-cname", "sdes-email", "sdes-location", "sdes-name", "sdes-note",
+		"sdes-phone", "sdes-tool", NULL
+	};
+
+	return supported_params;
+}
+
+static const gchar*
+param_to_sdes_type(const gchar *param)
+{
+	const gchar **supported = purple_media_backend_fs2_get_available_params();
+	static const gchar *sdes_types[] = {
+		"cname", "email", "location", "name", "note", "phone", "tool", NULL
+	};
+	guint i;
+
+	for (i = 0; supported[i] != NULL; ++i) {
+		if (purple_strequal(param, supported[i])) {
+			return sdes_types[i];
+		}
+	}
+
+	return NULL;
+}
+
 static void
 purple_media_backend_fs2_set_params(PurpleMediaBackend *self,
 		guint num_params, GParameter *params)
 {
 	PurpleMediaBackendFs2Private *priv;
-	const gchar **supported = purple_media_backend_fs2_get_available_params();
-	const gchar **p;
 	guint i;
+#ifndef HAVE_FARSIGHT
+	GstStructure *sdes;
+#endif
 
 	g_return_if_fail(PURPLE_IS_MEDIA_BACKEND_FS2(self));
 
@@ -2169,27 +2936,89 @@ purple_media_backend_fs2_set_params(PurpleMediaBackend *self,
 		return;
 	}
 
+#ifdef HAVE_FARSIGHT
 	for (i = 0; i != num_params; ++i) {
-		for (p = supported; *p != NULL; ++p) {
-			if (!strcmp(params[i].name, *p)) {
-				g_object_set(priv->conference,
-						params[i].name, g_value_get_string(&params[i].value),
-						NULL);
-				break;
-			}
+		if (param_to_sdes_type(params[i].name)) {
+			g_object_set(priv->conference,
+			             params[i].name, g_value_get_string(&params[i].value),
+			             NULL);
 		}
 	}
+#else
+	g_object_get(G_OBJECT(priv->conference), "sdes", &sdes, NULL);
+
+	for (i = 0; i != num_params; ++i) {
+		const gchar *sdes_type = param_to_sdes_type(params[i].name);
+		if (!sdes_type)
+			continue;
+
+		gst_structure_set(sdes, sdes_type,
+		                  G_TYPE_STRING, g_value_get_string(&params[i].value),
+		                  NULL);
+	}
+
+	g_object_set(G_OBJECT(priv->conference), "sdes", sdes, NULL);
+	gst_structure_free(sdes);
+#endif /* HAVE_FARSIGHT */
 }
-
-static const gchar **
-purple_media_backend_fs2_get_available_params(void)
+static gboolean
+send_dtmf_callback(gpointer userdata)
 {
-	static const gchar *supported_params[] = {
-		"sdes-cname", "sdes-email", "sdes-location", "sdes-name", "sdes-note",
-		"sdes-phone", "sdes-tool", NULL
-	};
+	FsSession *session = userdata;
 
-	return supported_params;
+	fs_session_stop_telephony_event(session);
+
+	return FALSE;
+}
+static gboolean
+purple_media_backend_fs2_send_dtmf(PurpleMediaBackend *self,
+		const gchar *sess_id, gchar dtmf, guint8 volume,
+		guint16 duration)
+{
+	PurpleMediaBackendFs2Session *session;
+	FsDTMFEvent event;
+
+	g_return_val_if_fail(PURPLE_IS_MEDIA_BACKEND_FS2(self), FALSE);
+
+	session = get_session(PURPLE_MEDIA_BACKEND_FS2(self), sess_id);
+	if (session == NULL)
+		return FALSE;
+
+	/* Convert DTMF char into FsDTMFEvent enum */
+	switch(dtmf) {
+		case '0': event = FS_DTMF_EVENT_0; break;
+		case '1': event = FS_DTMF_EVENT_1; break;
+		case '2': event = FS_DTMF_EVENT_2; break;
+		case '3': event = FS_DTMF_EVENT_3; break;
+		case '4': event = FS_DTMF_EVENT_4; break;
+		case '5': event = FS_DTMF_EVENT_5; break;
+		case '6': event = FS_DTMF_EVENT_6; break;
+		case '7': event = FS_DTMF_EVENT_7; break;
+		case '8': event = FS_DTMF_EVENT_8; break;
+		case '9': event = FS_DTMF_EVENT_9; break;
+		case '*': event = FS_DTMF_EVENT_STAR; break;
+		case '#': event = FS_DTMF_EVENT_POUND; break;
+		case 'A': event = FS_DTMF_EVENT_A; break;
+		case 'B': event = FS_DTMF_EVENT_B; break;
+		case 'C': event = FS_DTMF_EVENT_C; break;
+		case 'D': event = FS_DTMF_EVENT_D; break;
+		default:
+			return FALSE;
+	}
+
+	if (!fs_session_start_telephony_event(session->session,
+			event, volume)) {
+		return FALSE;
+	}
+
+	if (duration <= 50) {
+		fs_session_stop_telephony_event(session->session);
+	} else {
+		purple_timeout_add(duration, send_dtmf_callback,
+				session->session);
+	}
+
+	return TRUE;
 }
 #else
 GType
@@ -2290,3 +3119,26 @@ purple_media_backend_fs2_set_output_volume(PurpleMediaBackendFs2 *self,
 #endif /* USE_VV */
 }
 #endif /* USE_GSTREAMER */
+
+#ifdef USE_VV
+static gboolean
+purple_media_backend_fs2_set_send_rtcp_mux(PurpleMediaBackend *self,
+		const gchar *sess_id, const gchar *participant,
+		gboolean send_rtcp_mux)
+{
+	PurpleMediaBackendFs2Stream *stream;
+
+	g_return_val_if_fail(PURPLE_IS_MEDIA_BACKEND_FS2(self), FALSE);
+	stream = get_stream(PURPLE_MEDIA_BACKEND_FS2(self),
+			sess_id, participant);
+
+	if (stream != NULL &&
+		g_object_class_find_property (G_OBJECT_GET_CLASS (stream->stream),
+			"send-rtcp-mux") != NULL) {
+		g_object_set (stream->stream, "send-rtcp-mux", send_rtcp_mux, NULL);
+		return TRUE;
+	}
+
+	return FALSE;
+}
+#endif /* USE_VV */

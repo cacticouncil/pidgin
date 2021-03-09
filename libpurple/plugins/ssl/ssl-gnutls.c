@@ -34,7 +34,7 @@
 
 typedef struct
 {
-	gnutls_session session;
+	gnutls_session_t session;
 	guint handshake_handler;
 	guint handshake_timer;
 } PurpleSslGnutlsData;
@@ -68,20 +68,6 @@ ssl_gnutls_init_gnutls(void)
 {
 	const char *debug_level;
 	const char *host_priorities_str;
-
-	/* Configure GnuTLS to use glib memory management */
-	/* I expect that this isn't really necessary, but it may prevent
-	   some bugs */
-	/* TODO: It may be necessary to wrap this allocators for GnuTLS.
-	   If there are strange bugs, perhaps look here (yes, I am a
-	   hypocrite) */
-	gnutls_global_set_mem_functions(
-		(gnutls_alloc_function)   g_malloc, /* malloc */
-		(gnutls_alloc_function)   g_malloc, /* secure malloc */
-		NULL,      /* mem_is_secure */
-		(gnutls_realloc_function) g_realloc, /* realloc */
-		(gnutls_free_function)    g_free     /* free */
-		);
 
 	debug_level = g_getenv("PURPLE_GNUTLS_DEBUG");
 	if (debug_level) {
@@ -131,7 +117,7 @@ ssl_gnutls_init_gnutls(void)
 					                               "string for %s\n", host);
 				} else {
 					/* TODO: Validate each of these and complain */
-					if (g_str_equal(host, "*")) {
+					if (purple_strequal(host, "*")) {
 						/* Override the default priority */
 						g_free(default_priority_str);
 						default_priority_str = g_strdup(prio_str);
@@ -284,10 +270,10 @@ static void ssl_gnutls_handshake_cb(gpointer data, gint source,
 		g_list_free(peers);
 
 		{
-			const gnutls_datum *cert_list;
+			const gnutls_datum_t *cert_list;
 			unsigned int cert_list_size = 0;
-			gnutls_session session=gnutls_data->session;
-			int i;
+			gnutls_session_t session=gnutls_data->session;
+			guint i;
 
 			cert_list =
 				gnutls_certificate_get_peers(session, &cert_list_size);
@@ -303,13 +289,13 @@ static void ssl_gnutls_handshake_cb(gpointer data, gint source,
 				gchar tbuf[256];
 				gsize tsz=sizeof(tbuf);
 				gchar * tasc = NULL;
-				gnutls_x509_crt cert;
+				gnutls_x509_crt_t cert;
 
 				gnutls_x509_crt_init(&cert);
 				gnutls_x509_crt_import (cert, &cert_list[i],
 						GNUTLS_X509_FMT_DER);
 
-				gnutls_x509_crt_get_fingerprint(cert, GNUTLS_MAC_SHA,
+				gnutls_x509_crt_get_fingerprint(cert, GNUTLS_DIG_SHA,
 						fpr_bin, &fpr_bin_sz);
 
 				fpr_asc =
@@ -386,7 +372,6 @@ static void
 ssl_gnutls_connect(PurpleSslConnection *gsc)
 {
 	PurpleSslGnutlsData *gnutls_data;
-	static const int cert_type_priority[2] = { GNUTLS_CRT_X509, 0 };
 
 	gnutls_data = g_new0(PurpleSslGnutlsData, 1);
 	gsc->private_data = gnutls_data;
@@ -413,13 +398,14 @@ ssl_gnutls_connect(PurpleSslConnection *gsc)
 	gnutls_set_default_priority(gnutls_data->session);
 #endif
 
-	gnutls_certificate_type_set_priority(gnutls_data->session,
-		cert_type_priority);
-
 	gnutls_credentials_set(gnutls_data->session, GNUTLS_CRD_CERTIFICATE,
 		xcred);
 
 	gnutls_transport_set_ptr(gnutls_data->session, GINT_TO_POINTER(gsc->fd));
+
+	/* SNI support. */
+	if (gsc->host && !g_hostname_is_ip_address(gsc->host))
+		gnutls_server_name_set(gnutls_data->session, GNUTLS_NAME_DNS, gsc->host, strlen(gsc->host));
 
 	gnutls_data->handshake_handler = purple_input_add(gsc->fd,
 		PURPLE_INPUT_READ, ssl_gnutls_handshake_cb, gsc);
@@ -465,13 +451,67 @@ static size_t
 ssl_gnutls_read(PurpleSslConnection *gsc, void *data, size_t len)
 {
 	PurpleSslGnutlsData *gnutls_data = PURPLE_SSL_GNUTLS_DATA(gsc);
-	ssize_t s;
+	ssize_t s = 0;
 
-	s = gnutls_record_recv(gnutls_data->session, data, len);
+	if(gnutls_data)
+		s = gnutls_record_recv(gnutls_data->session, data, len);
 
 	if(s == GNUTLS_E_AGAIN || s == GNUTLS_E_INTERRUPTED) {
 		s = -1;
 		errno = EAGAIN;
+
+#ifdef GNUTLS_E_PREMATURE_TERMINATION
+	} else if (s == GNUTLS_E_PREMATURE_TERMINATION) {
+		purple_debug_warning("gnutls", "Received a FIN on the TCP socket "
+				"for %s. This either means that the remote server closed "
+				"the socket without sending us a Close Notify alert or a "
+				"man-in-the-middle injected a FIN into the TCP stream. "
+				"Assuming it's the former.\n", gsc->host);
+#else
+	} else if (s == GNUTLS_E_UNEXPECTED_PACKET_LENGTH) {
+		purple_debug_warning("gnutls", "Received packet of unexpected "
+				"length on the TCP socket for %s. Among other "
+				"possibilities this might mean that the remote server "
+				"closed the socket without sending us a Close Notify alert. "
+				"Assuming that's the case for compatibility, however, note "
+				"that it's quite possible that we're incorrectly ignoing "
+				"a real error.\n", gsc->host);
+#endif
+		/*
+		 * Summary:
+		 * Always treat a closed TCP connection as if the remote server cleanly
+		 * terminated the SSL session.
+		 *
+		 * Background:
+		 * Most TLS servers send a Close Notify alert before sending TCP FIN
+		 * when closing a session. This informs us at the TLS layer that the
+		 * connection is being cleanly closed. Without this it's more
+		 * difficult for us to determine whether the session was closed
+		 * cleanly (we would need to resort to having the application layer
+		 * perform this check, e.g. by looking at the Content-Length HTTP
+		 * header for HTTP connections).
+		 *
+		 * There ARE servers that don't send Close Notify and we want to be
+		 * compatible with them. And so we don't require Close Notify. This
+		 * seems to match the behavior of libnss. This is a slightly
+		 * unfortunate situation. It means a malicious MITM can inject a FIN
+		 * into our TCP stream and cause our encrypted session to termiate
+		 * and we won't indicate any problem to the user.
+		 *
+		 * GnuTLS < 3.0.0 returned the UNEXPECTED_PACKET_LENGTH error on EOF.
+		 * GnuTLS >= 3.0.0 added the PREMATURE_TERMINATION error to allow us
+		 * to detect the problem more specifically.
+		 *
+		 * For historical discussion see:
+		 * https://developer.pidgin.im/ticket/16172
+		 * http://trac.adiumx.com/intertrac/ticket%3A16678
+		 * https://bugzilla.mozilla.org/show_bug.cgi?id=508698#c4
+		 * http://lists.gnu.org/archive/html/gnutls-devel/2008-03/msg00058.html
+		 * Or search for GNUTLS_E_UNEXPECTED_PACKET_LENGTH or
+		 * GNUTLS_E_PREMATURE_TERMINATION
+		 */
+		s = 0;
+
 	} else if(s < 0) {
 		purple_debug_error("gnutls", "receive failed: %s\n",
 				gnutls_strerror(s));
@@ -519,7 +559,7 @@ ssl_gnutls_write(PurpleSslConnection *gsc, const void *data, size_t len)
 
 /* Forward declarations are fun! */
 static PurpleCertificate *
-x509_import_from_datum(const gnutls_datum dt, gnutls_x509_crt_fmt mode);
+x509_import_from_datum(const gnutls_datum_t dt, gnutls_x509_crt_fmt_t mode);
 /* indeed! */
 static gboolean
 x509_certificate_signed_by(PurpleCertificate * crt,
@@ -537,7 +577,7 @@ ssl_gnutls_get_peer_certificates(PurpleSslConnection * gsc)
 	GList * peer_certs = NULL;
 
 	/* List of raw certificates as given by GnuTLS */
-	const gnutls_datum *cert_list;
+	const gnutls_datum_t *cert_list;
 	unsigned int cert_list_size = 0;
 
 	unsigned int i;
@@ -559,7 +599,7 @@ ssl_gnutls_get_peer_certificates(PurpleSslConnection * gsc)
 		   TODO: Is anyone complaining? (Maybe elb?) */
 		/* only append if previous cert was actually signed by this one.
 		 * Thanks Microsoft. */
-		if ((prvcrt == NULL) || x509_certificate_signed_by(prvcrt, newcrt)) {
+		if ((newcrt != NULL) && ((prvcrt == NULL) || x509_certificate_signed_by(prvcrt, newcrt))) {
 			peer_certs = g_list_append(peer_certs, newcrt);
 			prvcrt = newcrt;
 		} else {
@@ -585,7 +625,7 @@ static PurpleCertificateScheme x509_gnutls;
 /** Refcounted GnuTLS certificate data instance */
 typedef struct {
 	gint refcount;
-	gnutls_x509_crt crt;
+	gnutls_x509_crt_t crt;
 } x509_crtdata_t;
 
 /** Helper functions for reference counting */
@@ -627,7 +667,7 @@ x509_crtdata_delref(x509_crtdata_t *cd)
  * @return A newly allocated Certificate structure of the x509_gnutls scheme
  */
 static PurpleCertificate *
-x509_import_from_datum(const gnutls_datum dt, gnutls_x509_crt_fmt mode)
+x509_import_from_datum(const gnutls_datum_t dt, gnutls_x509_crt_fmt_t mode)
 {
 	/* Internal certificate data structure */
 	x509_crtdata_t *certdat;
@@ -636,12 +676,18 @@ x509_import_from_datum(const gnutls_datum dt, gnutls_x509_crt_fmt mode)
 
 	/* Allocate and prepare the internal certificate data */
 	certdat = g_new0(x509_crtdata_t, 1);
-	gnutls_x509_crt_init(&(certdat->crt));
+	if (gnutls_x509_crt_init(&(certdat->crt)) != 0) {
+		g_free(certdat);
+		return NULL;
+	}
 	certdat->refcount = 0;
 
 	/* Perform the actual certificate parse */
 	/* Yes, certdat->crt should be passed as-is */
-	gnutls_x509_crt_import(certdat->crt, &dt, mode);
+	if (gnutls_x509_crt_import(certdat->crt, &dt, mode) != 0) {
+		g_free(certdat);
+		return NULL;
+	}
 
 	/* Allocate the certificate and load it with data */
 	crt = g_new0(PurpleCertificate, 1);
@@ -662,7 +708,7 @@ x509_import_from_file(const gchar * filename)
 	PurpleCertificate *crt;  /* Certificate being constructed */
 	gchar *buf;        /* Used to load the raw file data */
 	gsize buf_sz;      /* Size of the above */
-	gnutls_datum dt; /* Struct to pass down to GnuTLS */
+	gnutls_datum_t dt; /* Struct to pass down to GnuTLS */
 
 	purple_debug_info("gnutls",
 			  "Attempting to load X.509 certificate from %s\n",
@@ -671,13 +717,13 @@ x509_import_from_file(const gchar * filename)
 	/* Next, we'll simply yank the entire contents of the file
 	   into memory */
 	/* TODO: Should I worry about very large files here? */
-	g_return_val_if_fail(
-		g_file_get_contents(filename,
-			    &buf,
-			    &buf_sz,
-			    NULL      /* No error checking for now */
-		),
-		NULL);
+	if (!g_file_get_contents(filename,
+			&buf,
+			&buf_sz,
+			NULL      /* No error checking for now */
+			)) {
+		return NULL;
+	}
 
 	/* Load the datum struct */
 	dt.data = (unsigned char *) buf;
@@ -705,7 +751,7 @@ x509_importcerts_from_file(const gchar * filename)
 	gchar *begin, *end;
 	GSList *crts = NULL;
 	gsize buf_sz;      /* Size of the above */
-	gnutls_datum dt; /* Struct to pass down to GnuTLS */
+	gnutls_datum_t dt; /* Struct to pass down to GnuTLS */
 
 	purple_debug_info("gnutls",
 			  "Attempting to load X.509 certificates from %s\n",
@@ -731,7 +777,9 @@ x509_importcerts_from_file(const gchar * filename)
 
 		/* Perform the conversion; files should be in PEM format */
 		crt = x509_import_from_datum(dt, GNUTLS_X509_FMT_PEM);
-		crts = g_slist_prepend(crts, crt);
+		if (crt != NULL) {
+			crts = g_slist_prepend(crts, crt);
+		}
 		begin = end;
 	}
 
@@ -751,7 +799,7 @@ x509_importcerts_from_file(const gchar * filename)
 static gboolean
 x509_export_certificate(const gchar *filename, PurpleCertificate *crt)
 {
-	gnutls_x509_crt crt_dat; /* GnuTLS cert struct */
+	gnutls_x509_crt_t crt_dat; /* GnuTLS cert struct */
 	int ret;
 	gchar * out_buf; /* Data to output */
 	size_t out_size; /* Output size */
@@ -857,8 +905,8 @@ static gboolean
 x509_certificate_signed_by(PurpleCertificate * crt,
 			   PurpleCertificate * issuer)
 {
-	gnutls_x509_crt crt_dat;
-	gnutls_x509_crt issuer_dat;
+	gnutls_x509_crt_t crt_dat;
+	gnutls_x509_crt_t issuer_dat;
 	unsigned int verify; /* used to store result from GnuTLS verifier */
 	int ret;
 	gchar *crt_id = NULL;
@@ -876,7 +924,7 @@ x509_certificate_signed_by(PurpleCertificate * crt,
 	crt_dat = X509_GET_GNUTLS_DATA(crt);
 	issuer_dat = X509_GET_GNUTLS_DATA(issuer);
 
-	/* First, let's check that crt.issuer is actually issuer */
+	/* Ensure crt issuer matches the name on the issuer cert. */
 	ret = gnutls_x509_crt_check_issuer(crt_dat, issuer_dat);
 	if (ret <= 0) {
 
@@ -902,6 +950,41 @@ x509_certificate_signed_by(PurpleCertificate * crt,
 		}
 
 		/* The issuer is not correct, or there were errors */
+		return FALSE;
+	}
+
+	/* Check basic constraints extension (if it exists then the CA flag must
+	   be set to true, and it must exist for certs with version 3 or higher. */
+	ret = gnutls_x509_crt_get_basic_constraints(issuer_dat, NULL, NULL, NULL);
+	if (ret == GNUTLS_E_REQUESTED_DATA_NOT_AVAILABLE) {
+		if (gnutls_x509_crt_get_version(issuer_dat) >= 3) {
+			/* Reject cert (no basic constraints and cert version is >= 3). */
+			gchar *issuer_id = purple_certificate_get_unique_id(issuer);
+			purple_debug_info("gnutls/x509", "Rejecting cert because the "
+					"basic constraints extension is missing from issuer cert "
+					"for %s. The basic constraints extension is required on "
+					"all version 3 or higher certs (this cert is version %d).",
+					issuer_id ? issuer_id : "(null)",
+					gnutls_x509_crt_get_version(issuer_dat));
+			g_free(issuer_id);
+			return FALSE;
+		} else {
+			/* Allow cert (no basic constraints and cert version is < 3). */
+			purple_debug_info("gnutls/x509", "Basic constraint extension is "
+					"missing from issuer cert for %s. Allowing this because "
+					"the cert is version %d and the basic constraints "
+					"extension is only required for version 3 or higher "
+					"certs.", issuer_id ? issuer_id : "(null)",
+					gnutls_x509_crt_get_version(issuer_dat));
+		}
+	} else if (ret <= 0) {
+		/* Reject cert (CA flag is false in basic constraints). */
+		gchar *issuer_id = purple_certificate_get_unique_id(issuer);
+		purple_debug_info("gnutls/x509", "Rejecting cert because the CA flag "
+				"is set to false in the basic constraints extension for "
+				"issuer cert %s. ret=%d\n",
+				issuer_id ? issuer_id : "(null)", ret);
+		g_free(issuer_id);
 		return FALSE;
 	}
 
@@ -959,11 +1042,11 @@ x509_certificate_signed_by(PurpleCertificate * crt,
 }
 
 static GByteArray *
-x509_sha1sum(PurpleCertificate *crt)
+x509_shasum(PurpleCertificate *crt, gnutls_digest_algorithm_t algo)
 {
-	size_t hashlen = 20; /* SHA1 hashes are 20 bytes */
+	size_t hashlen = (algo == GNUTLS_DIG_SHA1) ? 20 : 32;
 	size_t tmpsz = hashlen; /* Throw-away variable for GnuTLS to stomp on*/
-	gnutls_x509_crt crt_dat;
+	gnutls_x509_crt_t crt_dat;
 	GByteArray *hash; /**< Final hash container */
 	guchar hashbuf[hashlen]; /**< Temporary buffer to contain hash */
 
@@ -973,7 +1056,7 @@ x509_sha1sum(PurpleCertificate *crt)
 
 	/* Extract the fingerprint */
 	g_return_val_if_fail(
-		0 == gnutls_x509_crt_get_fingerprint(crt_dat, GNUTLS_MAC_SHA,
+		0 == gnutls_x509_crt_get_fingerprint(crt_dat, algo,
 						     hashbuf, &tmpsz),
 		NULL);
 
@@ -987,10 +1070,22 @@ x509_sha1sum(PurpleCertificate *crt)
 	return hash;
 }
 
+static GByteArray *
+x509_sha1sum(PurpleCertificate *crt)
+{
+	return x509_shasum(crt, GNUTLS_DIG_SHA1);
+}
+
+static GByteArray *
+x509_sha256sum(PurpleCertificate *crt)
+{
+	return x509_shasum(crt, GNUTLS_DIG_SHA256);
+}
+
 static gchar *
 x509_cert_dn (PurpleCertificate *crt)
 {
-	gnutls_x509_crt cert_dat;
+	gnutls_x509_crt_t cert_dat;
 	gchar *dn = NULL;
 	size_t dn_size;
 
@@ -1023,7 +1118,7 @@ x509_cert_dn (PurpleCertificate *crt)
 static gchar *
 x509_issuer_dn (PurpleCertificate *crt)
 {
-	gnutls_x509_crt cert_dat;
+	gnutls_x509_crt_t cert_dat;
 	gchar *dn = NULL;
 	size_t dn_size;
 
@@ -1057,7 +1152,7 @@ x509_issuer_dn (PurpleCertificate *crt)
 static gchar *
 x509_common_name (PurpleCertificate *crt)
 {
-	gnutls_x509_crt cert_dat;
+	gnutls_x509_crt_t cert_dat;
 	gchar *cn = NULL;
 	size_t cn_size;
 	int ret;
@@ -1100,7 +1195,7 @@ x509_common_name (PurpleCertificate *crt)
 static gboolean
 x509_check_name (PurpleCertificate *crt, const gchar *name)
 {
-	gnutls_x509_crt crt_dat;
+	gnutls_x509_crt_t crt_dat;
 
 	g_return_val_if_fail(crt, FALSE);
 	g_return_val_if_fail(crt->scheme == &x509_gnutls, FALSE);
@@ -1118,7 +1213,7 @@ x509_check_name (PurpleCertificate *crt, const gchar *name)
 static gboolean
 x509_times (PurpleCertificate *crt, time_t *activation, time_t *expiration)
 {
-	gnutls_x509_crt crt_dat;
+	gnutls_x509_crt_t crt_dat;
 	/* GnuTLS time functions return this on error */
 	const time_t errval = (time_t) (-1);
 	gboolean success = TRUE;
@@ -1142,6 +1237,46 @@ x509_times (PurpleCertificate *crt, time_t *activation, time_t *expiration)
 	return success;
 }
 
+/* GNUTLS_KEYID_USE_BEST_KNOWN was added in gnutls 3.4.1, but can't ifdef it
+ * because it's an enum member. Older versions will ignore it, which means
+ * using SHA1 instead of SHA256 to compare pubkeys. But hey, not my fault. */
+#if GNUTLS_VERSION_NUMBER < 0x030401
+#define KEYID_FLAG (1<<30)
+#else
+#define KEYID_FLAG GNUTLS_KEYID_USE_BEST_KNOWN
+#endif
+
+static gboolean
+x509_compare_pubkeys (PurpleCertificate *crt1, PurpleCertificate *crt2)
+{
+	gnutls_x509_crt_t crt_dat1, crt_dat2;
+	unsigned char buffer1[64], buffer2[64];
+	size_t size1, size2;
+	size1 = size2 = sizeof(buffer1);
+
+	g_return_val_if_fail(crt1 && crt2, FALSE);
+	g_return_val_if_fail(crt1->scheme == &x509_gnutls, FALSE);
+	g_return_val_if_fail(crt2->scheme == &x509_gnutls, FALSE);
+
+	crt_dat1 = X509_GET_GNUTLS_DATA(crt1);
+
+	if (gnutls_x509_crt_get_key_id(crt_dat1, KEYID_FLAG, buffer1, &size1) != 0) {
+		return FALSE;
+	}
+
+	crt_dat2 = X509_GET_GNUTLS_DATA(crt2);
+
+	if (gnutls_x509_crt_get_key_id(crt_dat2, KEYID_FLAG, buffer2, &size2) != 0) {
+		return FALSE;
+	}
+
+	if (size1 != size2) {
+		return FALSE;
+	}
+
+	return memcmp(buffer1, buffer2, size1) == 0;
+}
+
 /* X.509 certificate operations provided by this plugin */
 static PurpleCertificateScheme x509_gnutls = {
 	"x509",                          /* Scheme name */
@@ -1161,8 +1296,9 @@ static PurpleCertificateScheme x509_gnutls = {
 
 	NULL,
 	NULL,
-	NULL
-
+	sizeof(PurpleCertificateScheme), /* struct_size */
+	x509_sha256sum,                  /* SHA256 fingerprint */
+	x509_compare_pubkeys,            /* Compare public keys */
 };
 
 static PurpleSslOps ssl_ops =

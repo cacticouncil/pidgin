@@ -44,6 +44,7 @@
 #include "gtksourceiter.h"
 #include "gtksourceundomanager.h"
 #include "gtksourceview-marshal.h"
+#include "gtkstyle.h"
 #include <gtk/gtk.h>
 #include <glib.h>
 #include <gdk/gdkkeysyms.h>
@@ -469,6 +470,7 @@ gtk_imhtml_style_set(GtkWidget *widget, GtkStyle *prev_style)
 		} else {
 			GdkColor defcolor;
 			gdk_color_parse(styles[i].def, &defcolor);
+			pidgin_style_adjust_contrast(gtk_widget_get_style(widget), &defcolor);
 			g_object_set(tag, "foreground-gdk", &defcolor, NULL);
 		}
 	}
@@ -514,7 +516,13 @@ gtk_imhtml_tip_paint (GtkIMHtml *imhtml)
 
 	g_return_val_if_fail(GTK_IS_IMHTML(imhtml), FALSE);
 
-	layout = gtk_widget_create_pango_layout(imhtml->tip_window, imhtml->tip);
+	/* We set the text in a separate function call so we can specify a
+	   max length.  This is important so the tooltip isn't too wide for
+	   the screen, and also because some X library function exits the
+	   process when it can't allocate enough memory for a super wide
+	   tooltip. */
+	layout = gtk_widget_create_pango_layout(imhtml->tip_window, NULL);
+	pango_layout_set_text(layout, imhtml->tip, 200);
 
 	gtk_paint_flat_box (imhtml->tip_window->style, imhtml->tip_window->window,
 						GTK_STATE_NORMAL, GTK_SHADOW_OUT, NULL, imhtml->tip_window,
@@ -561,7 +569,15 @@ gtk_imhtml_tip (gpointer data)
 							  G_CALLBACK (gtk_imhtml_tip_paint), imhtml);
 
 	gtk_widget_ensure_style (imhtml->tip_window);
-	layout = gtk_widget_create_pango_layout(imhtml->tip_window, imhtml->tip);
+
+	/* We set the text in a separate function call so we can specify a
+	   max length.  This is important so the tooltip isn't too wide for
+	   the screen, and also because some X library function exits the
+	   process when it can't allocate enough memory for a super wide
+	   tooltip. */
+	layout = gtk_widget_create_pango_layout(imhtml->tip_window, NULL);
+	pango_layout_set_text(layout, imhtml->tip, 200);
+
 	font = pango_context_load_font(pango_layout_get_context(layout),
 			      imhtml->tip_window->style->font_desc);
 
@@ -668,7 +684,7 @@ gtk_motion_event_notify(GtkWidget *imhtml, GdkEventMotion *event, gpointer data)
 	}
 
 	if (GTK_IMHTML(imhtml)->tip) {
-		if ((tip == GTK_IMHTML(imhtml)->tip)) {
+		if (tip == GTK_IMHTML(imhtml)->tip) {
 			g_slist_free(tags);
 			return FALSE;
 		}
@@ -1368,9 +1384,9 @@ imhtml_paste_cb(GtkIMHtml *imhtml, const char *str)
 	if (!gtk_text_view_get_editable(GTK_TEXT_VIEW(imhtml)))
 		return;
 
-	if (!str || !*str || !strcmp(str, "html"))
+	if (!str || !*str || purple_strequal(str, "html"))
 		g_signal_emit_by_name(imhtml, "paste_clipboard");
-	else if (!strcmp(str, "text"))
+	else if (purple_strequal(str, "text"))
 		paste_unformatted_cb(NULL, imhtml);
 }
 
@@ -1458,7 +1474,7 @@ imhtml_find_protocol(const char *url, gboolean reverse)
 	GtkIMHtmlClass *klass;
 	GList *iter;
 	GtkIMHtmlProtocol *proto = NULL;
-	int length = reverse ? strlen(url) : -1;
+	int length = reverse ? strlen(url) : 0;
 
 	klass = g_type_class_ref(GTK_TYPE_IMHTML);
 	for (iter = klass->protocols; iter; iter = iter->next) {
@@ -2040,9 +2056,10 @@ gtk_smiley_tree_lookup (GtkSmileyTree *tree,
 {
 	GtkSmileyTree *t = tree;
 	const gchar *x = text;
-	gint len = 0;
 	const gchar *amp;
 	gint alen;
+	gint len = 0;
+	gint lastlen = 0;
 
 	while (*x) {
 		gchar *pos;
@@ -2077,9 +2094,11 @@ gtk_smiley_tree_lookup (GtkSmileyTree *tree,
 			pos = strchr (t->values->str, *x);
 		}
 
-		if (pos)
+		if (pos) {
 			t = t->children [GPOINTER_TO_INT(pos) - GPOINTER_TO_INT(t->values->str)];
-		else
+			if (t->image)
+				lastlen = len + alen;
+		} else
 			break;
 
 		x += alen;
@@ -2089,7 +2108,7 @@ gtk_smiley_tree_lookup (GtkSmileyTree *tree,
 	if (t->image)
 		return len;
 
-	return 0;
+	return lastlen;
 }
 
 static void
@@ -2353,10 +2372,11 @@ gtk_imhtml_is_tag (const gchar *string,
 	if (!g_ascii_strncasecmp(string, "!--", strlen ("!--"))) {
 		gchar *e = strstr (string + strlen("!--"), "-->");
 		if (e) {
-			if (len)
+			if (len) {
 				*len = e - string + strlen ("-->");
-			if (tag)
-				*tag = g_strndup (string + strlen ("!--"), *len - strlen ("!---->"));
+				if (tag)
+					*tag = g_strndup (string + strlen ("!--"), *len - strlen ("!---->"));
+			}
 			return TRUE;
 		}
 	}
@@ -2366,7 +2386,7 @@ gtk_imhtml_is_tag (const gchar *string,
 	if (len)
 		*len = close - string + 1;
 	if (tag)
-		*tag = g_strndup(string, *len - 1);
+		*tag = g_strndup(string, close - string);
 	return TRUE;
 }
 
@@ -2838,6 +2858,8 @@ void gtk_imhtml_insert_html_at_iter(GtkIMHtml        *imhtml,
 				case 25:	/* BR */
 				case 58:	/* BR/ */
 				case 61:	/* BR (opt) */
+				case 29:	/* P */
+				case 30:	/* /P */
 					ws[wpos] = '\n';
 					wpos++;
 					br = TRUE;
@@ -2911,8 +2933,6 @@ void gtk_imhtml_insert_html_at_iter(GtkIMHtml        *imhtml,
 					ws[0] = '\0'; wpos = 0;
 					break;
 
-				case 29:	/* P */
-				case 30:	/* /P */
 				case 31:	/* H3 */
 				case 32:	/* /H3 */
 				case 33:	/* HTML */
@@ -3294,13 +3314,13 @@ void gtk_imhtml_insert_html_at_iter(GtkIMHtml        *imhtml,
 							if (((font->bold && !oldfont->bold) || (oldfont->bold && !font->bold)) && !(options & GTK_IMHTML_NO_FORMATTING))
 							    gtk_imhtml_toggle_bold(imhtml);
 
-							if (font->face && (!oldfont->face || strcmp(font->face, oldfont->face) != 0) && !(options & GTK_IMHTML_NO_FONTS))
+							if (font->face && !purple_strequal(font->face, oldfont->face) && !(options & GTK_IMHTML_NO_FONTS))
 							    gtk_imhtml_toggle_fontface(imhtml, oldfont->face);
 
-							if (font->fore && (!oldfont->fore || strcmp(font->fore, oldfont->fore) != 0) && !(options & GTK_IMHTML_NO_COLOURS))
+							if (font->fore && !purple_strequal(font->fore, oldfont->fore) && !(options & GTK_IMHTML_NO_COLOURS))
 							    gtk_imhtml_toggle_forecolor(imhtml, oldfont->fore);
 
-							if (font->back && (!oldfont->back || strcmp(font->back, oldfont->back) != 0) && !(options & GTK_IMHTML_NO_COLOURS))
+							if (font->back && !purple_strequal(font->back, oldfont->back) && !(options & GTK_IMHTML_NO_COLOURS))
 							    gtk_imhtml_toggle_backcolor(imhtml, oldfont->back);
 						}
 
@@ -4039,7 +4059,7 @@ gboolean gtk_imhtml_search_find(GtkIMHtml *imhtml, const gchar *text)
 
 	start_mark = gtk_text_buffer_get_mark(imhtml->text_buffer, "search");
 
-	if (start_mark && imhtml->search_string && !strcmp(text, imhtml->search_string))
+	if (start_mark && imhtml->search_string && purple_strequal(text, imhtml->search_string))
 		new_search = FALSE;
 
 	if (new_search) {
@@ -4585,13 +4605,13 @@ static void mark_set_cb(GtkTextBuffer *buffer, GtkTextIter *arg1, GtkTextMark *m
 		GtkTextTag *tag = GTK_TEXT_TAG(l->data);
 
 		if (tag->name) {
-			if (strcmp(tag->name, "BOLD") == 0)
+			if (purple_strequal(tag->name, "BOLD"))
 				imhtml->edit.bold = TRUE;
-			else if (strcmp(tag->name, "ITALICS") == 0)
+			else if (purple_strequal(tag->name, "ITALICS"))
 				imhtml->edit.italic = TRUE;
-			else if (strcmp(tag->name, "UNDERLINE") == 0)
+			else if (purple_strequal(tag->name, "UNDERLINE"))
 				imhtml->edit.underline = TRUE;
-			else if (strcmp(tag->name, "STRIKE") == 0)
+			else if (purple_strequal(tag->name, "STRIKE"))
 				imhtml->edit.strike = TRUE;
 			else if (strncmp(tag->name, "FORECOLOR ", 10) == 0)
 				imhtml->edit.forecolor = g_strdup(&(tag->name)[10]);
@@ -4778,7 +4798,7 @@ static gboolean gtk_imhtml_toggle_str_tag(GtkIMHtml *imhtml, const char *value, 
 	g_free(*edit_field);
 	*edit_field = NULL;
 
-	if (value && strcmp(value, "") != 0)
+	if (value && *value)
 	{
 		*edit_field = g_strdup(value);
 
@@ -5093,24 +5113,26 @@ void gtk_imhtml_insert_image_at_iter(GtkIMHtml *imhtml, int id, GtkTextIter *ite
 static const gchar *tag_to_html_start(GtkTextTag *tag)
 {
 	const gchar *name;
-	static gchar buf[1024];
+	static gchar buf[16384];
 
 	name = tag->name;
 	g_return_val_if_fail(name != NULL, "");
 
-	if (strcmp(name, "BOLD") == 0) {
+	if (purple_strequal(name, "BOLD")) {
 		return "<b>";
-	} else if (strcmp(name, "ITALICS") == 0) {
+	} else if (purple_strequal(name, "ITALICS")) {
 		return "<i>";
-	} else if (strcmp(name, "UNDERLINE") == 0) {
+	} else if (purple_strequal(name, "UNDERLINE")) {
 		return "<u>";
-	} else if (strcmp(name, "STRIKE") == 0) {
+	} else if (purple_strequal(name, "STRIKE")) {
 		return "<s>";
 	} else if (strncmp(name, "LINK ", 5) == 0) {
 		char *tmp = g_object_get_data(G_OBJECT(tag), "link_url");
 		if (tmp) {
-			g_snprintf(buf, sizeof(buf), "<a href=\"%s\">", tmp);
+			gchar *escaped = purple_markup_escape_text(tmp, -1);
+			g_snprintf(buf, sizeof(buf), "<a href=\"%s\">", escaped);
 			buf[sizeof(buf)-1] = '\0';
+			g_free(escaped);
 			return buf;
 		} else {
 			return "";
@@ -5203,13 +5225,13 @@ static const gchar *tag_to_html_end(GtkTextTag *tag)
 	name = tag->name;
 	g_return_val_if_fail(name != NULL, "");
 
-	if (strcmp(name, "BOLD") == 0) {
+	if (purple_strequal(name, "BOLD")) {
 		return "</b>";
-	} else if (strcmp(name, "ITALICS") == 0) {
+	} else if (purple_strequal(name, "ITALICS")) {
 		return "</i>";
-	} else if (strcmp(name, "UNDERLINE") == 0) {
+	} else if (purple_strequal(name, "UNDERLINE")) {
 		return "</u>";
-	} else if (strcmp(name, "STRIKE") == 0) {
+	} else if (purple_strequal(name, "STRIKE")) {
 		return "</s>";
 	} else if (strncmp(name, "LINK ", 5) == 0) {
 		return "</a>";
@@ -5566,7 +5588,7 @@ void gtk_imhtml_setup_entry(GtkIMHtml *imhtml, PurpleConnectionFlags flags)
 				gtk_imhtml_font_set_size(imhtml, size);
 		}
 
-		if(strcmp(purple_prefs_get_string(PIDGIN_PREFS_ROOT "/conversations/fgcolor"), "") != 0)
+		if(!purple_strequal(purple_prefs_get_string(PIDGIN_PREFS_ROOT "/conversations/fgcolor"), ""))
 		{
 			gdk_color_parse(purple_prefs_get_string(PIDGIN_PREFS_ROOT "/conversations/fgcolor"),
 							&fg_color);
@@ -5580,7 +5602,7 @@ void gtk_imhtml_setup_entry(GtkIMHtml *imhtml, PurpleConnectionFlags flags)
 		gtk_imhtml_toggle_forecolor(imhtml, color);
 
 		if(!(flags & PURPLE_CONNECTION_NO_BGCOLOR) &&
-		   strcmp(purple_prefs_get_string(PIDGIN_PREFS_ROOT "/conversations/bgcolor"), "") != 0)
+		   !purple_strequal(purple_prefs_get_string(PIDGIN_PREFS_ROOT "/conversations/bgcolor"), ""))
 		{
 			gdk_color_parse(purple_prefs_get_string(PIDGIN_PREFS_ROOT "/conversations/bgcolor"),
 							&bg_color);
@@ -5691,18 +5713,19 @@ static void gtk_custom_smiley_closed(GdkPixbufLoader *loader, gpointer user_data
 static void
 gtk_custom_smiley_size_prepared(GdkPixbufLoader *loader, gint width, gint height, gpointer data)
 {
-#define CUSTOM_SMILEY_SIZE 96	/* XXX: Should this be a theme setting? */
-	if (width <= CUSTOM_SMILEY_SIZE && height <= CUSTOM_SMILEY_SIZE)
-		return;
+	if (purple_prefs_get_bool(PIDGIN_PREFS_ROOT "/conversations/resize_custom_smileys")) {
+		int custom_smileys_size = purple_prefs_get_int(PIDGIN_PREFS_ROOT "/conversations/custom_smileys_size");
+		if (width <= custom_smileys_size && height <= custom_smileys_size)
+			return;
 
-	if (width >= height) {
-		height = height * CUSTOM_SMILEY_SIZE / width;
-		width = CUSTOM_SMILEY_SIZE;
-	} else {
-		width = width * CUSTOM_SMILEY_SIZE / height;
-		height = CUSTOM_SMILEY_SIZE;
+		if (width >= height) {
+			height = height * custom_smileys_size / width;
+			width = custom_smileys_size;
+		} else {
+			width = width * custom_smileys_size / height;
+			height = custom_smileys_size;
+		}
 	}
-
 	gdk_pixbuf_loader_set_size(loader, width, height);
 }
 

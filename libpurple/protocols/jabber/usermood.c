@@ -135,24 +135,22 @@ static void jabber_mood_cb(JabberStream *js, const char *from, xmlnode *items) {
 		return;
 	for (moodinfo = mood->child; moodinfo; moodinfo = moodinfo->next) {
 		if (moodinfo->type == XMLNODE_TYPE_TAG) {
-			if (!strcmp(moodinfo->name, "text")) {
+			if (purple_strequal(moodinfo->name, "text")) {
 				if (!moodtext) /* only pick the first one */
 					moodtext = xmlnode_get_data(moodinfo);
 			} else {
 				int i;
 				for (i = 0; moods[i].mood; ++i) {
 					/* verify that the mood is known (valid) */
-					if (!strcmp(moodinfo->name, moods[i].mood)) {
+					if (purple_strequal(moodinfo->name, moods[i].mood)) {
 						newmood = moods[i].mood;
 						break;
 					}
 				}
 			}
-			if (newmood != NULL && moodtext != NULL)
-			   break;
 		}
 		if (newmood != NULL && moodtext != NULL)
-		   break;
+			break;
 	}
 	if (newmood != NULL) {
 		purple_prpl_got_user_status(js->gc->account, from, "mood",
@@ -177,12 +175,12 @@ void jabber_mood_set(JabberStream *js, const char *mood, const char *text) {
 	xmlnode_set_attrib(publish,"node","http://jabber.org/protocol/mood");
 	moodnode = xmlnode_new_child(xmlnode_new_child(publish, "item"), "mood");
 	xmlnode_set_namespace(moodnode, "http://jabber.org/protocol/mood");
-	if (mood) {
+	if (mood && *mood) {
 		/* if mood is NULL, set an empty mood node, meaning: unset mood */
 	    xmlnode_new_child(moodnode, mood);
 	}
 
-	if (text && text[0] != '\0') {
+	if (text && *text) {
 		xmlnode *textnode = xmlnode_new_child(moodnode, "text");
 		xmlnode_insert_data(textnode, text, -1);
 	}

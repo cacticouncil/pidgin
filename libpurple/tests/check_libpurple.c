@@ -37,7 +37,10 @@ static PurpleEventLoopUiOps eventloop_ui_ops = {
 
 static void
 purple_check_init(void) {
+#if !GLIB_CHECK_VERSION(2, 36, 0)
+	/* GLib type system is automaticaly initialized since 2.36. */
 	g_type_init();
+#endif
 
 	purple_eventloop_set_ui_ops(&eventloop_ui_ops);
 
@@ -89,8 +92,8 @@ int main(void)
 	srunner_add_suite(sr, jabber_jutil_suite());
 	srunner_add_suite(sr, jabber_scram_suite());
 	srunner_add_suite(sr, oscar_util_suite());
-	srunner_add_suite(sr, yahoo_util_suite());
 	srunner_add_suite(sr, util_suite());
+	srunner_add_suite(sr, xmlnode_suite());
 
 	/* make this a libpurple "ui" */
 	purple_check_init();

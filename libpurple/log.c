@@ -753,7 +753,7 @@ static char *log_get_timestamp(PurpleLog *log, time_t when)
 {
 	gboolean show_date;
 	char *date;
-	struct tm tm;
+	struct tm *tm;
 
 	show_date = (log->type == PURPLE_LOG_SYSTEM) || (time(NULL) > when + 20*60);
 
@@ -763,11 +763,11 @@ static char *log_get_timestamp(PurpleLog *log, time_t when)
 	if (date != NULL)
 		return date;
 
-	tm = *(localtime(&when));
+	tm = localtime(&when);
 	if (show_date)
-		return g_strdup(purple_date_format_long(&tm));
+		return g_strdup(purple_date_format_long(tm));
 	else
-		return g_strdup(purple_time_format(&tm));
+		return g_strdup(purple_time_format(tm));
 }
 
 /* NOTE: This can return msg (which you may or may not want to g_free())
@@ -1146,7 +1146,7 @@ static void log_get_log_sets_common(GHashTable *sets)
 				}
 
 				/* Determine if this (account, name) combination exists as a buddy. */
-				if (account != NULL && name != NULL && *name != '\0')
+				if (account != NULL && *name != '\0')
 					set->buddy = (purple_find_buddy(account, name) != NULL);
 				else
 					set->buddy = FALSE;
@@ -1395,8 +1395,8 @@ static gsize html_logger_write(PurpleLog *log, PurpleMessageFlags type,
 
 		date = purple_date_format_full(localtime(&log->time));
 
-		written += fprintf(data->file, "<html><head>");
-		written += fprintf(data->file, "<meta http-equiv=\"content-type\" content=\"text/html; charset=UTF-8\">");
+		written += fprintf(data->file, "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.01//EN\" \"http://www.w3.org/TR/html4/strict.dtd\"><html><head>");
+		written += fprintf(data->file, "<meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\">");
 		written += fprintf(data->file, "<title>");
 		if (log->type == PURPLE_LOG_SYSTEM)
 			header = g_strdup_printf("System log for account %s (%s) connected at %s",
@@ -1407,7 +1407,7 @@ static gsize html_logger_write(PurpleLog *log, PurpleMessageFlags type,
 
 		written += fprintf(data->file, "%s", header);
 		written += fprintf(data->file, "</title></head><body>");
-		written += fprintf(data->file, "<h3>%s</h3>\n", header);
+		written += fprintf(data->file, "<h1>%s</h1><p>\n", header);
 		g_free(header);
 	}
 
@@ -1428,39 +1428,39 @@ static gsize html_logger_write(PurpleLog *log, PurpleMessageFlags type,
 	date = log_get_timestamp(log, time);
 
 	if(log->type == PURPLE_LOG_SYSTEM){
-		written += fprintf(data->file, "---- %s @ %s ----<br/>\n", msg_fixed, date);
+		written += fprintf(data->file, "---- %s @ %s ----<br>\n", msg_fixed, date);
 	} else {
 		if (type & PURPLE_MESSAGE_SYSTEM)
-			written += fprintf(data->file, "<font size=\"2\">(%s)</font><b> %s</b><br/>\n", date, msg_fixed);
+			written += fprintf(data->file, "<span style=\"font-size: smaller\">(%s)</span><b> %s</b><br>\n", date, msg_fixed);
 		else if (type & PURPLE_MESSAGE_RAW)
-			written += fprintf(data->file, "<font size=\"2\">(%s)</font> %s<br/>\n", date, msg_fixed);
+			written += fprintf(data->file, "<span style=\"font-size: smaller\">(%s)</span> %s<br>\n", date, msg_fixed);
 		else if (type & PURPLE_MESSAGE_ERROR)
-			written += fprintf(data->file, "<font color=\"#FF0000\"><font size=\"2\">(%s)</font><b> %s</b></font><br/>\n", date, msg_fixed);
+			written += fprintf(data->file, "<span style=\"color: #FF0000\"><span style=\"font-size: smaller\">(%s)</span><b> %s</b></span><br>\n", date, msg_fixed);
 		else if (type & PURPLE_MESSAGE_WHISPER)
-			written += fprintf(data->file, "<font color=\"#6C2585\"><font size=\"2\">(%s)</font><b> %s:</b></font> %s<br/>\n",
+			written += fprintf(data->file, "<span style=\"color: #6C2585\"><span style=\"font-size: smaller\">(%s)</span><b> %s:</b></span> %s<br>\n",
 					date, escaped_from, msg_fixed);
 		else if (type & PURPLE_MESSAGE_AUTO_RESP) {
 			if (type & PURPLE_MESSAGE_SEND)
-				written += fprintf(data->file, _("<font color=\"#16569E\"><font size=\"2\">(%s)</font> <b>%s &lt;AUTO-REPLY&gt;:</b></font> %s<br/>\n"), date, escaped_from, msg_fixed);
+				written += fprintf(data->file, _("<span style=\"color: #16569E\"><span style=\"font-size: smaller\">(%s)</span> <b>%s &lt;AUTO-REPLY&gt;:</b></span> %s<br>\n"), date, escaped_from, msg_fixed);
 			else if (type & PURPLE_MESSAGE_RECV)
-				written += fprintf(data->file, _("<font color=\"#A82F2F\"><font size=\"2\">(%s)</font> <b>%s &lt;AUTO-REPLY&gt;:</b></font> %s<br/>\n"), date, escaped_from, msg_fixed);
+				written += fprintf(data->file, _("<span style=\"color: #A82F2F\"><span style=\"font-size: smaller\">(%s)</span> <b>%s &lt;AUTO-REPLY&gt;:</b></span> %s<br>\n"), date, escaped_from, msg_fixed);
 		} else if (type & PURPLE_MESSAGE_RECV) {
 			if(purple_message_meify(msg_fixed, -1))
-				written += fprintf(data->file, "<font color=\"#062585\"><font size=\"2\">(%s)</font> <b>***%s</b></font> %s<br/>\n",
+				written += fprintf(data->file, "<span style=\"color: #062585\"><span style=\"font-size: smaller\">(%s)</span> <b>***%s</b></span> %s<br>\n",
 						date, escaped_from, msg_fixed);
 			else
-				written += fprintf(data->file, "<font color=\"#A82F2F\"><font size=\"2\">(%s)</font> <b>%s:</b></font> %s<br/>\n",
+				written += fprintf(data->file, "<span style=\"color: #A82F2F\"><span style=\"font-size: smaller\">(%s)</span> <b>%s:</b></span> %s<br>\n",
 						date, escaped_from, msg_fixed);
 		} else if (type & PURPLE_MESSAGE_SEND) {
 			if(purple_message_meify(msg_fixed, -1))
-				written += fprintf(data->file, "<font color=\"#062585\"><font size=\"2\">(%s)</font> <b>***%s</b></font> %s<br/>\n",
+				written += fprintf(data->file, "<span style=\"color: #062585\"><span style=\"font-size: smaller\">(%s)</span> <b>***%s</b></span> %s<br>\n",
 						date, escaped_from, msg_fixed);
 			else
-				written += fprintf(data->file, "<font color=\"#16569E\"><font size=\"2\">(%s)</font> <b>%s:</b></font> %s<br/>\n",
+				written += fprintf(data->file, "<span style=\"color: #16569E\"><span style=\"font-size: smaller\">(%s)</span> <b>%s:</b></span> %s<br>\n",
 						date, escaped_from, msg_fixed);
 		} else {
 			purple_debug_error("log", "Unhandled message type.\n");
-			written += fprintf(data->file, "<font size=\"2\">(%s)</font><b> %s:</b></font> %s<br/>\n",
+			written += fprintf(data->file, "<span style=\"font-size: smaller\">(%s)</font><b> %s:</b> %s<br>\n",
 						date, escaped_from, msg_fixed);
 		}
 	}
@@ -1477,7 +1477,7 @@ static void html_logger_finalize(PurpleLog *log)
 	PurpleLogCommonLoggerData *data = log->logger_data;
 	if (data) {
 		if(data->file) {
-			fprintf(data->file, "</body></html>\n");
+			fprintf(data->file, "</p>\n</body>\n</html>\n");
 			fclose(data->file);
 		}
 		g_free(data->path);
@@ -1676,7 +1676,7 @@ static GList *old_logger_list(PurpleLogType type, const char *sn, PurpleAccount 
 	time_t log_last_modified;
 	FILE *index;
 	FILE *file;
-	int index_fd;
+	int file_fd, index_fd;
 	char *index_tmp;
 	char buf[BUF_LONG];
 	struct tm tm;
@@ -1692,36 +1692,49 @@ static GList *old_logger_list(PurpleLogType type, const char *sn, PurpleAccount 
 
 	g_free(logfile);
 
-	if (g_stat(purple_stringref_value(pathref), &st))
-	{
+	file_fd = g_open(purple_stringref_value(pathref), 0, O_RDONLY);
+	if (file_fd == -1 || (file = fdopen(file_fd, "rb")) == NULL) {
+		purple_debug_error("log",
+			"Failed to open log file \"%s\" for reading: %s\n",
+			purple_stringref_value(pathref), g_strerror(errno));
 		purple_stringref_unref(pathref);
 		g_free(pathstr);
 		return NULL;
 	}
-	else
+	if (fstat(file_fd, &st) == -1) {
+		purple_stringref_unref(pathref);
+		g_free(pathstr);
+		fclose(file);
+		return NULL;
+	} else
 		log_last_modified = st.st_mtime;
 
 	/* Change the .log extension to .idx */
 	strcpy(pathstr + strlen(pathstr) - 3, "idx");
 
-	if (g_stat(pathstr, &st) == 0)
-	{
+	index_fd = g_open(pathstr, 0, O_RDONLY);
+	if (index_fd != -1) {
+		if (fstat(index_fd, &st) != 0) {
+			close(index_fd);
+			index_fd = -1;
+		}
+	}
+
+	if (index_fd != -1) {
 		if (st.st_mtime < log_last_modified)
 		{
 			purple_debug_warning("log", "Index \"%s\" exists, but is older than the log.\n", pathstr);
+			close(index_fd);
 		}
 		else
 		{
 			/* The index file exists and is at least as new as the log, so open it. */
-			if (!(index = g_fopen(pathstr, "rb")))
-			{
+			if (!(index = fdopen(index_fd, "rb"))) {
 				purple_debug_error("log", "Failed to open index file \"%s\" for reading: %s\n",
 				                 pathstr, g_strerror(errno));
 
 				/* Fall through so that we'll parse the log file. */
-			}
-			else
-			{
+			} else {
 				purple_debug_info("log", "Using index: %s\n", pathstr);
 				g_free(pathstr);
 				while (fgets(buf, BUF_LONG, index))
@@ -1747,23 +1760,16 @@ static GList *old_logger_list(PurpleLogType type, const char *sn, PurpleAccount 
 				fclose(index);
 				purple_stringref_unref(pathref);
 
+				fclose(file);
 				return list;
 			}
 		}
 	}
 
-	if (!(file = g_fopen(purple_stringref_value(pathref), "rb"))) {
-		purple_debug_error("log", "Failed to open log file \"%s\" for reading: %s\n",
-		                   purple_stringref_value(pathref), g_strerror(errno));
-		purple_stringref_unref(pathref);
-		g_free(pathstr);
-		return NULL;
-	}
-
 	index_tmp = g_strdup_printf("%s.XXXXXX", pathstr);
 	if ((index_fd = g_mkstemp(index_tmp)) == -1) {
 		purple_debug_error("log", "Failed to open index temp file: %s\n",
-		                 g_strerror(errno));
+		                   g_strerror(errno));
 		g_free(pathstr);
 		g_free(index_tmp);
 		index = NULL;
@@ -1771,7 +1777,7 @@ static GList *old_logger_list(PurpleLogType type, const char *sn, PurpleAccount 
 		if ((index = fdopen(index_fd, "wb")) == NULL)
 		{
 			purple_debug_error("log", "Failed to fdopen() index temp file: %s\n",
-			                 g_strerror(errno));
+			                   g_strerror(errno));
 			close(index_fd);
 			if (index_tmp != NULL)
 			{
@@ -1827,7 +1833,6 @@ static GList *old_logger_list(PurpleLogType type, const char *sn, PurpleAccount 
 					log->logger_data = data;
 					list = g_list_prepend(list, log);
 
-					/* XXX: There is apparently Is there a proper way to print a time_t? */
 					if (index != NULL)
 						fprintf(index, "%d\t%d\t%lu\n", data->offset, data->length, (unsigned long)log->time);
 				}
@@ -1838,8 +1843,12 @@ static GList *old_logger_list(PurpleLogType type, const char *sn, PurpleAccount 
 
 			g_snprintf(convostart, length, "%s", temp);
 			memset(&tm, 0, sizeof(tm));
-			sscanf(convostart, "%*s %s %d %d:%d:%d %d",
-			       month, &tm.tm_mday, &tm.tm_hour, &tm.tm_min, &tm.tm_sec, &tm.tm_year);
+			if (sscanf(convostart, "%*s %3s %d %d:%d:%d %d", month,
+				&tm.tm_mday, &tm.tm_hour, &tm.tm_min,
+				&tm.tm_sec, &tm.tm_year) != 6)
+			{
+				purple_debug_warning("log", "invalid date format\n");
+			}
 			/* Ugly hack, in case current locale is not English */
 			if (purple_strequal(month, "Jan")) {
 				tm.tm_mon= 0;
@@ -1887,9 +1896,8 @@ static GList *old_logger_list(PurpleLogType type, const char *sn, PurpleAccount 
 			log->logger_data = data;
 			list = g_list_prepend(list, log);
 
-			/* XXX: Is there a proper way to print a time_t? */
 			if (index != NULL)
-				fprintf(index, "%d\t%d\t%d\n", data->offset, data->length, (int)log->time);
+				fprintf(index, "%d\t%d\t%lu\n", data->offset, data->length, (unsigned long)log->time);
 		}
 	}
 
@@ -1944,9 +1952,15 @@ static char * old_logger_read (PurpleLog *log, PurpleLogReadFlags *flags)
 	struct old_logger_data *data = log->logger_data;
 	const char *path = purple_stringref_value(data->pathref);
 	FILE *file = g_fopen(path, "rb");
-	char *read = g_malloc(data->length + 1);
-	fseek(file, data->offset, SEEK_SET);
-	result = fread(read, data->length, 1, file);
+	char *read;
+
+	g_return_val_if_fail(file, g_strdup(""));
+	read = g_malloc(data->length + 1);
+
+	if (fseek(file, data->offset, SEEK_SET) != 0)
+		result = 0;
+	else
+		result = fread(read, data->length, 1, file);
 	if (result != 1)
 		purple_debug_error("log", "Unable to read from log file: %s\n", path);
 	fclose(file);
@@ -2022,7 +2036,7 @@ static void old_logger_get_log_sets(PurpleLogSetCallback cb, GHashTable *sets)
 		/* Search the buddy list to find the account and to determine if this is a buddy. */
 		for (gnode = purple_blist_get_root();
 		     !found && gnode != NULL;
-			 gnode = purple_blist_node_get_sibling_next(gnode))
+		     gnode = purple_blist_node_get_sibling_next(gnode))
 		{
 			if (!PURPLE_BLIST_NODE_IS_GROUP(gnode))
 				continue;
@@ -2036,7 +2050,7 @@ static void old_logger_get_log_sets(PurpleLogSetCallback cb, GHashTable *sets)
 
 				for (bnode = purple_blist_node_get_first_child(cnode);
 				     !found && bnode != NULL;
-					 bnode = purple_blist_node_get_sibling_next(bnode))
+				     bnode = purple_blist_node_get_sibling_next(bnode))
 				{
 					PurpleBuddy *buddy = (PurpleBuddy *)bnode;
 

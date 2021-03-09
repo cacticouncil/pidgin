@@ -366,7 +366,7 @@ void finch_plugins_show_all()
 	gnt_box_set_pad(GNT_BOX(box), 0);
 	plugins.tree = tree = gnt_tree_new();
 	gnt_tree_set_compare_func(GNT_TREE(tree), (GCompareFunc)plugin_compare);
-	GNT_WIDGET_SET_FLAGS(tree, GNT_WIDGET_NO_BORDER);
+	gnt_widget_set_has_border(tree, FALSE);
 	gnt_box_add_widget(GNT_BOX(box), tree);
 	gnt_box_add_widget(GNT_BOX(box), gnt_vline_new());
 
@@ -499,7 +499,7 @@ process_pref_frame(PurplePluginPrefFrame *frame)
 				}
 				stringlist = g_list_prepend(stringlist, value);
 				purple_request_field_list_add_icon(field, label, NULL, value);
-				if (strcmp(value, current_value) == 0)
+				if (purple_strequal(value, current_value))
 					purple_request_field_list_add_selected(field, label);
 				list = list->next->next;
 			}

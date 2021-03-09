@@ -146,14 +146,13 @@ notify_input_cb(GntWidget *button, GntWidget *entry)
 	PurpleRequestInputCb callback = g_object_get_data(G_OBJECT(button), "activate-callback");
 	gpointer data = g_object_get_data(G_OBJECT(button), "activate-userdata");
 	const char *text = gnt_entry_get_text(GNT_ENTRY(entry));
+	GntWidget *window;
 
 	if (callback)
 		callback(data, text);
 
-	while (button->parent)
-		button = button->parent;
-
-	purple_request_close(PURPLE_REQUEST_INPUT, button);
+	window = gnt_widget_get_toplevel(button);
+	purple_request_close(PURPLE_REQUEST_INPUT, window);
 }
 
 static void *
@@ -193,8 +192,7 @@ finch_close_request(PurpleRequestType type, gpointer ui_handle)
 		purple_request_fields_destroy(fields);
 	}
 
-	while (widget->parent)
-		widget = widget->parent;
+	widget = gnt_widget_get_toplevel(widget);
 	gnt_widget_destroy(widget);
 }
 
@@ -204,14 +202,13 @@ request_choice_cb(GntWidget *button, GntComboBox *combo)
 	PurpleRequestChoiceCb callback = g_object_get_data(G_OBJECT(button), "activate-callback");
 	gpointer data = g_object_get_data(G_OBJECT(button), "activate-userdata");
 	int choice = GPOINTER_TO_INT(gnt_combo_box_get_selected_data(GNT_COMBO_BOX(combo))) - 1;
+	GntWidget *window;
 
 	if (callback)
 		callback(data, choice);
 
-	while (button->parent)
-		button = button->parent;
-
-	purple_request_close(PURPLE_REQUEST_INPUT, button);
+	window = gnt_widget_get_toplevel(button);
+	purple_request_close(PURPLE_REQUEST_INPUT, window);
 }
 
 static void *
@@ -268,7 +265,7 @@ finch_request_action(const char *title, const char *primary,
 		va_list actions)
 {
 	GntWidget *window, *box, *button, *focus = NULL;
-	int i;
+	gsize i;
 
 	window = setup_request_window(title, primary, secondary, PURPLE_REQUEST_ACTION);
 
@@ -287,7 +284,7 @@ finch_request_action(const char *title, const char *primary,
 		g_object_set_data(G_OBJECT(button), "activate-id", GINT_TO_POINTER(i));
 		g_signal_connect(G_OBJECT(button), "activate", G_CALLBACK(request_action_cb), window);
 
-		if (i == default_value)
+		if (default_value >= 0 && i == (gsize)default_value)
 			focus = button;
 	}
 
@@ -304,6 +301,7 @@ request_fields_cb(GntWidget *button, PurpleRequestFields *fields)
 	PurpleRequestFieldsCb callback = g_object_get_data(G_OBJECT(button), "activate-callback");
 	gpointer data = g_object_get_data(G_OBJECT(button), "activate-userdata");
 	GList *list;
+	GntWidget *window;
 
 	/* Update the data of the fields. Pidgin does this differently. Instead of
 	 * updating the fields at the end like here, it updates the appropriate field
@@ -404,17 +402,16 @@ request_fields_cb(GntWidget *button, PurpleRequestFields *fields)
 	if (callback)
 		callback(data, fields);
 
-	while (button->parent)
-		button = button->parent;
-
-	purple_request_close(PURPLE_REQUEST_FIELDS, button);
+	window = gnt_widget_get_toplevel(button);
+	purple_request_close(PURPLE_REQUEST_FIELDS, window);
 }
 
 static void
 update_selected_account(GntEntry *username, const char *start, const char *end,
 		GntComboBox *accountlist)
 {
-	GList *accounts = gnt_tree_get_rows(GNT_TREE(accountlist->dropdown));
+	GList *accounts =
+		gnt_tree_get_rows(GNT_TREE(gnt_combo_box_get_dropdown(accountlist)));
 	const char *name = gnt_entry_get_text(username);
 	while (accounts) {
 		if (purple_find_buddy(accounts->data, name)) {
@@ -455,7 +452,7 @@ create_string_field(PurpleRequestField *field, GntWidget **username)
 		gnt_entry_set_always_suggest(GNT_ENTRY(entry), TRUE);
 		if (username)
 			*username = entry;
-	} else if (hint && !strcmp(hint, "group")) {
+	} else if (purple_strequal(hint, "group")) {
 		PurpleBlistNode *node;
 		for (node = purple_blist_get_root(); node;
 				node = purple_blist_node_get_sibling_next(node)) {
@@ -686,29 +683,34 @@ finch_request_fields(const char *title, const char *primary,
 }
 
 static void
-file_cancel_cb(gpointer fq, GntWidget *wid)
+file_cancel_cb(GntWidget *wid, gpointer fq)
 {
 	FinchFileRequest *data = fq;
+	if (data->dialog == NULL) {
+		/* We've already handled this request, and are in the destroy handler. */
+		return;
+	}
+
 	if (data->cbs[1] != NULL)
 		((PurpleRequestFileCb)data->cbs[1])(data->user_data, NULL);
 
 	purple_request_close(PURPLE_REQUEST_FILE, data->dialog);
+	data->dialog = NULL;
 }
 
 static void
-file_ok_cb(gpointer fq, GntWidget *widget)
+file_ok_cb(GntWidget *widget, const char *path, const char *file, gpointer fq)
 {
 	FinchFileRequest *data = fq;
-	char *file = gnt_file_sel_get_selected_file(GNT_FILE_SEL(data->dialog));
-	char *dir = g_path_get_dirname(file);
+	char *dir = g_path_get_dirname(path);
 	if (data->cbs[0] != NULL)
 		((PurpleRequestFileCb)data->cbs[0])(data->user_data, file);
-	g_free(file);
 	purple_prefs_set_path(data->save ? "/finch/filelocations/last_save_folder" :
 			"/finch/filelocations/last_open_folder", dir);
 	g_free(dir);
 
 	purple_request_close(PURPLE_REQUEST_FILE, data->dialog);
+	data->dialog = NULL;
 }
 
 static void
@@ -736,16 +738,13 @@ finch_file_request_window(const char *title, const char *path,
 
 	gnt_file_sel_set_current_location(sel, (path && *path) ? path : purple_home_dir());
 
-	g_signal_connect(G_OBJECT(sel->cancel), "activate",
-			G_CALLBACK(action_performed), window);
-	g_signal_connect(G_OBJECT(sel->select), "activate",
-			G_CALLBACK(action_performed), window);
-	g_signal_connect_swapped(G_OBJECT(sel->cancel), "activate",
+	g_signal_connect(G_OBJECT(sel), "destroy",
 			G_CALLBACK(file_cancel_cb), data);
-	g_signal_connect_swapped(G_OBJECT(sel->select), "activate",
+	g_signal_connect(G_OBJECT(sel), "cancelled",
+			G_CALLBACK(file_cancel_cb), data);
+	g_signal_connect(G_OBJECT(sel), "file_selected",
 			G_CALLBACK(file_ok_cb), data);
 
-	setup_default_callback(window, file_cancel_cb, data);
 	g_object_set_data_full(G_OBJECT(window), "filerequestdata", data,
 			(GDestroyNotify)file_request_destroy);
 
@@ -854,8 +853,11 @@ void finch_request_save_in_prefs(gpointer null, PurpleRequestFields *allfields)
 				case PURPLE_PREF_INT:
 				{
 					long int tmp = GPOINTER_TO_INT(val);
-					if (type == PURPLE_REQUEST_FIELD_LIST) /* Lists always return string */
-						sscanf(val, "%ld", &tmp);
+					if (type == PURPLE_REQUEST_FIELD_LIST) {
+						/* Lists always return string */
+						if (sscanf(val, "%ld", &tmp) != 1)
+							tmp = 0;
+					}
 					purple_prefs_set_int(id, (gint)tmp);
 					break;
 				}

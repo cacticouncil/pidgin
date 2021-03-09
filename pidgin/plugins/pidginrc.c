@@ -106,14 +106,14 @@ static GtkWidget *widget_bool_widgets[G_N_ELEMENTS(widget_bool_prefs)];
 static GString *
 make_gtkrc_string(void)
 {
-	gint i;
+	gsize i;
 	gchar *prefbase = NULL;
 	GString *style_string = g_string_new("");
 
 	if (purple_prefs_get_bool("/plugins/gtk/purplerc/set/gtk-font-name")) {
 		const gchar *pref = purple_prefs_get_string("/plugins/gtk/purplerc/gtk-font-name");
 
-		if (pref != NULL && strcmp(pref, "")) {
+		if (pref && *pref) {
 			g_string_append_printf(style_string,
 			                       "gtk-font-name = \"%s\"\n",
 			                       pref);
@@ -123,7 +123,7 @@ make_gtkrc_string(void)
 	if (purple_prefs_get_bool("/plugins/gtk/purplerc/set/gtk-key-theme-name")) {
 		const gchar *pref = purple_prefs_get_string("/plugins/gtk/purplerc/gtk-key-theme-name");
 
-		if (pref != NULL && strcmp(pref, "")) {
+		if (pref && *pref) {
 			g_string_append_printf(style_string,
 			                       "gtk-key-theme-name = \"%s\"\n",
 			                       pref);
@@ -141,7 +141,7 @@ make_gtkrc_string(void)
 			const gchar *pref;
 
 			pref = purple_prefs_get_string(color_prefs[i]);
-			if (pref != NULL && strcmp(pref, "")) {
+			if (pref && *pref) {
 				prefbase = g_path_get_basename(color_prefs[i]);
 				g_string_append_printf(style_string,
 				                       "\n\t%s = \"%s\"",
@@ -180,7 +180,7 @@ make_gtkrc_string(void)
 			const gchar *pref;
 
 			pref = purple_prefs_get_string(font_prefs[i]);
-			if (pref != NULL && strcmp(pref, "")) {
+			if (pref && *pref) {
 				prefbase = g_path_get_basename(font_prefs[i]);
 				g_string_append_printf(style_string,
 				                       "style \"%s_style\"\n{\n"
@@ -276,7 +276,7 @@ purplerc_set_color(GtkWidget *widget, gpointer data)
 
 	pref = purple_prefs_get_string(color_prefs[subscript]);
 
-	if (pref != NULL && strcmp(pref, "")) {
+	if (pref && *pref) {
 		if (gdk_color_parse(pref, &color)) {
 #if GTK_CHECK_VERSION(2,14,0)
 			gtk_color_selection_set_current_color(GTK_COLOR_SELECTION(
@@ -337,7 +337,7 @@ purplerc_set_font(GtkWidget *widget, gpointer data)
 
 	pref = purple_prefs_get_string(prefpath);
 
-	if (pref != NULL && strcmp(pref, "")) {
+	if (pref && *pref) {
 		gtk_font_selection_dialog_set_font_name(GTK_FONT_SELECTION_DIALOG(font_dialog), pref);
 	}
 
@@ -370,7 +370,7 @@ purplerc_make_interface_vbox(void)
 {
 	GtkWidget *vbox = NULL, *hbox = NULL, *check = NULL;
 	GtkSizeGroup *labelsg = NULL;
-	gint i;
+	gsize i;
 
 	vbox = gtk_vbox_new(FALSE, PIDGIN_HIG_CAT_SPACE);
 	labelsg = gtk_size_group_new(GTK_SIZE_GROUP_HORIZONTAL);
@@ -409,7 +409,7 @@ purplerc_make_fonts_vbox(void)
 {
 	GtkWidget *vbox = NULL, *hbox = NULL, *check = NULL, *widget = NULL;
 	GtkSizeGroup *labelsg = NULL;
-	int i;
+	gsize i;
 
 	vbox = gtk_vbox_new(FALSE, PIDGIN_HIG_CAT_SPACE);
 	labelsg = gtk_size_group_new(GTK_SIZE_GROUP_HORIZONTAL);
@@ -469,7 +469,7 @@ purplerc_make_misc_vbox(void)
 	 * the size group not the whole thing, which isn't what I want. */
 	GtkWidget *vbox = NULL, *hbox = NULL, *check = NULL, *widget = NULL;
 	GtkSizeGroup *labelsg = NULL;
-	int i;
+	gsize i;
 
 	vbox = gtk_vbox_new(FALSE, PIDGIN_HIG_CAT_SPACE);
 	labelsg = gtk_size_group_new(GTK_SIZE_GROUP_HORIZONTAL);
@@ -511,8 +511,8 @@ purplerc_make_misc_vbox(void)
 	hbox = gtk_hbox_new(FALSE, PIDGIN_HIG_CAT_SPACE);
 	gtk_box_pack_start(GTK_BOX(vbox), hbox, FALSE, FALSE, 0);
 
-	check = pidgin_prefs_checkbox(_("Disable Typing Notification Text"),
-			"/plugins/gtk/purplerc/set/disable-typing-notification", hbox);
+	pidgin_prefs_checkbox(_("Disable Typing Notification Text"),
+		"/plugins/gtk/purplerc/set/disable-typing-notification", hbox);
 
 	/* Widget boolean stuff */
 	/*
@@ -648,7 +648,7 @@ static PurplePluginInfo purplerc_info =
 static void
 purplerc_init(PurplePlugin *plugin)
 {
-	gint i;
+	gsize i;
 
 	purple_prefs_add_none("/plugins");
 	purple_prefs_add_none("/plugins/gtk");

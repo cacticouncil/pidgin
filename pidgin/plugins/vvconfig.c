@@ -26,7 +26,11 @@
 #include "gtkutils.h"
 #include "gtkprefs.h"
 
+#if GST_CHECK_VERSION(1,0,0)
+#include <gst/video/videooverlay.h>
+#else
 #include <gst/interfaces/propertyprobe.h>
+#endif
 
 /* container window for showing a stand-alone configurator */
 static GtkWidget *window = NULL;
@@ -39,6 +43,7 @@ static const gchar *AUDIO_SRC_PLUGINS[] = {
 	/* "esdmon",	"ESD", ? */
 	"osssrc",	"OSS",
 	"pulsesrc",	"PulseAudio",
+	"sndiosrc",	"sndio",
 	/* "audiotestsrc wave=silence", "Silence", */
 	"audiotestsrc",	"Test Sound",
 	NULL
@@ -50,6 +55,7 @@ static const gchar *AUDIO_SINK_PLUGINS[] = {
 	"esdsink",	"ESD",
 	"osssink",	"OSS",
 	"pulsesink",	"PulseAudio",
+	"sndiosink",	"sndio",
 	NULL
 };
 
@@ -79,13 +85,15 @@ get_element_devices(const gchar *element_name)
 	GList *ret = NULL;
 	GstElement *element;
 	GObjectClass *klass;
+#if !GST_CHECK_VERSION(1,0,0)
 	GstPropertyProbe *probe;
 	const GParamSpec *pspec;
+#endif
 
 	ret = g_list_prepend(ret, (gpointer)_("Default"));
 	ret = g_list_prepend(ret, "");
 
-	if (!strcmp(element_name, "<custom>") || (*element_name == '\0')) {
+	if (purple_strequal(element_name, "<custom>") || (*element_name == '\0')) {
 		return g_list_reverse(ret);
 	}
 
@@ -101,13 +109,17 @@ get_element_devices(const gchar *element_name)
 		return g_list_reverse(ret);
 	}
 
+#if GST_CHECK_VERSION(1,0,0)
+	purple_debug_info("vvconfig", "'%s' - gstreamer-1.0 doesn't suport "
+		"property probing\n", element_name);
+#else
 	if (!g_object_class_find_property(klass, "device") ||
 			!GST_IS_PROPERTY_PROBE(element) ||
 			!(probe = GST_PROPERTY_PROBE(element)) ||
 			!(pspec = gst_property_probe_get_property(probe, "device"))) {
 		purple_debug_info("vvconfig", "'%s' - no device\n", element_name);
 	} else {
-		gint n;
+		gsize n;
 		GValueArray *array;
 
 		/* Set autoprobe[-fps] to FALSE to avoid delays when probing. */
@@ -129,7 +141,10 @@ get_element_devices(const gchar *element_name)
 			const gchar *name;
 			const gchar *device_name;
 
+G_GNUC_BEGIN_IGNORE_DEPRECATIONS
+			/* GValueArray is in gstreamer-0.10 API */
 			device = g_value_array_get_nth(array, n);
+G_GNUC_END_IGNORE_DEPRECATIONS
 			g_object_set_property(G_OBJECT(element), "device", device);
 			if (gst_element_set_state(element, GST_STATE_READY)
 					!= GST_STATE_CHANGE_SUCCESS) {
@@ -150,6 +165,7 @@ get_element_devices(const gchar *element_name)
 			gst_element_set_state(element, GST_STATE_NULL);
 		}
 	}
+#endif
 	gst_object_unref(element);
 
 	return g_list_reverse(ret);
@@ -163,8 +179,13 @@ get_element_plugins(const gchar **plugins)
 	ret = g_list_prepend(ret, "Default");
 	ret = g_list_prepend(ret, "");
 	for (; plugins[0] && plugins[1]; plugins += 2) {
+#if GST_CHECK_VERSION(1,0,0)
+		if (gst_registry_check_feature_version(gst_registry_get(),
+				plugins[0], 0, 0, 0)) {
+#else
 		if (gst_default_registry_check_feature_version(
 				plugins[0], 0, 0, 0)) {
+#endif
 			ret = g_list_prepend(ret, (gpointer)plugins[1]);
 			ret = g_list_prepend(ret, (gpointer)plugins[0]);
 		}
@@ -189,7 +210,7 @@ device_changed_cb(const gchar *name, PurplePrefType type,
 	for (; widgets; widgets = g_slist_next(widgets)) {
 		const gchar *widget_name =
 				gtk_widget_get_name(GTK_WIDGET(widgets->data));
-		if (!strcmp(widget_name, name)) {
+		if (purple_strequal(widget_name, name)) {
 			gchar *temp_str;
 			gchar delimiters[3] = {0, 0, 0};
 			const gchar *text;
@@ -345,9 +366,29 @@ create_video_src(PurpleMedia *media,
 	ret = gst_element_factory_make(plugin, "vvconfig-videosrc");
 	if (device[0] != '\0')
 		g_object_set(G_OBJECT(ret), "device", device, NULL);
-	if (!strcmp(plugin, "videotestsrc"))
+	if (purple_strequal(plugin, "videotestsrc"))
 		g_object_set(G_OBJECT(ret), "is-live", 1, NULL);
 	return ret;
+}
+
+static void
+videosink_disable_last_sample(GstElement *sink)
+{
+	GObjectClass *klass = G_OBJECT_GET_CLASS(sink);
+
+	if (g_object_class_find_property(klass, "enable-last-sample")) {
+		g_object_set(sink, "enable-last-sample", FALSE, NULL);
+	}
+}
+
+static void
+autovideosink_child_added_cb(GstChildProxy *child_proxy, GObject *object,
+#if GST_CHECK_VERSION(1,0,0)
+		gchar *name,
+#endif
+		gpointer user_data)
+{
+	videosink_disable_last_sample(GST_ELEMENT(object));
 }
 
 static GstElement *
@@ -367,6 +408,14 @@ create_video_sink(PurpleMedia *media,
 	ret = gst_element_factory_make(plugin, NULL);
 	if (device[0] != '\0')
 		g_object_set(G_OBJECT(ret), "device", device, NULL);
+
+	if (purple_strequal(plugin, "autovideosink")) {
+		g_signal_connect(ret, "child-added",
+			G_CALLBACK(autovideosink_child_added_cb), NULL);
+	} else {
+		videosink_disable_last_sample(ret);
+	}
+
 	return ret;
 }
 
@@ -415,7 +464,7 @@ set_element_info_cond(PurpleMediaElementInfo *old_info,
 		PurpleMediaElementInfo *new_info, const gchar *id)
 {
 	gchar *element_id = purple_media_element_info_get_id(old_info);
-	if (!strcmp(element_id, id))
+	if (purple_strequal(element_id, id))
 		purple_media_manager_set_active_element(
 				purple_media_manager_get(), new_info);
 	g_free(element_id);
@@ -583,7 +632,13 @@ gst_msg_db_to_percent(GstMessage *msg, gchar *value_name)
 
 	list = gst_structure_get_value(
 				gst_message_get_structure(msg), value_name);
+#if GST_CHECK_VERSION(1,0,0)
+G_GNUC_BEGIN_IGNORE_DEPRECATIONS
+	value = g_value_array_get_nth(g_value_get_boxed(list), 0);
+G_GNUC_END_IGNORE_DEPRECATIONS
+#else
 	value = gst_value_list_get_value(list, 0);
+#endif
 	value_db = g_value_get_double(value);
 	percent = pow(10, value_db / 20);
 	return (percent > 1.0) ? 1.0 : percent;
@@ -599,18 +654,21 @@ static gboolean
 gst_bus_cb(GstBus *bus, GstMessage *msg, BusCbCtx *ctx)
 {
 	if (GST_MESSAGE_TYPE(msg) == GST_MESSAGE_ELEMENT &&
-		gst_structure_has_name(msg->structure, "level")) {
+		gst_structure_has_name(gst_message_get_structure(msg), "level")) {
 
 		GstElement *src = GST_ELEMENT(GST_MESSAGE_SRC(msg));
 		gchar *name = gst_element_get_name(src);
 
-		if (!strcmp(name, "level")) {
+		if (purple_strequal(name, "level")) {
 			gdouble percent;
 			gdouble threshold;
 			GstElement *valve;
 
 			percent = gst_msg_db_to_percent(msg, "rms");
-			gtk_progress_bar_set_fraction(ctx->level, percent * 5);
+			percent *= 5;
+			if (percent > 1.0)
+				percent = 1.0;
+			gtk_progress_bar_set_fraction(ctx->level, percent);
 
 			percent = gst_msg_db_to_percent(msg, "decay");
 			threshold = gtk_range_get_value(ctx->threshold) / 100.0;

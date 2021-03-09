@@ -99,9 +99,9 @@ is_native(const char *filename)
 	if (last_period == NULL)
 		return FALSE;
 
-	return !(strcmp(last_period, ".dll") &
-			 strcmp(last_period, ".sl") &
-			 strcmp(last_period, ".so"));
+	return purple_strequal(last_period, ".dll") ||
+			purple_strequal(last_period, ".sl") ||
+			purple_strequal(last_period, ".so");
 }
 
 static char *
@@ -587,11 +587,8 @@ purple_plugin_load(PurplePlugin *plugin)
 
 	if (plugin->native_plugin)
 	{
-		if (plugin->info != NULL && plugin->info->load != NULL)
-		{
-			if (!plugin->info->load(plugin))
-				return FALSE;
-		}
+		if (plugin->info->load != NULL && !plugin->info->load(plugin))
+			return FALSE;
 	}
 	else {
 		PurplePlugin *loader;
@@ -1378,7 +1375,7 @@ purple_plugins_probe(const char *ext)
 				path = g_build_filename(search_path, file, NULL);
 
 				if (ext == NULL || has_file_extension(file, ext))
-					plugin = purple_plugin_probe(path);
+					purple_plugin_probe(path);
 
 				g_free(path);
 			}

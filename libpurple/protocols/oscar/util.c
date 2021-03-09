@@ -62,7 +62,7 @@ static const char * const msgerrreason[] = {
 	N_("Queue full"),
 	N_("Not while on AOL")
 };
-static const int msgerrreasonlen = G_N_ELEMENTS(msgerrreason);
+static const gsize msgerrreasonlen = G_N_ELEMENTS(msgerrreason);
 
 const char *oscar_get_msgerr_reason(size_t reason)
 {
@@ -141,12 +141,12 @@ oscar_util_valid_name_aim(const char *name)
 	if (purple_email_is_valid(name))
 		return TRUE;
 
-	/* Normal AIM usernames can't start with a number */
-	if (isdigit(name[0]))
+	/* Normal AIM usernames can't start with a number, period or underscore */
+	if (isalnum(name[0]) == 0)
 		return FALSE;
 
 	for (i = 0; name[i] != '\0'; i++) {
-		if (!isalnum(name[i]) && (name[i] != ' '))
+		if (!isalnum(name[i]) && name[i] != ' ' && name[i] != '.' && name[i] != '_')
 			return FALSE;
 	}
 

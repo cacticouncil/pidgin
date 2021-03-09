@@ -70,12 +70,15 @@
 #include "pidginstock.h"
 #include "gtkwhiteboard.h"
 
+#ifdef HAVE_X11
+#include <X11/Xlib.h>
+#endif
+
 #ifdef HAVE_SIGNAL_H
 # include <signal.h>
 #endif
 
 #include <getopt.h>
-
 
 #ifdef HAVE_SIGNAL_H
 
@@ -248,7 +251,7 @@ ui_main(void)
 	GList *icons = NULL;
 	GdkPixbuf *icon = NULL;
 	char *icon_path;
-	int i;
+	gsize i;
 	struct {
 		const char *dir;
 		const char *filename;
@@ -377,24 +380,26 @@ static GHashTable *pidgin_ui_get_info(void)
 		g_hash_table_insert(ui_info, "client_type", "pc");
 
 		/*
-		 * This is the client key for "Pidgin."  It is owned by the AIM
-		 * account "markdoliner."  Please don't use this key for other
-		 * applications.  You can either not specify a client key, in
-		 * which case the default "libpurple" key will be used, or you
-		 * can try to register your own at the AIM or ICQ web sites
-		 * (although this functionality was removed at some point, it's
-		 * possible it has been re-added).  AOL's old key management
-		 * page is http://developer.aim.com/manageKeys.jsp
+		 * prpl-aim-clientkey is a DevID (or "client key") for Pidgin, given to
+		 * us by AOL in September 2016.  prpl-icq-clientkey is also a client key
+		 * for Pidgin, owned by the AIM account "markdoliner."  Please don't use 
+		 * either for other applications.  Instead, you can either not specify a 
+		 * client key, in which case the default "libpurple" key will be used,
+		 * or you can try to register your own at the AIM or ICQ web sites
+		 * (although this functionality was removed at some point, it's possible 
+		 * it has been re-added).
 		 */
-		g_hash_table_insert(ui_info, "prpl-aim-clientkey", "ma1cSASNCKFtrdv9");
+		g_hash_table_insert(ui_info, "prpl-aim-clientkey", "do1UCeb5gNqxB1S1");
 		g_hash_table_insert(ui_info, "prpl-icq-clientkey", "ma1cSASNCKFtrdv9");
 
 		/*
-		 * This is the distid for Pidgin, given to us by AOL.  Please
-		 * don't use this for other applications.  You can just not
-		 * specify a distid and libpurple will use a default.
+		 * prpl-aim-distid is a distID for Pidgin, given to us by AOL in
+		 * September 2016.  prpl-icq-distid is also a distID for Pidgin, given
+		 * to us by AOL.  Please don't use either for other applications.
+		 * Instead, you can just not specify a distID and libpurple will use a
+		 * default.
 		 */
-		g_hash_table_insert(ui_info, "prpl-aim-distid", GINT_TO_POINTER(1550));
+		g_hash_table_insert(ui_info, "prpl-aim-distid", GINT_TO_POINTER(1715));
 		g_hash_table_insert(ui_info, "prpl-icq-distid", GINT_TO_POINTER(1550));
 	}
 
@@ -465,8 +470,8 @@ show_usage(const char *name, gboolean terse)
 /* FUCKING GET ME A TOWEL! */
 #ifdef _WIN32
 /* suppress gcc "no previous prototype" warning */
-int pidgin_main(HINSTANCE hint, int argc, char *argv[]);
-int pidgin_main(HINSTANCE hint, int argc, char *argv[])
+int __cdecl pidgin_main(HINSTANCE hint, int argc, char *argv[]);
+int __cdecl pidgin_main(HINSTANCE hint, int argc, char *argv[])
 #else
 int main(int argc, char *argv[])
 #endif
@@ -485,7 +490,6 @@ int main(int argc, char *argv[])
 #ifdef HAVE_SIGNAL_H
 	int sig_indx;	/* for setting up signal catching */
 	sigset_t sigset;
-	RETSIGTYPE (*prev_sig_disp)(int);
 	char errmsg[BUFSIZ];
 	GIOChannel *signal_channel;
 	GIOStatus signal_status;
@@ -500,7 +504,6 @@ int main(int argc, char *argv[])
 	gboolean debug_enabled;
 	gboolean migration_failed = FALSE;
 	GList *active_accounts;
-	struct stat st;
 
 	struct option long_options[] = {
 		{"config",       required_argument, NULL, 'c'},
@@ -523,8 +526,13 @@ int main(int argc, char *argv[])
 	debug_enabled = FALSE;
 #endif
 
-	/* Initialize GThread before calling any Glib or GTK+ functions. */
+#if !GLIB_CHECK_VERSION(2, 32, 0)
+	/* GLib threading system is automaticaly initialized since 2.32.
+	 * For earlier versions, it have to be initialized before calling any
+	 * Glib or GTK+ functions.
+	 */
 	g_thread_init(NULL);
+#endif
 
 	g_set_prgname("Pidgin");
 
@@ -618,7 +626,7 @@ int main(int argc, char *argv[])
 		perror(errmsg);
 	}
 	for(sig_indx = 0; catch_sig_list[sig_indx] != -1; ++sig_indx) {
-		if((prev_sig_disp = signal(catch_sig_list[sig_indx], sighandler)) == SIG_ERR) {
+		if(signal(catch_sig_list[sig_indx], sighandler) == SIG_ERR) {
 			snprintf(errmsg, sizeof(errmsg), "Warning: couldn't set signal %d for catching",
 				catch_sig_list[sig_indx]);
 			perror(errmsg);
@@ -630,7 +638,7 @@ int main(int argc, char *argv[])
 		}
 	}
 	for(sig_indx = 0; ignore_sig_list[sig_indx] != -1; ++sig_indx) {
-		if((prev_sig_disp = signal(ignore_sig_list[sig_indx], SIG_IGN)) == SIG_ERR) {
+		if(signal(ignore_sig_list[sig_indx], SIG_IGN) == SIG_ERR) {
 			snprintf(errmsg, sizeof(errmsg), "Warning: couldn't set signal %d to ignore",
 				ignore_sig_list[sig_indx]);
 			perror(errmsg);
@@ -744,6 +752,11 @@ int main(int argc, char *argv[])
 	gtk_rc_add_default_file(search_path);
 	g_free(search_path);
 
+#if defined(HAVE_X11) && defined(USE_VV)
+	/* GStreamer elements such as ximagesrc may require this */
+	XInitThreads();
+#endif
+
 	gui_check = gtk_init_check(&argc, &argv);
 	if (!gui_check) {
 		char *display = gdk_get_display();
@@ -804,8 +817,8 @@ int main(int argc, char *argv[])
 	 * in user's home directory.
 	 */
 	search_path = g_build_filename(purple_user_dir(), "plugins", NULL);
-	if (!g_stat(search_path, &st))
-		g_mkdir(search_path, S_IRUSR | S_IWUSR | S_IXUSR);
+	if (g_mkdir(search_path, S_IRUSR | S_IWUSR | S_IXUSR) != 0 && errno != EEXIST)
+		fprintf(stderr, "Couldn't create plugins dir\n");
 	purple_plugins_add_search_path(search_path);
 	g_free(search_path);
 	purple_plugins_add_search_path(LIBDIR);

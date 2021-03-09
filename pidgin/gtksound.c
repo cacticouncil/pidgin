@@ -394,6 +394,7 @@ bus_call (GstBus     *bus,
 	case GST_MESSAGE_EOS:
 		gst_element_set_state(play, GST_STATE_NULL);
 		gst_object_unref(GST_OBJECT(play));
+		return FALSE;
 		break;
 	case GST_MESSAGE_WARNING:
 		gst_message_parse_warning(msg, &err, NULL);
@@ -444,9 +445,9 @@ pidgin_sound_play_file(const char *filename)
 
 	method = purple_prefs_get_string(PIDGIN_PREFS_ROOT "/sound/method");
 
-	if (!strcmp(method, "none")) {
+	if (purple_strequal(method, "none")) {
 		return;
-	} else if (!strcmp(method, "beep")) {
+	} else if (purple_strequal(method, "beep")) {
 		gdk_beep();
 		return;
 	}
@@ -457,7 +458,7 @@ pidgin_sound_play_file(const char *filename)
 	}
 
 #ifndef _WIN32
-	if (!strcmp(method, "custom")) {
+	if (purple_strequal(method, "custom")) {
 		const char *sound_cmd;
 		char *command;
 		char *esc_filename;
@@ -510,13 +511,13 @@ pidgin_sound_play_file(const char *filename)
 	if (gst_init_failed)  /* Perhaps do gdk_beep instead? */
 		return;
 	volume = (float)(CLAMP(purple_prefs_get_int(PIDGIN_PREFS_ROOT "/sound/volume"),0,100)) / 50;
-	if (!strcmp(method, "automatic")) {
+	if (purple_strequal(method, "automatic")) {
 		sink = gst_element_factory_make("gconfaudiosink", "sink");
 	}
 #ifndef _WIN32
-	else if (!strcmp(method, "esd")) {
+	else if (purple_strequal(method, "esd")) {
 		sink = gst_element_factory_make("esdsink", "sink");
-	} else if (!strcmp(method, "alsa")) {
+	} else if (purple_strequal(method, "alsa")) {
 		sink = gst_element_factory_make("alsasink", "sink");
 	}
 #endif
@@ -525,7 +526,7 @@ pidgin_sound_play_file(const char *filename)
 		return;
 	}
 
-	if (strcmp(method, "automatic") != 0 && !sink) {
+	if (!purple_strequal(method, "automatic") && !sink) {
 		purple_debug_error("sound", "Unable to create GStreamer audiosink.\n");
 		return;
 	}

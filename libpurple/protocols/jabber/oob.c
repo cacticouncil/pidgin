@@ -87,7 +87,8 @@ static void jabber_oob_xfer_end(PurpleXfer *xfer)
 static void jabber_oob_xfer_request_send(gpointer data, gint source, PurpleInputCondition cond) {
 	PurpleXfer *xfer = data;
 	JabberOOBXfer *jox = xfer->data;
-	int len, total_len = strlen(jox->write_buffer);
+	int len;
+	size_t total_len = strlen(jox->write_buffer);
 
 	len = write(xfer->fd, jox->write_buffer + jox->written_len,
 		total_len - jox->written_len);
@@ -137,9 +138,14 @@ static gssize jabber_oob_xfer_read(guchar **buffer, PurpleXfer *xfer) {
 			*tmp = '\0';
 			lenstr = strstr(jox->headers->str, "Content-Length: ");
 			if(lenstr) {
-				int size;
-				sscanf(lenstr, "Content-Length: %d", &size);
-				purple_xfer_set_size(xfer, size);
+				gsize size;
+				if (sscanf(lenstr, "Content-Length: %" G_GSIZE_FORMAT, &size) == 1)
+					purple_xfer_set_size(xfer, size);
+				else {
+					purple_debug_error("jabber", "Unable to parse Content-Length!\n");
+					purple_xfer_cancel_local(xfer);
+					return 0;
+				}
 			}
 			purple_xfer_set_read_fnc(xfer, NULL);
 
@@ -167,11 +173,11 @@ static void jabber_oob_xfer_recv_error(PurpleXfer *xfer, const char *code) {
 	jabber_iq_set_id(iq, jox->iq_id);
 	y = xmlnode_new_child(iq->node, "error");
 	xmlnode_set_attrib(y, "code", code);
-	if(!strcmp(code, "406")) {
+	if(purple_strequal(code, "406")) {
 		z = xmlnode_new_child(y, "not-acceptable");
 		xmlnode_set_attrib(y, "type", "modify");
 		xmlnode_set_namespace(z, NS_XMPP_STANZAS);
-	} else if(!strcmp(code, "404")) {
+	} else if(purple_strequal(code, "404")) {
 		z = xmlnode_new_child(y, "not-found");
 		xmlnode_set_attrib(y, "type", "cancel");
 		xmlnode_set_namespace(z, NS_XMPP_STANZAS);

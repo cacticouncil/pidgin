@@ -50,72 +50,87 @@ extern PurplePlugin *_irc_plugin;
 static struct _irc_msg {
 	char *name;
 	char *format;
+
+	/** The required parameter count, based on values we use, not protocol
+	 *  specification. */
+	int req_cnt;
+
 	void (*cb)(struct irc_conn *irc, const char *name, const char *from, char **args);
 } _irc_msgs[] = {
-	{ "005", "n*", irc_msg_features },	/* Feature list			*/
-	{ "251", "n:", irc_msg_luser },		/* Client & Server count	*/
-	{ "255", "n:", irc_msg_luser },		/* Client & Server count Mk. II	*/
-	{ "301", "nn:", irc_msg_away },		/* User is away			*/
-	{ "303", "n:", irc_msg_ison },		/* ISON reply			*/
-	{ "311", "nnvvv:", irc_msg_whois },	/* Whois user			*/
-	{ "312", "nnv:", irc_msg_whois },	/* Whois server			*/
-	{ "313", "nn:", irc_msg_whois },	/* Whois ircop			*/
-	{ "317", "nnvv", irc_msg_whois },	/* Whois idle			*/
-	{ "318", "nt:", irc_msg_endwhois },	/* End of WHOIS			*/
-	{ "319", "nn:", irc_msg_whois },	/* Whois channels		*/
-	{ "320", "nn:", irc_msg_whois },	/* Whois (fn ident)		*/
-	{ "314", "nnnvv:", irc_msg_whois },	/* Whowas user			*/
-	{ "315", "nt:", irc_msg_who },      /* end of WHO channel   */
-	{ "369", "nt:", irc_msg_endwhois },	/* End of WHOWAS		*/
-	{ "321", "*", irc_msg_list },		/* Start of list		*/
-	{ "322", "ncv:", irc_msg_list },	/* List.			*/
-	{ "323", ":", irc_msg_list },		/* End of list.			*/
-	{ "324", "ncv:", irc_msg_chanmode },	/* Channel modes		*/
-	{ "331", "nc:",	irc_msg_topic },	/* No channel topic		*/
-	{ "332", "nc:", irc_msg_topic },	/* Channel topic		*/
-	{ "333", "*", irc_msg_ignore },		/* Topic setter stuff		*/
-	{ "352", "nvcvnvvv:", irc_msg_who },/* Channel WHO			*/
-	{ "353", "nvc:", irc_msg_names },	/* Names list			*/
-	{ "366", "nc:", irc_msg_names },	/* End of names			*/
-	{ "367", "ncnnv", irc_msg_ban },	/* Ban list			*/
-	{ "368", "nc:", irc_msg_ban },		/* End of ban list		*/
-	{ "372", "n:", irc_msg_motd },		/* MOTD				*/
-	{ "375", "n:", irc_msg_motd },		/* Start MOTD			*/
-	{ "376", "n:", irc_msg_motd },		/* End of MOTD			*/
-	{ "391", "nv:", irc_msg_time },		/* Time reply			*/
-	{ "401", "nt:", irc_msg_nonick },	/* No such nick/chan		*/
-	{ "406", "nt:", irc_msg_nonick },	/* No such nick for WHOWAS	*/
-	{ "403", "nc:", irc_msg_nochan },	/* No such channel		*/
-	{ "404", "nt:", irc_msg_nosend },	/* Cannot send to chan		*/
-	{ "421", "nv:", irc_msg_unknown },	/* Unknown command		*/
-	{ "422", "n:", irc_msg_motd },		/* MOTD file missing		*/
-	{ "432", "vn:", irc_msg_badnick },	/* Erroneous nickname		*/
-	{ "433", "vn:", irc_msg_nickused },	/* Nickname already in use	*/
-	{ "437", "nc:", irc_msg_unavailable },  /* Nick/channel is unavailable */
-	{ "438", "nn:", irc_msg_nochangenick },	/* Nick may not change		*/
-	{ "442", "nc:", irc_msg_notinchan },	/* Not in channel		*/
-	{ "473", "nc:", irc_msg_inviteonly },	/* Tried to join invite-only	*/
-	{ "474", "nc:", irc_msg_banned },	/* Banned from channel		*/
-	{ "477", "nc:", irc_msg_regonly },	/* Registration Required	*/
-	{ "478", "nct:", irc_msg_banfull },	/* Banlist is full		*/
-	{ "482", "nc:", irc_msg_notop },	/* Need to be op to do that	*/
-	{ "501", "n:", irc_msg_badmode },	/* Unknown mode flag		*/
-	{ "506", "nc:", irc_msg_nosend },	/* Must identify to send	*/
-	{ "515", "nc:", irc_msg_regonly },	/* Registration required	*/
-	{ "invite", "n:", irc_msg_invite },	/* Invited			*/
-	{ "join", ":", irc_msg_join },		/* Joined a channel		*/
-	{ "kick", "cn:", irc_msg_kick },	/* KICK				*/
-	{ "mode", "tv:", irc_msg_mode },	/* MODE for channel		*/
-	{ "nick", ":", irc_msg_nick },		/* Nick change			*/
-	{ "notice", "t:", irc_msg_notice },	/* NOTICE recv			*/
-	{ "part", "c:", irc_msg_part },		/* Parted a channel		*/
-	{ "ping", ":", irc_msg_ping },		/* Received PING from server	*/
-	{ "pong", "v:", irc_msg_pong },		/* Received PONG from server	*/
-	{ "privmsg", "t:", irc_msg_privmsg },	/* Received private message	*/
-	{ "topic", "c:", irc_msg_topic },	/* TOPIC command		*/
-	{ "quit", ":", irc_msg_quit },		/* QUIT notice			*/
-	{ "wallops", ":", irc_msg_wallops },	/* WALLOPS command		*/
-	{ NULL, NULL, NULL }
+	{ "005", "n*", 2, irc_msg_features },		/* Feature list			*/
+	{ "251", "n:", 1, irc_msg_luser },		/* Client & Server count	*/
+	{ "255", "n:", 1, irc_msg_luser },		/* Client & Server count Mk. II	*/
+	{ "301", "nn:", 3, irc_msg_away },		/* User is away			*/
+	{ "303", "n:", 2, irc_msg_ison },		/* ISON reply			*/
+	{ "311", "nnvvv:", 6, irc_msg_whois },		/* Whois user			*/
+	{ "312", "nnv:", 4, irc_msg_whois },		/* Whois server			*/
+	{ "313", "nn:", 2, irc_msg_whois },		/* Whois ircop			*/
+	{ "317", "nnvv", 3, irc_msg_whois },		/* Whois idle			*/
+	{ "318", "nt:", 2, irc_msg_endwhois },		/* End of WHOIS			*/
+	{ "319", "nn:", 3, irc_msg_whois },		/* Whois channels		*/
+	{ "320", "nn:", 2, irc_msg_whois },		/* Whois (fn ident)		*/
+	{ "330", "nnv:", 4, irc_msg_whois },		/* Whois (fn login)		*/
+	{ "314", "nnnvv:", 6, irc_msg_whois },		/* Whowas user			*/
+	{ "315", "nt:", 0, irc_msg_who },		/* end of WHO channel		*/
+	{ "369", "nt:", 2, irc_msg_endwhois },		/* End of WHOWAS		*/
+	{ "321", "*", 0, irc_msg_list },		/* Start of list		*/
+	{ "322", "ncv:", 4, irc_msg_list },		/* List.			*/
+	{ "323", ":", 0, irc_msg_list },		/* End of list.			*/
+	{ "324", "ncv:", 3, irc_msg_chanmode },		/* Channel modes		*/
+	{ "331", "nc:", 3, irc_msg_topic },		/* No channel topic		*/
+	{ "332", "nc:", 3, irc_msg_topic },		/* Channel topic		*/
+	{ "333", "ncvv", 4, irc_msg_topicinfo },	/* Topic setter stuff		*/
+	{ "352", "ncvvvnv:", 8, irc_msg_who },		/* Channel WHO			*/
+	{ "353", "nvc:", 4, irc_msg_names },		/* Names list			*/
+	{ "366", "nc:", 2, irc_msg_names },		/* End of names			*/
+	{ "367", "ncnnv", 3, irc_msg_ban },		/* Ban list			*/
+	{ "368", "nc:", 2, irc_msg_ban },		/* End of ban list		*/
+	{ "372", "n:", 1, irc_msg_motd },		/* MOTD				*/
+	{ "375", "n:", 1, irc_msg_motd },		/* Start MOTD			*/
+	{ "376", "n:", 1, irc_msg_motd },		/* End of MOTD			*/
+	{ "391", "nv:", 3, irc_msg_time },		/* Time reply			*/
+	{ "401", "nt:", 2, irc_msg_nonick },		/* No such nick/chan		*/
+	{ "406", "nt:", 2, irc_msg_nonick },		/* No such nick for WHOWAS	*/
+	{ "403", "nc:", 2, irc_msg_nochan },		/* No such channel		*/
+	{ "404", "nt:", 3, irc_msg_nosend },		/* Cannot send to chan		*/
+	{ "421", "nv:", 2, irc_msg_unknown },		/* Unknown command		*/
+	{ "422", "n:", 1, irc_msg_motd },		/* MOTD file missing		*/
+	{ "432", "vn:", 0, irc_msg_badnick },		/* Erroneous nickname		*/
+	{ "433", "vn:", 2, irc_msg_nickused },		/* Nickname already in use	*/
+	{ "437", "nc:", 2, irc_msg_unavailable },	/* Nick/channel is unavailable	*/
+	{ "438", "nn:", 3, irc_msg_nochangenick },	/* Nick may not change		*/
+	{ "442", "nc:", 3, irc_msg_notinchan },		/* Not in channel		*/
+	{ "473", "nc:", 2, irc_msg_inviteonly },	/* Tried to join invite-only	*/
+	{ "474", "nc:", 2, irc_msg_banned },		/* Banned from channel		*/
+	{ "477", "nc:", 3, irc_msg_regonly },		/* Registration Required	*/
+	{ "478", "nct:", 3, irc_msg_banfull },		/* Banlist is full		*/
+	{ "482", "nc:", 3, irc_msg_notop },		/* Need to be op to do that	*/
+	{ "501", "n:", 2, irc_msg_badmode },		/* Unknown mode flag		*/
+	{ "506", "nc:", 3, irc_msg_nosend },		/* Must identify to send	*/
+	{ "515", "nc:", 3, irc_msg_regonly },		/* Registration required	*/
+#ifdef HAVE_CYRUS_SASL
+	{ "903", "*", 0, irc_msg_authok},		/* SASL auth successful		*/
+	{ "904", "*", 0, irc_msg_authtryagain },	/* SASL auth failed, can recover*/
+	{ "905", "*", 0, irc_msg_authfail },		/* SASL auth failed		*/
+	{ "906", "*", 0, irc_msg_authfail },		/* SASL auth failed		*/
+	{ "907", "*", 0, irc_msg_authfail },		/* SASL auth failed		*/
+	{ "cap", "vv:", 3, irc_msg_cap },		/* SASL capable			*/
+	{ "authenticate", ":", 1, irc_msg_authenticate }, /* SASL authenticate		*/
+#endif
+	{ "invite", "n:", 2, irc_msg_invite },		/* Invited			*/
+	{ "join", ":", 1, irc_msg_join },		/* Joined a channel		*/
+	{ "kick", "cn:", 3, irc_msg_kick },		/* KICK				*/
+	{ "mode", "tv:", 2, irc_msg_mode },		/* MODE for channel		*/
+	{ "nick", ":", 1, irc_msg_nick },		/* Nick change			*/
+	{ "notice", "t:", 2, irc_msg_notice },		/* NOTICE recv			*/
+	{ "part", "c:", 1, irc_msg_part },		/* Parted a channel		*/
+	{ "ping", ":", 1, irc_msg_ping },		/* Received PING from server	*/
+	{ "pong", "v:", 2, irc_msg_pong },		/* Received PONG from server	*/
+	{ "privmsg", "t:", 2, irc_msg_privmsg },	/* Received private message	*/
+	{ "topic", "c:", 2, irc_msg_topic },		/* TOPIC command		*/
+	{ "quit", ":", 1, irc_msg_quit },		/* QUIT notice			*/
+	{ "wallops", ":", 1, irc_msg_wallops },		/* WALLOPS command		*/
+	{ NULL, NULL, 0, NULL }
 };
 
 static struct _irc_user_cmd {
@@ -260,18 +275,18 @@ static char *irc_recv_convert(struct irc_conn *irc, const char *string)
 	gboolean autodetect;
 	int i;
 
+	autodetect = purple_account_get_bool(irc->account, "autodetect_utf8", IRC_DEFAULT_AUTODETECT);
+
+	if (autodetect && g_utf8_validate(string, -1, NULL)) {
+		return g_strdup(string);
+	}
+
 	enclist = purple_account_get_string(irc->account, "encoding", IRC_DEFAULT_CHARSET);
 	encodings = g_strsplit(enclist, ",", -1);
 
 	if (encodings[0] == NULL) {
 		g_strfreev(encodings);
 		return purple_utf8_salvage(string);
-	}
-
-	autodetect = purple_account_get_bool(irc->account, "autodetect_utf8", IRC_DEFAULT_AUTODETECT);
-
-	if (autodetect && g_utf8_validate(string, -1, NULL)) {
-		return g_strdup(string);
 	}
 
 	for (i = 0; encodings[i] != NULL; i++) {
@@ -376,7 +391,7 @@ char *irc_mirc2html(const char *string)
 	do {
 		end = strpbrk(cur, "\002\003\007\017\026\037");
 
-		decoded = g_string_append_len(decoded, cur, end ? end - cur : strlen(cur));
+		decoded = g_string_append_len(decoded, cur, (end ? (gssize)(end - cur) : (gssize)strlen(cur)));
 		cur = end ? end : cur + strlen(cur);
 
 		switch (*cur) {
@@ -459,6 +474,7 @@ char *irc_mirc2html(const char *string)
 				decoded = g_string_append(decoded, "</U>");
 			if (font)
 				decoded = g_string_append(decoded, "</FONT>");
+			bold = italic = underline = font = FALSE;
 			break;
 		default:
 			purple_debug(PURPLE_DEBUG_ERROR, "irc", "Unexpected mIRC formatting character %d\n", *cur);
@@ -518,7 +534,7 @@ const char *irc_nick_skip_mode(struct irc_conn *irc, const char *nick)
 
 	mode_chars = irc->mode_chars ? irc->mode_chars : default_modes;
 
-	while (strchr(mode_chars, *nick) != NULL)
+	while (*nick && strchr(mode_chars, *nick) != NULL)
 		nick++;
 
 	return nick;
@@ -540,7 +556,7 @@ char *irc_parse_ctcp(struct irc_conn *irc, const char *from, const char *to, con
 	 * message and low-level quoting ... but if you want that crap,
 	 * use a real IRC client. */
 
-	if (msg[0] != '\001' || msg[strlen(msg) - 1] != '\001')
+	if (msg[0] != '\001' || msg[1] == '\0' || msg[strlen(msg) - 1] != '\001')
 		return g_strdup(msg);
 
 	if (!strncmp(cur, "ACTION ", 7)) {
@@ -550,14 +566,16 @@ char *irc_parse_ctcp(struct irc_conn *irc, const char *from, const char *to, con
 		return buf;
 	} else if (!strncmp(cur, "PING ", 5)) {
 		if (notice) { /* reply */
-			/* TODO: Should this read in the timestamp as a double? */
-			sscanf(cur, "PING %lu", &timestamp);
 			gc = purple_account_get_connection(irc->account);
 			if (!gc)
 				return NULL;
-			buf = g_strdup_printf(_("Reply time from %s: %lu seconds"), from, time(NULL) - timestamp);
-			purple_notify_info(gc, _("PONG"), _("CTCP PING reply"), buf);
-			g_free(buf);
+			/* TODO: Should this read in the timestamp as a double? */
+			if (sscanf(cur, "PING %lu", &timestamp) == 1) {
+				buf = g_strdup_printf(_("Reply time from %s: %lu seconds"), from, time(NULL) - timestamp);
+				purple_notify_info(gc, _("PONG"), _("CTCP PING reply"), buf);
+				g_free(buf);
+			} else
+				purple_debug(PURPLE_DEBUG_ERROR, "irc", "Unable to parse PING timestamp");
 			return NULL;
 		} else {
 			buf = irc_format(irc, "vt:", "NOTICE", from, msg);
@@ -651,6 +669,8 @@ void irc_parse_msg(struct irc_conn *irc, char *input)
 	char *cur, *end, *tmp, *from, *msgname, *fmt, **args, *msg;
 	guint i;
 	PurpleConnection *gc = purple_account_get_connection(irc->account);
+	gboolean fmt_valid;
+	int args_cnt;
 
 	irc->recv_time = time(NULL);
 
@@ -660,6 +680,13 @@ void irc_parse_msg(struct irc_conn *irc, char *input)
 	 * instead of a null terminated string.
 	 */
 	purple_signal_emit(_irc_plugin, "irc-receiving-text", gc, &input);
+
+	if (purple_debug_is_verbose()) {
+		char *clean = purple_utf8_salvage(input);
+		clean = g_strstrip(clean);
+		purple_debug_misc("irc", ">> %s\n", clean);
+		g_free(clean);
+	}
 
 	if (!strncmp(input, "PING ", 5)) {
 		msg = irc_format(irc, "vv", "PONG", input + 5);
@@ -677,6 +704,11 @@ void irc_parse_msg(struct irc_conn *irc, char *input)
 				PURPLE_CONNECTION_ERROR_NETWORK_ERROR,
 				_("Disconnected."));
 		return;
+#ifdef HAVE_CYRUS_SASL
+	} else if (!strncmp(input, "AUTHENTICATE ", 13)) {
+		irc_msg_auth(irc, input + 13);
+		return;
+#endif
 	}
 
 	if (input[0] != ':' || (cur = strchr(input, ' ')) == NULL) {
@@ -702,12 +734,21 @@ void irc_parse_msg(struct irc_conn *irc, char *input)
 	}
 	g_free(msgname);
 
+	fmt_valid = TRUE;
 	args = g_new0(char *, strlen(msgent->format));
+	args_cnt = 0;
 	for (cur = end, fmt = msgent->format, i = 0; fmt[i] && *cur++; i++) {
 		switch (fmt[i]) {
 		case 'v':
 			if (!(end = strchr(cur, ' '))) end = cur + strlen(cur);
-			args[i] = g_strndup(cur, end - cur);
+			/* This is a string of unknown encoding which we do not
+			 * want to transcode, but it may or may not be valid
+			 * UTF-8, so we'll salvage it.  If a nick/channel/target
+			 * field has inadvertently been marked verbatim, this
+			 * could cause weirdness. */
+			tmp = g_strndup(cur, end - cur);
+			args[i] = purple_utf8_salvage(tmp);
+			g_free(tmp);
 			cur += end - cur;
 			break;
 		case 't':
@@ -725,17 +766,30 @@ void irc_parse_msg(struct irc_conn *irc, char *input)
 			cur = cur + strlen(cur);
 			break;
 		case '*':
-			args[i] = g_strdup(cur);
+			/* Ditto 'v' above; we're going to salvage this in case
+			 * it leaks past the IRC prpl */
+			args[i] = purple_utf8_salvage(cur);
 			cur = cur + strlen(cur);
 			break;
 		default:
 			purple_debug(PURPLE_DEBUG_ERROR, "irc", "invalid message format character '%c'\n", fmt[i]);
+			fmt_valid = FALSE;
 			break;
 		}
+		if (fmt_valid)
+			args_cnt = i + 1;
 	}
-	tmp = irc_recv_convert(irc, from);
-	(msgent->cb)(irc, msgent->name, tmp, args);
-	g_free(tmp);
+	if (G_UNLIKELY(!fmt_valid)) {
+		purple_debug_error("irc", "message format was invalid");
+	} else if (G_LIKELY(args_cnt >= msgent->req_cnt)) {
+		tmp = irc_recv_convert(irc, from);
+		(msgent->cb)(irc, msgent->name, tmp, args);
+		g_free(tmp);
+	} else {
+		purple_debug_error("irc", "args count (%d) doesn't reach "
+			"expected value of %d for the '%s' command",
+			args_cnt, msgent->req_cnt, msgent->name);
+	}
 	for (i = 0; i < strlen(msgent->format); i++) {
 		g_free(args[i]);
 	}

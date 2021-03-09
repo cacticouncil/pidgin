@@ -3,9 +3,12 @@
 
 #include <glib.h>
 #ifdef _WIN32
-#undef STRINGIFY
 #undef pipe
 #endif
+
+#define SILENT_NO_TAINT_SUPPORT 0
+#define NO_TAINT_SUPPORT 0
+
 #include <EXTERN.h>
 #include <perl.h>
 #include <XSUB.h>

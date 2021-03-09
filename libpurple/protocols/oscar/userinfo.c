@@ -252,7 +252,7 @@ oscar_user_info_append_status(PurpleConnection *gc, PurpleNotifyUserInfo *user_i
 				/* Append the status name for online ICQ statuses, away AIM statuses, and for all buddies with no message.
 				 * If the status name and the message are the same, only show one. */
 				const char *status_name = purple_status_get_name(status);
-				if (status_name && message && !strcmp(status_name, message))
+				if (status_name && message && purple_strequal(status_name, message))
 					status_name = NULL;
 
 				tmp = g_strdup_printf("%s%s%s",
@@ -309,8 +309,6 @@ oscar_user_info_append_extra_info(PurpleConnection *gc, PurpleNotifyUserInfo *us
 {
 	OscarData *od;
 	PurpleAccount *account;
-	PurplePresence *presence = NULL;
-	PurpleStatus *status = NULL;
 	PurpleGroup *g = NULL;
 	struct buddyinfo *bi = NULL;
 	char *tmp;
@@ -332,19 +330,17 @@ oscar_user_info_append_extra_info(PurpleConnection *gc, PurpleNotifyUserInfo *us
 		bname = purple_buddy_get_name(b);
 		g = purple_buddy_get_group(b);
 		gname = purple_group_get_name(g);
-		presence = purple_buddy_get_presence(b);
-		status = purple_presence_get_active_status(presence);
 	}
 
 	if (userinfo != NULL)
 		bi = g_hash_table_lookup(od->buddyinfo, purple_normalize(account, userinfo->bn));
 
 	if ((bi != NULL) && (bi->ipaddr != 0)) {
-		tmp =  g_strdup_printf("%hhu.%hhu.%hhu.%hhu",
-						(bi->ipaddr & 0xff000000) >> 24,
-						(bi->ipaddr & 0x00ff0000) >> 16,
-						(bi->ipaddr & 0x0000ff00) >> 8,
-						(bi->ipaddr & 0x000000ff));
+		tmp =  g_strdup_printf("%u.%u.%u.%u",
+			0xFF & ((bi->ipaddr & 0xff000000) >> 24),
+			0xFF & ((bi->ipaddr & 0x00ff0000) >> 16),
+			0xFF & ((bi->ipaddr & 0x0000ff00) >> 8),
+			0xFF & (bi->ipaddr & 0x000000ff));
 		oscar_user_info_add_pair(user_info, _("IP Address"), tmp);
 		g_free(tmp);
 	}
@@ -375,7 +371,8 @@ oscar_user_info_display_error(OscarData *od, guint16 error_reason, gchar *buddy)
 	purple_notify_user_info_add_pair(user_info, NULL, buf);
 	purple_notify_userinfo(od->gc, buddy, user_info, NULL, NULL);
 	purple_notify_user_info_destroy(user_info);
-	purple_conv_present_error(buddy, purple_connection_get_account(od->gc), buf);
+	if (!purple_conv_present_error(buddy, purple_connection_get_account(od->gc), buf))
+		purple_notify_error(od->gc, NULL, buf, NULL);
 	g_free(buf);
 }
 
@@ -388,7 +385,6 @@ oscar_user_info_display_icq(OscarData *od, struct aim_icq_info *info)
 	struct buddyinfo *bi;
 	gchar who[16];
 	PurpleNotifyUserInfo *user_info;
-	const gchar *alias;
 
 	if (!info->uin)
 		return;
@@ -405,11 +401,11 @@ oscar_user_info_display_icq(OscarData *od, struct aim_icq_info *info)
 	purple_notify_user_info_add_pair(user_info, _("UIN"), who);
 	oscar_user_info_convert_and_add(account, od, user_info, _("Nick"), info->nick);
 	if ((bi != NULL) && (bi->ipaddr != 0)) {
-		char *tstr =  g_strdup_printf("%hhu.%hhu.%hhu.%hhu",
-						(bi->ipaddr & 0xff000000) >> 24,
-						(bi->ipaddr & 0x00ff0000) >> 16,
-						(bi->ipaddr & 0x0000ff00) >> 8,
-						(bi->ipaddr & 0x000000ff));
+		char *tstr =  g_strdup_printf("%u.%u.%u.%u",
+			0xFF & ((bi->ipaddr & 0xff000000) >> 24),
+			0xFF & ((bi->ipaddr & 0x00ff0000) >> 16),
+			0xFF & ((bi->ipaddr & 0x0000ff00) >> 8),
+			0xFF & (bi->ipaddr & 0x000000ff));
 		purple_notify_user_info_add_pair(user_info, _("IP Address"), tstr);
 		g_free(tstr);
 	}
@@ -437,7 +433,7 @@ oscar_user_info_display_icq(OscarData *od, struct aim_icq_info *info)
 		tm->tm_mon  = (int)info->birthmonth - 1;
 		tm->tm_year = (int)info->birthyear - 1900;
 
-		/* Ignore dst setting of today to avoid timezone shift between 
+		/* Ignore dst setting of today to avoid timezone shift between
 		 * dates in summer and winter time. */
 		tm->tm_isdst = -1;
 
@@ -485,10 +481,6 @@ oscar_user_info_display_icq(OscarData *od, struct aim_icq_info *info)
 		oscar_user_info_convert_and_add_hyperlink(account, od, user_info, _("Web Page"), info->email, "");
 	}
 
-	if (buddy != NULL)
-		alias = purple_buddy_get_alias(buddy);
-	else
-		alias = who;
 	purple_notify_userinfo(gc, who, user_info, NULL, NULL);
 	purple_notify_user_info_destroy(user_info);
 }

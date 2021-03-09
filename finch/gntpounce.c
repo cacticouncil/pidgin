@@ -342,7 +342,7 @@ finch_pounce_editor_show(PurpleAccount *account, const char *name,
 	g_signal_connect(G_OBJECT(window), "destroy",
 					 G_CALLBACK(delete_win_cb), dialog);
 
-	gnt_box_add_widget(GNT_BOX(window), gnt_label_new_with_format(_("Pounce Who"), GNT_TEXT_FLAG_BOLD));
+	gnt_box_add_widget(GNT_BOX(window), gnt_label_new_with_format(_("Pounce on Whom"), GNT_TEXT_FLAG_BOLD));
 
 	/* Account: */
 	gnt_box_add_widget(GNT_BOX(window), gnt_label_new(_("Account:")));
@@ -801,10 +801,8 @@ pounce_cb(PurplePounce *pounce, PurplePounceEvent events, void *data)
 
 	if (purple_pounce_action_is_enabled(pounce, "open-window"))
 	{
-		conv = purple_find_conversation_with_account(PURPLE_CONV_TYPE_IM, pouncee, account);
-
-		if (conv == NULL)
-			conv = purple_conversation_new(PURPLE_CONV_TYPE_IM, account, pouncee);
+		if (!purple_find_conversation_with_account(PURPLE_CONV_TYPE_IM, pouncee, account))
+			purple_conversation_new(PURPLE_CONV_TYPE_IM, account, pouncee);
 	}
 
 	if (purple_pounce_action_is_enabled(pounce, "popup-notify"))

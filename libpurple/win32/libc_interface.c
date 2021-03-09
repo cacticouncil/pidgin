@@ -31,6 +31,7 @@
 #include "config.h"
 #include "debug.h"
 #include "libc_internal.h"
+#include "util.h"
 #include <glib/gstdio.h>
 
 /** This is redefined here because we can't include internal.h */
@@ -298,6 +299,50 @@ wpurple_inet_ntop (int af, const void *src, char *dst, socklen_t cnt)
       return NULL;
     }
   return (const char *) dst;
+}
+
+int
+wpurple_inet_pton(int af, const char *src, void *dst)
+{
+	/* struct sockaddr can't accomodate struct sockaddr_in6. */
+	union {
+		struct sockaddr_in6 sin6;
+		struct sockaddr_in sin;
+	} sa;
+	size_t srcsize;
+	
+	switch(af)
+	{
+		case AF_INET:
+			sa.sin.sin_family = AF_INET;
+			srcsize = sizeof (sa.sin);
+		break;
+		case AF_INET6:
+			sa.sin6.sin6_family = AF_INET6;
+			srcsize = sizeof (sa.sin6);
+		break;
+		default:
+			errno = WSAEPFNOSUPPORT;
+			return -1;
+	}
+	
+	if (WSAStringToAddress(src, af, NULL, (struct sockaddr *) &sa, &srcsize) != 0)
+	{
+		errno = WSAGetLastError();
+		return -1;
+	}
+	
+	switch(af)
+	{
+		case AF_INET:
+			memcpy(dst, &sa.sin.sin_addr, sizeof(sa.sin.sin_addr));
+		break;
+		case AF_INET6:
+			memcpy(dst, &sa.sin6.sin6_addr, sizeof(sa.sin6.sin6_addr));
+		break;
+	}
+	
+	return 1;
 }
 
 
@@ -889,7 +934,7 @@ wpurple_get_timezone_abbreviation(const struct tm *tm)
 
 	for (i = 0; win32_tzmap[i].wstd != NULL; i++)
 	{
-		if (strcmp(tzname, win32_tzmap[i].wstd) == 0)
+		if (purple_strequal(tzname, win32_tzmap[i].wstd))
 		{
 #if 0
 			purple_debug_info("wpurple", "TZ \"%s\" matches Windows timezone \"%s\"\n",
@@ -905,7 +950,7 @@ wpurple_get_timezone_abbreviation(const struct tm *tm)
 
 			return win32_tzmap[i].ustd;
 		}
-		if (strcmp(tzname, win32_tzmap[i].wdst) == 0)
+		if (purple_strequal(tzname, win32_tzmap[i].wdst))
 		{
 #if 0
 			purple_debug_info("wpurple", "TZ \"%s\" matches Windows timezone \"%s\"\n",
@@ -979,10 +1024,10 @@ wpurple_get_timezone_abbreviation(const struct tm *tm)
 			RegCloseKey(key);
 			break;
 		}
-		if (strcmp(tzname, zonename) == 0)
+		if (purple_strequal(tzname, zonename))
 		{
 			/* Matched zone */
-			strcpy(localtzname, keyname);
+			g_strlcpy(localtzname, keyname, sizeof(localtzname));
 			RegCloseKey(key);
 			break;
 		}
@@ -994,10 +1039,10 @@ wpurple_get_timezone_abbreviation(const struct tm *tm)
 			RegCloseKey(key);
 			break;
 		}
-		if (strcmp(tzname, zonename) == 0)
+		if (purple_strequal(tzname, zonename))
 		{
 			/* Matched DST zone */
-			strcpy(localtzname, keyname);
+			g_strlcpy(localtzname, keyname, sizeof(localtzname));
 			RegCloseKey(key);
 			break;
 		}
@@ -1012,7 +1057,7 @@ wpurple_get_timezone_abbreviation(const struct tm *tm)
 		/* Found a localized name, so scan for that one too */
 		for (i = 0; win32_tzmap[i].wstd != NULL; i++)
 		{
-			if (strcmp(localtzname, win32_tzmap[i].wstd) == 0)
+			if (purple_strequal(localtzname, win32_tzmap[i].wstd))
 			{
 #if 0
 				purple_debug_info("wpurple", "TZ \"%s\" matches localized Windows timezone \"%s\" (\"%s\")\n",
@@ -1026,7 +1071,7 @@ wpurple_get_timezone_abbreviation(const struct tm *tm)
 
 				return win32_tzmap[i].ustd;
 			}
-			if (strcmp(localtzname, win32_tzmap[i].wdst) == 0)
+			if (purple_strequal(localtzname, win32_tzmap[i].wdst))
 			{
 #if 0
 				purple_debug_info("wpurple", "TZ \"%s\" matches localized Windows timezone \"%s\" (\"%s\")\n",

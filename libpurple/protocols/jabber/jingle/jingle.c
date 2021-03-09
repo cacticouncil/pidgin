@@ -45,24 +45,24 @@ jingle_get_type(const gchar *type)
 	if (type == NULL)
 		return G_TYPE_NONE;
 
-	if (!strcmp(type, JINGLE_TRANSPORT_RAWUDP))
+	if (purple_strequal(type, JINGLE_TRANSPORT_RAWUDP))
 		return JINGLE_TYPE_RAWUDP;
-	else if (!strcmp(type, JINGLE_TRANSPORT_ICEUDP))
+	else if (purple_strequal(type, JINGLE_TRANSPORT_ICEUDP))
 		return JINGLE_TYPE_ICEUDP;
 #if 0
-	else if (!strcmp(type, JINGLE_TRANSPORT_SOCKS))
+	else if (purple_strequal(type, JINGLE_TRANSPORT_SOCKS))
 		return JINGLE_TYPE_SOCKS;
-	else if (!strcmp(type, JINGLE_TRANSPORT_IBB))
+	else if (purple_strequal(type, JINGLE_TRANSPORT_IBB))
 		return JINGLE_TYPE_IBB;
 #endif
 #ifdef USE_VV
-	else if (!strcmp(type, JINGLE_APP_RTP))
+	else if (purple_strequal(type, JINGLE_APP_RTP))
 		return JINGLE_TYPE_RTP;
 #endif
 #if 0
-	else if (!strcmp(type, JINGLE_APP_FT))
+	else if (purple_strequal(type, JINGLE_APP_FT))
 		return JINGLE_TYPE_FT;
-	else if (!strcmp(type, JINGLE_APP_XML))
+	else if (purple_strequal(type, JINGLE_APP_XML))
 		return JINGLE_TYPE_XML;
 #endif
 	else
@@ -126,7 +126,7 @@ jingle_handle_content_modify(JingleSession *session, xmlnode *jingle)
 		if (local_content != NULL) {
 			const gchar *senders = xmlnode_get_attrib(content, "senders");
 			gchar *local_senders = jingle_content_get_senders(local_content);
-			if (strcmp(senders, local_senders))
+			if (!purple_strequal(senders, local_senders))
 				jingle_content_modify(local_content, senders);
 			g_free(local_senders);
 		} else {
@@ -369,7 +369,7 @@ jingle_get_action_type(const gchar *action)
 	/* Start at 1 to skip the unknown-action type */
 	int i = 1;
 	for (; i < num_actions; ++i) {
-		if (!strcmp(action, jingle_actions[i].name))
+		if (purple_strequal(action, jingle_actions[i].name))
 			return i;
 	}
 	return JINGLE_UNKNOWN_TYPE;
@@ -405,7 +405,7 @@ jingle_parse(JabberStream *js, const char *from, JabberIqType type,
 	}
 
 	if (!(session = jingle_session_find_by_sid(js, sid))
-			&& strcmp(action, "session-initiate")) {
+			&& !purple_strequal(action, "session-initiate")) {
 		purple_debug_error("jingle", "jabber_jingle_session_parse couldn't find session\n");
 		/* send iq error here */
 		return;
@@ -456,13 +456,15 @@ jingle_create_relay_info(const gchar *ip, guint port, const gchar *username,
 		"password", G_TYPE_STRING, password,
 		"relay-type", G_TYPE_STRING, relay_type,
 		NULL);
-	purple_debug_info("jabber", "created gst_structure %" GST_PTR_FORMAT "\n",
+	purple_debug_info("jabber", "created gst_structure %p\n",
 		turn_setup);
 	if (turn_setup) {
 		memset(&value, 0, sizeof(GValue));
 		g_value_init(&value, GST_TYPE_STRUCTURE);
 		gst_value_set_structure(&value, turn_setup);
+G_GNUC_BEGIN_IGNORE_DEPRECATIONS
 		relay_info = g_value_array_append(relay_info, &value);
+G_GNUC_END_IGNORE_DEPRECATIONS
 		gst_structure_free(turn_setup);
 	}
 	return relay_info;
@@ -502,7 +504,9 @@ jingle_get_params(JabberStream *js, const gchar *relay_ip, guint relay_udp,
 		}
 
 		if (relay_ip) {
+G_GNUC_BEGIN_IGNORE_DEPRECATIONS
 			GValueArray *relay_info = g_value_array_new(0);
+G_GNUC_END_IGNORE_DEPRECATIONS
 
 			if (relay_udp) {
 				relay_info =
@@ -520,9 +524,11 @@ jingle_get_params(JabberStream *js, const gchar *relay_ip, guint relay_udp,
 						relay_password, "tls", relay_info);
 			}
 			params[next_index].name = "relay-info";
+G_GNUC_BEGIN_IGNORE_DEPRECATIONS
 			g_value_init(&params[next_index].value, G_TYPE_VALUE_ARRAY);
 			g_value_set_boxed(&params[next_index].value, relay_info);
 			g_value_array_free(relay_info);
+G_GNUC_END_IGNORE_DEPRECATIONS
 		}
 	}
 

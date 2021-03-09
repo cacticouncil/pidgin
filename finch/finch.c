@@ -70,16 +70,11 @@ static GHashTable *finch_ui_get_info(void)
 		g_hash_table_insert(ui_info, "client_type", "console");
 
 		/*
-		 * This is the client key for "Finch."  It is owned by the AIM
-		 * account "markdoliner."  Please don't use this key for other
-		 * applications.  You can either not specify a client key, in
-		 * which case the default "libpurple" key will be used, or you
-		 * can try to register your own at the AIM or ICQ web sites
-		 * (although this functionality was removed at some point, it's
-		 * possible it has been re-added).  AOL's old key management
-		 * page is http://developer.aim.com/manageKeys.jsp
+		 * This is the client key for "Finch." Please don't use this
+		 * key for other applications.  You can not specify a client
+		 * key, in which case the default "libpurple" key will be used
 		 */
-		g_hash_table_insert(ui_info, "prpl-aim-clientkey", "ma19sqWV9ymU6UYc");
+		g_hash_table_insert(ui_info, "prpl-aim-clientkey", "ma18nmEklXMR7Cj_");
 
 		/*
 		 * This is the client key for "Pidgin."  It is owned by the AIM
@@ -102,7 +97,7 @@ static GHashTable *finch_ui_get_info(void)
 		 * don't use this for other applications.  You can just not
 		 * specify a distid and libpurple will use a default.
 		 */
-		g_hash_table_insert(ui_info, "prpl-aim-distid", GINT_TO_POINTER(1552));
+		g_hash_table_insert(ui_info, "prpl-aim-distid", GINT_TO_POINTER(1718));
 		g_hash_table_insert(ui_info, "prpl-icq-distid", GINT_TO_POINTER(1552));
 	}
 
@@ -269,7 +264,6 @@ init_libpurple(int argc, char **argv)
 	gboolean opt_version = FALSE;
 	char *opt_config_dir_arg = NULL;
 	gboolean debug_enabled = FALSE;
-	struct stat st;
 
 	struct option long_options[] = {
 		{"config",   required_argument, NULL, 'c'},
@@ -379,8 +373,8 @@ init_libpurple(int argc, char **argv)
 	purple_idle_set_ui_ops(finch_idle_get_ui_ops());
 
 	path = g_build_filename(purple_user_dir(), "plugins", NULL);
-	if (!g_stat(path, &st))
-		g_mkdir(path, S_IRUSR | S_IWUSR | S_IXUSR);
+	if (g_mkdir(path, S_IRUSR | S_IWUSR | S_IXUSR) != 0 && errno != EEXIST)
+		fprintf(stderr, "Couldn't create plugins dir\n");
 	purple_plugins_add_search_path(path);
 	g_free(path);
 
@@ -448,7 +442,13 @@ int main(int argc, char *argv[])
 {
 	signal(SIGPIPE, SIG_IGN);
 
+#if !GLIB_CHECK_VERSION(2, 32, 0)
+	/* GLib threading system is automaticaly initialized since 2.32.
+	 * For earlier versions, it have to be initialized before calling any
+	 * Glib or GTK+ functions.
+	 */
 	g_thread_init(NULL);
+#endif
 
 	g_set_prgname("Finch");
 	g_set_application_name(_("Finch"));

@@ -68,8 +68,8 @@ PurpleAttentionType *purple_get_attention_type_from_code(PurpleAccount *account,
  * @param gc The connection to send the message on.
  * @param who Whose attention to request.
  * @param type_code An index into the prpl's attention_types list determining the type
- * 	of the attention request command to send. 0 if prpl only defines one
- * 	(for example, Yahoo and MSN), but some protocols define more (MySpaceIM).
+ * 	of the attention request command to send. 0 if prpl only defines one,
+ * 	but protocols are allowed to define more.
  *
  * Note that you can't send arbitrary PurpleAttentionType's, because there is
  * only a fixed set of attention commands.
@@ -210,6 +210,7 @@ void serv_got_chat_left(PurpleConnection *g, int id);
 void serv_got_chat_in(PurpleConnection *g, int id, const char *who,
 					  PurpleMessageFlags flags, const char *message, time_t mtime);
 void serv_send_file(PurpleConnection *gc, const char *who, const char *file);
+void serv_chat_send_file(PurpleConnection *gc, int id, const char *file);
 
 #ifdef __cplusplus
 }

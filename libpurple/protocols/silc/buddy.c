@@ -750,7 +750,7 @@ silcpurple_add_buddy_save(SilcBool success, void *context)
 	char filename[512], filename2[512], *fingerprint = NULL, *tmp;
 	SilcUInt32 len;
 	SilcHash hash;
-	int i;
+	gsize i;
 
 	if (!success) {
 		/* The user did not trust the public key. */
@@ -890,13 +890,13 @@ silcpurple_add_buddy_save(SilcBool success, void *context)
 		unsigned char *verifyd;
 		SilcUInt32 verify_len;
 
-		if (!strcmp(serverpk.type, "silc-rsa"))
+		if (purple_strequal(serverpk.type, "silc-rsa"))
 		  type = SILC_PKCS_SILC;
-		else if (!strcmp(serverpk.type, "ssh-rsa"))
+		else if (purple_strequal(serverpk.type, "ssh-rsa"))
 		  type = SILC_PKCS_SSH2;
-		else if (!strcmp(serverpk.type, "x509v3-sign-rsa"))
+		else if (purple_strequal(serverpk.type, "x509v3-sign-rsa"))
 		  type = SILC_PKCS_X509V3;
-		else if (!strcmp(serverpk.type, "pgp-sign-rsa"))
+		else if (purple_strequal(serverpk.type, "pgp-sign-rsa"))
 		  type = SILC_PKCS_OPENPGP;
 
 		if (silc_pkcs_public_key_alloc(type, serverpk.data,
@@ -922,7 +922,6 @@ silcpurple_add_buddy_save(SilcBool success, void *context)
 
 	if (usign_success || ssign_success) {
 		struct passwd *pw;
-		struct stat st;
 
 		memset(filename2, 0, sizeof(filename2));
 
@@ -937,14 +936,9 @@ silcpurple_add_buddy_save(SilcBool success, void *context)
 			return;
 
 		/* Create dir if it doesn't exist */
-		if ((g_stat(filename, &st)) == -1) {
-			if (errno == ENOENT) {
-				if (pw->pw_uid == geteuid()) {
-					int ret = g_mkdir(filename, 0755);
-					if (ret < 0)
-						return;
-					}
-			}
+		if (pw->pw_uid == geteuid()) {
+			if (g_mkdir(filename, 0755) != 0 && errno != EEXIST)
+				return;
 		}
 
 		/* Save VCard */
@@ -982,10 +976,10 @@ silcpurple_add_buddy_save(SilcBool success, void *context)
 		if (usericon) {
 			const char *type = silc_mime_get_field(usericon, "Content-Type");
 			if (type &&
-			    (!strcmp(type, "image/jpeg") ||
-			     !strcmp(type, "image/gif") ||
-			     !strcmp(type, "image/bmp") ||
-			     !strcmp(type, "image/png"))) {
+			    (purple_strequal(type, "image/jpeg") ||
+			     purple_strequal(type, "image/gif") ||
+			     purple_strequal(type, "image/bmp") ||
+			     purple_strequal(type, "image/png"))) {
 				const unsigned char *data;
 				SilcUInt32 data_len;
 				data = silc_mime_get_data(usericon, &data_len);
@@ -1546,13 +1540,10 @@ void silcpurple_tooltip_text(PurpleBuddy *b, PurpleNotifyUserInfo *user_info, gb
 	if (!client_entry)
 		return;
 
-	if (client_entry->nickname)
-		purple_notify_user_info_add_pair(user_info, _("Nickname"),
+	purple_notify_user_info_add_pair(user_info, _("Nickname"),
 					       client_entry->nickname);
-	if (client_entry->username && client_entry->hostname) {
-		g_snprintf(tmp, sizeof(tmp), "%s@%s", client_entry->username, client_entry->hostname);
-		purple_notify_user_info_add_pair(user_info, _("Username"), tmp);
-	}
+	g_snprintf(tmp, sizeof(tmp), "%s@%s", client_entry->username, client_entry->hostname);
+	purple_notify_user_info_add_pair(user_info, _("Username"), tmp);
 	if (client_entry->mode) {
 		memset(tmp, 0, sizeof(tmp));
 		silcpurple_get_umode_string(client_entry->mode,
@@ -1721,11 +1712,11 @@ void silcpurple_buddy_set_icon(PurpleConnection *gc, PurpleStoredImage *img)
 		return;
 
 	t = purple_imgstore_get_extension(img);
-	if (!t || !strcmp(t, "icon")) {
+	if (!t || purple_strequal(t, "icon")) {
 		silc_mime_free(mime);
 		return;
 	}
-	if (!strcmp(t, "jpg"))
+	if (purple_strequal(t, "jpg"))
 		t = "jpeg";
 	g_snprintf(type, sizeof(type), "image/%s", t);
 	silc_mime_add_field(mime, "Content-Type", type);

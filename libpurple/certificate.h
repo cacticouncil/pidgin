@@ -46,6 +46,51 @@ typedef enum
 	PURPLE_CERTIFICATE_VALID = 1
 } PurpleCertificateVerificationStatus;
 
+/*
+ * TODO: Merge this with PurpleCertificateVerificationStatus for 3.0.0 */
+typedef enum {
+	PURPLE_CERTIFICATE_UNKNOWN_ERROR = -1,
+
+	/* Not an error */
+	PURPLE_CERTIFICATE_NO_PROBLEMS = 0,
+
+	/* Non-fatal */
+	PURPLE_CERTIFICATE_NON_FATALS_MASK = 0x0000FFFF,
+
+	/* The certificate is self-signed. */
+	PURPLE_CERTIFICATE_SELF_SIGNED = 0x01,
+
+	/* The CA is not in libpurple's pool of certificates. */
+	PURPLE_CERTIFICATE_CA_UNKNOWN = 0x02,
+
+	/* The current time is before the certificate's specified
+	 * activation time.
+	 */
+	PURPLE_CERTIFICATE_NOT_ACTIVATED = 0x04,
+
+	/* The current time is after the certificate's specified expiration time */
+	PURPLE_CERTIFICATE_EXPIRED = 0x08,
+
+	/* The certificate's subject name doesn't match the expected */
+	PURPLE_CERTIFICATE_NAME_MISMATCH = 0x10,
+
+	/* No CA pool was found. This shouldn't happen... */
+	PURPLE_CERTIFICATE_NO_CA_POOL = 0x20,
+
+	/* Fatal */
+	PURPLE_CERTIFICATE_FATALS_MASK = 0xFFFF0000,
+
+	/* The signature chain could not be validated. Due to limitations in the
+	 * the current API, this also indicates one of the CA certificates in the
+	 * chain is expired (or not yet activated). FIXME 3.0.0 */
+	PURPLE_CERTIFICATE_INVALID_CHAIN = 0x10000,
+
+	/* The signature has been revoked. */
+	PURPLE_CERTIFICATE_REVOKED = 0x20000,
+
+	PURPLE_CERTIFICATE_LAST = 0x40000,
+} PurpleCertificateInvalidityFlags;
+
 typedef struct _PurpleCertificate PurpleCertificate;
 typedef struct _PurpleCertificatePool PurpleCertificatePool;
 typedef struct _PurpleCertificateScheme PurpleCertificateScheme;
@@ -197,7 +242,8 @@ struct _PurpleCertificateScheme
 	 */
 	void (* destroy_certificate)(PurpleCertificate * crt);
 
-	/** Find whether "crt" has a valid signature from issuer "issuer"
+	/** Find whether "crt" has a valid signature from "issuer," including
+	 * appropriate values for the CA flag in the basic constraints extension.
 	 *  @see purple_certificate_signed_by() */
 	gboolean (*signed_by)(PurpleCertificate *crt, PurpleCertificate *issuer);
 	/**
@@ -258,10 +304,51 @@ struct _PurpleCertificateScheme
 	 */
 	GSList * (* import_certificates)(const gchar * filename);
 
-	void (*_purple_reserved1)(void);
-	void (*_purple_reserved2)(void);
-	void (*_purple_reserved3)(void);
+	/**
+	 * Register a certificate as "trusted."
+	 */
+	gboolean (* register_trusted_tls_cert)(PurpleCertificate *crt, gboolean ca);
+
+	/**
+	 * Verify that a certificate is valid, performing all necessary checks
+	 * including date range, valid cert chain, recognized and valid CAs, etc.
+	 */
+	void (* verify_cert)(PurpleCertificateVerificationRequest *vrq, PurpleCertificateInvalidityFlags *flags);
+
+	/**
+	 * The size of the PurpleCertificateScheme. This should always be sizeof(PurpleCertificateScheme).
+	 * This allows adding more functions to this struct without requiring a major version bump.
+	 *
+	 * PURPLE_CERTIFICATE_SCHEME_HAS_FUNC() should be used for functions after this point.
+	 */
+	unsigned long struct_size;
+
+	/**
+	 * Retrieves the certificate public key fingerprint using SHA256
+	 *
+	 * @param crt   Certificate instance
+	 * @return Binary representation of SHA256 hash - must be freed using
+	 *         g_byte_array_free()
+	 * @since 2.12.0
+	 */
+	GByteArray * (* get_fingerprint_sha256)(PurpleCertificate *crt);
+
+	/**
+	 * Compares the public keys of two certificates
+	 *
+	 * @param crt1  A certificate instance
+	 * @param crt2  Another certificate instance
+	 * @return TRUE if both certificates have the same key, otherwise FALSE
+	 * @since 2.12.0
+	 */
+	gboolean (* compare_pubkeys)(PurpleCertificate *crt1, PurpleCertificate *crt2);
 };
+
+#define PURPLE_CERTIFICATE_SCHEME_HAS_FUNC(obj, member) \
+	(((G_STRUCT_OFFSET(PurpleCertificateScheme, member) < G_STRUCT_OFFSET(PurpleCertificateScheme, struct_size)) \
+	  || (G_STRUCT_OFFSET(PurpleCertificateScheme, member) < obj->struct_size)) && \
+	 obj->member != NULL)
+
 
 /** A set of operations used to provide logic for verifying a Certificate's
  *  authenticity.
@@ -523,12 +610,26 @@ purple_certificate_export(const gchar *filename, PurpleCertificate *crt);
  * Retrieves the certificate public key fingerprint using SHA1.
  *
  * @param crt        Certificate instance
- * @return Binary representation of the hash. You are responsible for free()ing
- *         this.
+ * @return Binary representation of the hash. You are responsible for freeing
+ *         this with g_byte_array_free().
  * @see purple_base16_encode_chunked()
+ * @see purple_certificate_get_fingerprint_sha256()
  */
 GByteArray *
 purple_certificate_get_fingerprint_sha1(PurpleCertificate *crt);
+
+/**
+ * Retrieves the certificate public key fingerprint using SHA256.
+ *
+ * @param crt        Certificate instance
+ * @param sha1_fallback  If true, return SHA1 if the SSL module doesn't
+ *                       implement SHA256. Otherwise, return NULL.
+ * @return Binary representation of the hash. You are responsible for freeing
+ *         this with g_byte_array_free().
+ * @see purple_base16_encode_chunked()
+ */
+GByteArray *
+purple_certificate_get_fingerprint_sha256(PurpleCertificate *crt, gboolean sha1_fallback);
 
 /**
  * Get a unique identifier for the certificate
@@ -582,6 +683,20 @@ purple_certificate_check_subject_name(PurpleCertificate *crt, const gchar *name)
  */
 gboolean
 purple_certificate_get_times(PurpleCertificate *crt, time_t *activation, time_t *expiration);
+
+/**
+ * Compares the public keys of two certificates.
+ *
+ * If the SSL backend does not implement this function, it may return FALSE
+ * every time. This is the case with the NSS plugin, which doesn't need it.
+ *
+ * @param crt1  A certificate instance
+ * @param crt2  Another certificate instance
+ * @return TRUE if both certificates have the same key, otherwise FALSE
+ * @since 2.12.0
+ */
+gboolean
+purple_certificate_compare_pubkeys(PurpleCertificate *crt1, PurpleCertificate *crt2);
 
 /*@}*/
 
@@ -639,7 +754,8 @@ purple_certificate_pool_contains(PurpleCertificatePool *pool, const gchar *id);
  * Retrieve a certificate from a pool.
  * @param pool   Pool to fish in
  * @param id     ID to look up
- * @return Retrieved certificate, or NULL if it wasn't there
+ * @return Retrieved certificate (to be freed with purple_certificate_destroy),
+ *         or NULL if it wasn't there
  */
 PurpleCertificate *
 purple_certificate_pool_retrieve(PurpleCertificatePool *pool, const gchar *id);
