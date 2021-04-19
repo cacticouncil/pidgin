@@ -28,14 +28,15 @@ The below summarizes the general approach taken to develop the Qt Nullclient pro
 ## Getting started with Qt Nullclient
 
 Building the source code and running the program involves the following steps:
-- [Install Ubuntu WSL (20.04)](###install-ubuntu-wsl)
-- [Install XLaunch](###install-xlaunch)
-- [Set up, get, and configure pidgin source code](###get-source-code)
-- [Configure and run XLaunch](###run-xlaunch)
-- [Build the pidgin source code](###build-pidgin-source-code)
-- [Obtain chat account(s)](###obtain-chat-account(s))
-- [Run and test the pidgin program](###run/test-pidgin-program)
-- [Build and run the Qt Nullclient program](###build/run-qt-nullclient-source-code)
+- [Install Ubuntu WSL (20.04)](#install-ubuntu-wsl)
+- [Install XLaunch](#install-xlaunch)
+- [Set up, get, and configure pidgin source code](#get-source-code)
+- [Configure and run XLaunch](#run-xlaunch)
+- [Install Qt on Ubuntu](#install-qt-on-ubuntu)
+- [Build the pidgin source code](#build-pidgin-source-code)
+- [Obtain chat account(s)](#obtain-chat-account(s))
+- [Run and test the pidgin program](#run/test-pidgin-program)
+- [Build and run the Qt Nullclient program](#build/run-qt-nullclient-source-code)
 
 ### Install Ubuntu WSL
 The development environment used was the Windows Subsystem for Linux (WSL) and more specifically WSL2 and Ubuntu 20.04 LTS on Windows. (Note: a "local user" is required and not just "root".) An installer for the Ubuntu distro can be found at the official Microsoft Store for [Ubuntu 20.04 LTS](https://www.microsoft.com/en-us/p/ubuntu-2004-lts/9n6svws3rx71?activetab=pivot:overviewtab). (Other standards include C++17 and gcc.)
@@ -88,6 +89,14 @@ Run the XLaunch application and match the configuration settings to those from e
 &nbsp;&nbsp;&nbsp;&nbsp;_Screenshot #4:_
 <center><img src="https://i.ibb.co/KKwtX2r/xlaunch-screenshot-4.png" alt="Optionally Save configuration" width=80% height=80%></center>
 
+### Install Qt on Ubuntu
+
+According to a team member, this installation also is needed, which makes sense since Qmake would not work otherwise.
+
+```sh
+user@pc:~/projects$ sudo apt install qt5-default
+```
+
 ### Build pidgin source code
 To build pidgin, run the following commands at the command line:
 
@@ -133,9 +142,9 @@ To build the Qt Nullclient program, in a _new_ terminal (if pidgin is running), 
 
 ```sh
 user@pc:~/projects/pidgin$ cd qtnullclient
-user@pc:~/projects/pidgin$ cd qmake qtnullclient.pro
-user@pc:~/projects/pidgin$ cd make
-user@pc:~/projects/pidgin$ cd ./qtnullclient
+user@pc:~/projects/pidgin$ qmake qtnullclient.pro
+user@pc:~/projects/pidgin$ make
+user@pc:~/projects/pidgin$ ./qtnullclient
 ```
 
 (Qmake is a Qt utility that auto-generates the needed makefile.)
