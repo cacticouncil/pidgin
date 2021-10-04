@@ -84,6 +84,7 @@
 
 #include "qtnullclient.h"
 #include "MainWindow.h"
+#include "SlackWindow.h"
 
 // Declare global function pointer created to handle non-member libpurple
 // function updating Qt MainWindow class member variable that keeps track of

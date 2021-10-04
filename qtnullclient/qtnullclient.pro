@@ -38,12 +38,14 @@ LIBS += /lib/x86_64-linux-gnu/libglib-2.0.so
 SOURCES += \
 	main.cpp \
 	MainWindow.cpp \
+	SlackWindow.cpp \
 	qtnullclient.cpp \
 	qtlibpurple.cpp
 	
 
 HEADERS += \
 	MainWindow.h \
+	SlackWindow.h \
 	qtnullclient.h \
 	qtlibpurple.h \
 	../libpurple/purple.h
@@ -52,6 +54,7 @@ HEADERS += \
 	
 FORMS += \
 	mainwindow.ui
+	SlackWindow.ui
 
 # Default rules for deployment.
 qnx: target.path = /tmp/$${TARGET}/bin

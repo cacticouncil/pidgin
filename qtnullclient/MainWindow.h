@@ -41,6 +41,7 @@ public:
 
 private slots:
 	void on_commandLinkButton_clicked();
+    void currentItemChanged(QListWidgetItem *current, QListWidgetItem *previous);
 
 signals:
 	

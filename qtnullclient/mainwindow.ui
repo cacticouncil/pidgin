@@ -14,7 +14,7 @@
    <string>MainWindow</string>
   </property>
   <widget class="QWidget" name="centralwidget">
-   <widget class="QListWidget" name="listWidget">
+   <widget class="QListWidget" name="ProtocolListWidget">
     <property name="geometry">
      <rect>
       <x>40</x>
@@ -65,12 +65,17 @@
     </item>
     <item>
      <property name="text">
-      <string>8: XMPP</string>
+      <string>8: Slack</string>
      </property>
     </item>
     <item>
      <property name="text">
-      <string>9: Zephyr</string>
+      <string>9: XMPP</string>
+     </property>
+    </item>
+    <item>
+     <property name="text">
+      <string>10: Zephyr</string>
      </property>
     </item>
    </widget>
@@ -78,7 +83,7 @@
     <property name="geometry">
      <rect>
       <x>260</x>
-      <y>380</y>
+      <y>420</y>
       <width>101</width>
       <height>41</height>
      </rect>
@@ -87,17 +92,17 @@
      <string>Connect</string>
     </property>
    </widget>
-   <widget class="QLineEdit" name="lineEdit">
+   <widget class="QLineEdit" name="slackWSLineEdit">
     <property name="geometry">
      <rect>
       <x>112</x>
       <y>310</y>
-      <width>241</width>
+      <width>120</width>
       <height>22</height>
      </rect>
     </property>
    </widget>
-   <widget class="QLineEdit" name="lineEdit_2">
+   <widget class="QLineEdit" name="userLineEdit">
     <property name="geometry">
      <rect>
       <x>112</x>
@@ -106,11 +111,21 @@
       <height>22</height>
      </rect>
     </property>
+   </widget>
+   <widget class="QLineEdit" name="passLineEdit">
+    <property name="geometry">
+     <rect>
+      <x>112</x>
+      <y>390</y>
+      <width>241</width>
+      <height>22</height>
+     </rect>
+    </property>
     <property name="echoMode">
      <enum>QLineEdit::Password</enum>
     </property>
    </widget>
-   <widget class="QLabel" name="label">
+   <widget class="QLabel" name="slackWSLabel">
     <property name="geometry">
      <rect>
       <x>40</x>
@@ -120,14 +135,40 @@
      </rect>
     </property>
     <property name="text">
-     <string>Username:</string>
+     <string>Workspace:</string>
     </property>
    </widget>
-   <widget class="QLabel" name="label_2">
+   <widget class="QLabel" name="WSLabel">
+    <property name="geometry">
+     <rect>
+      <x>235</x>
+      <y>315</y>
+      <width>71</width>
+      <height>16</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>.slack.com</string>
+    </property>
+   </widget>
+   <widget class="QLabel" name="userLabel">
     <property name="geometry">
      <rect>
       <x>40</x>
       <y>350</y>
+      <width>71</width>
+      <height>16</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Username:</string>
+    </property>
+   </widget>
+   <widget class="QLabel" name="passLabel">
+    <property name="geometry">
+     <rect>
+      <x>40</x>
+      <y>390</y>
       <width>71</width>
       <height>16</height>
      </rect>
