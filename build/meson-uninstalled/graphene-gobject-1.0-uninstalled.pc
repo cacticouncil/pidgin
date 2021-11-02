@@ -1,0 +1,9 @@
+prefix=/home/isarodriguez/pidgin/build
+srcdir=/home/isarodriguez/pidgin
+libdir=${prefix}/lib/x86_64-linux-gnu
+includedir=${prefix}/include
+
+Name: Graphene-GObject
+Description: GObject types for Graphene
+Version: 1.10.7
+Requires: graphene-1.0, gobject-2.0

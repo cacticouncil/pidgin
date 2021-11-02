@@ -1,0 +1,11 @@
+prefix=/home/isarodriguez/pidgin/build
+srcdir=/home/isarodriguez/pidgin
+libdir=${prefix}/lib/x86_64-linux-gnu
+includedir=${prefix}/include
+
+Name: gplugin-gtk3
+Description: Gtk3 widgets for GPlugin
+Version: 0.35.1-dev
+Requires: gplugin, glib-2.0 >=  2.52.0, gobject-2.0, gmodule-2.0, gtk+-3.0 >=  3.22.0
+Libs: -L${prefix}/subprojects/gplugin/gplugin-gtk3 -lgplugin-gtk3
+Cflags: -I${prefix}/subprojects/gplugin/gplugin-gtk3 -I${srcdir}/subprojects/gplugin/gplugin-gtk3 -I${prefix}/subprojects/gplugin/. -I${srcdir}/subprojects/gplugin/. -I${prefix}/subprojects/gplugin/gplugin/. -I${srcdir}/subprojects/gplugin/gplugin/.

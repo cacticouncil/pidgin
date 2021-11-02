@@ -1,0 +1,2 @@
+/home/isarodriguez/pidgin/build/meson-private/cmake_talkatu/CMakeFiles/rebuild_cache.dir
+/home/isarodriguez/pidgin/build/meson-private/cmake_talkatu/CMakeFiles/edit_cache.dir

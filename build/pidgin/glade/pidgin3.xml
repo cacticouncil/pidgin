@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<glade-catalog name="pidgin" version="3.0" library="pidgin3">
+  <glade-widget-classes>
+    <glade-widget-class name="PidginAccountChooser" generic-name="account_chooser" title="AccountChooser"/>
+    <glade-widget-class name="PidginAccountsMenu" generic-name="accounts_menu" title="AccountsMenu"/>
+    <glade-widget-class name="PidginAccountStore" generic-name="account_store" title="AccountStore"/>
+    <glade-widget-class name="PidginAccountFilterConnected" generic-name="account_filter_connected" title="FilterConnected"/>
+    <glade-widget-class name="PidginAccountFilterProtocol" generic-name="account_filter_protocol" title="FilterProtocol"/>
+    <glade-widget-class name="PidginCloseButton" generic-name="close-button" title="CloseButton"/>
+    <glade-widget-class name="PidginConversationWindow" generic-name="conversation_window" title="ConversationWindow"/>
+    <glade-widget-class name="PidginCredentialProviderStore" generic-name="credential_provider_store" title="CredentialProviderStore"/>
+    <glade-widget-class name="PidginCredentialsPage" generic-name="credentials_page" title="Credentials Page"/>
+    <glade-widget-class name="PidginDialog" generic-name="dialog" title="Dialog"/>
+    <glade-widget-class name="PidginInviteDialog" generic-name="invite_dialog" title="InviteDialog"/>
+    <glade-widget-class name="PidginMenuTray" generic-name="menu_tray" title="MenuTray"/>
+    <glade-widget-class name="PidginPluginsMenu" generic-name="plugins_menu" title="PluginsMenu"/>
+    <glade-widget-class name="PidginPresenceIcon" generic-name="presence_icon" title="PresenceIcon"/>
+    <glade-widget-class name="PidginScrollBook" generic-name="scroll_book" title="ScrollBook"/>
+    <glade-widget-class name="PidginStatusBox" generic-name="status_box" title="StatusBox"/>
+    <glade-widget-class name="PidginWindow" generic-name="window" title="Window"/>
+  </glade-widget-classes>
+  <glade-widget-group name="pidgin" title="Pidgin">
+    <glade-widget-class-ref name="PidginAccountChooser"/>
+    <glade-widget-class-ref name="PidginAccountsMenu"/>
+    <glade-widget-class-ref name="PidginAccountStore"/>
+    <glade-widget-class-ref name="PidginAccountFilterConnected"/>
+    <glade-widget-class-ref name="PidginAccountFilterProtocol"/>
+    <glade-widget-class-ref name="PidginCloseButton"/>
+    <glade-widget-class-ref name="PidginConversationWindow"/>
+    <glade-widget-class-ref name="PidginCredentialProviderStore"/>
+    <glade-widget-class-ref name="PidginCredentialsPage"/>
+    <glade-widget-class-ref name="PidginDialog"/>
+    <glade-widget-class-ref name="PidginInviteDialog"/>
+    <glade-widget-class-ref name="PidginMenuTray"/>
+    <glade-widget-class-ref name="PidginPluginsMenu"/>
+    <glade-widget-class-ref name="PidginPresenceIcon"/>
+    <glade-widget-class-ref name="PidginScrollBook"/>
+    <glade-widget-class-ref name="PidginStatusBox"/>
+    <glade-widget-class-ref name="PidginWindow"/>
+  </glade-widget-group>
+</glade-catalog>

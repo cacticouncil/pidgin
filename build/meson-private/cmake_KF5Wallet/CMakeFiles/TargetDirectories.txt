@@ -1,0 +1,3 @@
+/home/isarodriguez/pidgin/build/meson-private/cmake_KF5Wallet/CMakeFiles/rebuild_cache.dir
+/home/isarodriguez/pidgin/build/meson-private/cmake_KF5Wallet/CMakeFiles/edit_cache.dir
+/home/isarodriguez/pidgin/build/meson-private/cmake_KF5Wallet/CMakeFiles/KF5Wallet_QCH.dir

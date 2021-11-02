@@ -1,0 +1,11 @@
+prefix=/home/isarodriguez/pidgin/build
+srcdir=/home/isarodriguez/pidgin
+libdir=${prefix}/lib/x86_64-linux-gnu
+includedir=${prefix}/include
+
+Name: gplugin
+Description: A fully featured GModule based plugin library
+Version: 0.35.1-dev
+Requires: glib-2.0 >=  2.52.0, gobject-2.0, gmodule-2.0
+Libs: -L${prefix}/subprojects/gplugin/gplugin -lgplugin
+Cflags: -I${prefix}/subprojects/gplugin/gplugin -I${srcdir}/subprojects/gplugin/gplugin -I${prefix}/subprojects/gplugin/. -I${srcdir}/subprojects/gplugin/.

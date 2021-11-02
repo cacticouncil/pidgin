@@ -1,0 +1,13 @@
+prefix=/home/isarodriguez/pidgin/build
+srcdir=/home/isarodriguez/pidgin
+libdir=${prefix}/lib/x86_64-linux-gnu
+includedir=${prefix}/include
+
+Name: Graphene
+Description: Math classes for graphic libraries
+URL: https://ebassi.github.io/graphene
+Version: 1.10.7
+Requires.private: gobject-2.0
+Libs: -L${prefix}/subprojects/graphene/src -lgraphene-1.0
+Libs.private: -lm -pthread
+Cflags: -I${prefix}/subprojects/graphene/src -I${srcdir}/subprojects/graphene/src -I${prefix}/subprojects/graphene/include/. -I${srcdir}/subprojects/graphene/include/. -I${libdir}/graphene-1.0/include -mfpmath=sse -msse -msse2

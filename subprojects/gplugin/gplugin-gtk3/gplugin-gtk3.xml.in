@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<glade-catalog name="gplugin-gtk"
+               version="@GPLUGIN_VERSION@"
+               library="gplugin-gtk"
+               domain="gplugin"
+               depends="gtk+"
+               book="GPlugin">
+  <glade-widget-classes>
+    <!-- the get-type-function's are needed due to gplugin's weirdo namespace.
+         Without them, Glade is going to look for g_plugin_*_get_type and not
+         gplugin_*_get_type.
+      -->
+    <glade-widget-class
+      name="GPluginGtkPluginInfo"
+      generic-name="plugininfo"
+      title="Plugin Info"
+      get-type-function="gplugin_gtk_plugin_info_get_type"/>
+    <glade-widget-class
+      name="GPluginGtkView"
+      generic-name="pluginview"
+      title="Plugin View"
+      get-type-function="gplugin_gtk_view_get_type"/>
+    <glade-widget-class
+      name="GPluginGtkStore"
+      generic-name="pluginstore"
+      title="Plugin Store"
+      get-type-function="gplugin_gtk_store_get_type"
+      toplevel="True"/>
+  </glade-widget-classes>
+
+  <glade-widget-group name="gplugin-gtk" title="GPlugin Gtk Widgets">
+    <glade-widget-class-ref name="GPluginGtkPluginInfo"/>
+    <glade-widget-class-ref name="GPluginGtkView"/>
+    <glade-widget-class-ref name="GPluginGtkStore"/>
+  </glade-widget-group>
+</glade-catalog>

@@ -1,0 +1,74 @@
+gplugin (0.35.0) UNRELEASED; urgency=medium
+
+  * Renamed gir1.2-gplugin-gtk-1.0 to gir1.2-gplugin-gtk3-1.0
+  * Renamed libgplugin-gtk-bin to libgplugin-gtk3-bin
+  * Renamed libgplugin-gtk-dev to libgplugin-gtk3-dev
+  * Renamed libgplugin-gtk0 to libgplugin-gtk3-0
+
+ -- Gary Kramlich <grim@reaperworld.com>  Wed, 29 Sep 2021 23:35:01 -0500
+
+gplugin (0.28.3) unstable; urgency=medium
+
+  * New upstream release, see official changelog
+
+ -- Gary Kramlich <grim@reaperworld.com>  Thu, 07 Nov 2019 23:03:46 -0600
+
+gplugin (0.28.2) unstable; urgency=medium
+
+  * New upstream release, see official changelog 
+
+ -- Gary Kramlich <grim@reaperworld.com>  Thu, 31 Oct 2019 23:02:44 -0600
+
+gplugin (0.26) unstable; urgency=medium
+
+  * New upstream release, see official changelog
+
+ -- Gary Kramlich <grim@reaperworld.com>  Mon, 18 Apr 2016 22:31:30 -0500
+
+gplugin (0.25) unstable; urgency=medium
+
+  * New upstream release, see official changelog
+
+ -- Gary Kramlich <grim@reaperworld.com>  Sat, 06 Feb 2016 20:28:53 -0600
+
+gplugin (0.24.1) unstable; urgency=medium
+
+  * New upstream release, see official changelog
+
+ -- Gary Kramlich <grim@reaperworld.com>  Sat, 06 Feb 2016 20:28:47 -0600
+
+gplugin (0.0.24) unstable; urgency=medium
+
+  * New upstream release, see official changelog
+
+ -- Gary Kramlich <grim@reaperworld.com>  Thu, 28 Jan 2016 22:38:05 -0600
+
+gplugin (0.0.23) unstable; urgency=medium
+
+  * New release, see official changelog
+
+ -- Gary Kramlich <grim@reaperworld.com>  Wed, 06 Jan 2016 23:05:37 -0600
+
+gplugin (0.0.21) unstable; urgency=medium
+
+  * New release, see official changelog
+
+ -- Gary Kramlich <grim@reaperworld.com>  Mon, 29 Jun 2015 21:05:07 -0500
+
+gplugin (0.0.20) unstable; urgency=medium
+
+  * New release, see official changelog
+
+ -- Gary Kramlich <grim@reaperworld.com>  Mon, 29 Jun 2015 21:04:51 -0500
+
+gplugin (0.0.19) unstable; urgency=medium
+
+  * New release, see official changelog
+
+ -- Gary Kramlich <grim@reaperworld.com>  Thu, 07 May 2015 21:50:20 -0500
+
+gplugin (0.0.18) unstable; urgency=medium
+
+  * Initial release.
+
+ -- Gary Kramlich <grim@reaperworld.com>  Wed, 06 May 2015 10:43:35 -0500

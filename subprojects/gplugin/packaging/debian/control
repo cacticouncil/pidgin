@@ -1,0 +1,198 @@
+Source: gplugin
+Section: libs
+Priority: optional
+Maintainer: Gary Kramlich <grim@reaperworld.com>
+Build-Depends: debhelper (>=9),
+               meson (>=0.56.0), libglib2.0-dev,
+               libgtk-3-dev, libgtk-4-dev,
+               gettext, help2man,
+               gobject-introspection, libgirepository1.0-dev,
+               liblua5.3-dev, lua-lgi,
+               python3-dev, python-gi-dev, python3-gi,
+               valac
+Homepage: https://keep.imfreedom.org/gplugin/gplugin
+Vcs-Browser: https://keep.imfreedom.org/gplugin/gplugin/file/default
+Vcs-Hg: https://keep.imfreedom.org/gplugin/gplugin
+Standards-Version: 3.9.8
+
+Package: libgplugin0
+Architecture: any
+Depends: ${misc:Depends}, ${shlibs:Depends}, libglib2.0-0 (>=2.44.0)
+Recommends: libgplugin-loaders
+Description: GObject based plugin library
+ GPlugin is a GObject based library that implements a reusable plugin system
+ which supports loading plugins in other languages via loaders. It relies
+ heavily on GObjectIntrospection to expose its API to the other languages.
+ .
+ This package contains the main library.
+
+Package: libgplugin0-bin
+Architecture: any
+Section: utils
+Depends: ${misc:Depends}, ${shlibs:Depends}, libgplugin0 (= ${binary:Version}), libglib2.0-0 (>=2.44.0)
+Description: GObject based plugin library utilities
+ GPlugin is a GObject based library that implements a reusable plugin system
+ which supports loading plugins in other languages via loaders. It relies
+ heavily on GObjectIntrospection to expose its API to the other languages.
+ .
+ This package contains utilities for the library.
+
+Package: libgplugin-dev
+Architecture: any
+Section: libdevel
+Depends: ${misc:Depends}, libgplugin0 (= ${binary:Version}), libglib2.0-dev
+Description: Development files for libgplugin
+ GPlugin is a GObject based library that implements a reusable plugin system
+ which supports loading plugins in other languages via loaders. It relies
+ heavily on GObjectIntrospection to expose its API to the other languages.
+ .
+ This package includes the files used for development against libgplugin.
+
+Package: gir1.2-gplugin-1.0
+Architecture: any
+Depends: ${gir:Depends}, ${misc:Depends}, libgplugin0
+Section: introspection
+Description: typelib for libgplugin
+ GPlugin is a GObject based library that implements a reusable plugin system
+ which supports loading plugins in other languages via loaders. It relies
+ heavily on GObjectIntrospection to expose its API to the other languages.
+ .
+ This package can be used by other packages using the GIRepository format to
+ generate dynamic bindings for libgplugin.
+
+Package: libgplugin-loaders
+Architecture: all
+Depends: ${misc:Depends}, ${shlibs:Depends},
+         libgplugin-lua,
+         libgplugin-perl5,
+         libgplugin-python3
+Description: metapackage for all gplugin loaders
+ GPlugin is a GObject based library that implements a reusable plugin system
+ which supports loading plugins in other languages via loaders. It relies
+ heavily on GObjectIntrospection to expose its API to the other languages.
+ .
+ This package will install all of the gplugin loaders.
+
+Package: libgplugin-gtk3-0
+Architecture: any
+Depends: ${misc:Depends}, ${shlibs:Depends}, libgtk-3-0, libgplugin0
+Conflicts: libgplugin-gtk0
+Replaces: libgplugin-gtk0
+Provides: libgplugin-gtk0
+Description: GTK3 bindings for GPlugin
+ GPlugin is a GObject based library that implements a reusable plugin system
+ which supports loading plugins in other languages via loaders. It relies
+ heavily on GObjectIntrospection to expose its API to the other languages.
+ .
+ This library provides some default GTK3 widgets for GPlugin.
+
+Package: libgplugin-gtk3-dev
+Architecture: any
+Section: libdevel
+Depends: ${misc:Depends}, libgtk-3-dev, libgplugin-gtk3-0 (= ${binary:Version})
+Conflicts: libgplugin-gtk-dev
+Replaces: libgplugin-gtk-dev
+Description: Development file for libgplugin-gtk3-0
+ GPlugin is a GObject based library that implements a reusable plugin system
+ which supports loading plugins in other languages via loaders. It relies
+ heavily on GObjectIntrospection to expose its API to the other languages.
+ .
+ This library provides the developmental headers for the GPlugin GTK3 bindings.
+
+Package: libgplugin-gtk3-bin
+Architecture: any
+Depends: ${misc:Depends}, ${shlibs:Depends}, libgplugin-gtk0
+Conflicts: libgplugin-gtk-bin
+Replaces: libgplugin-gtk-bin
+Description: Programs for the GTK3 interface to GPlugin
+ GPlugin is a GObject based library that implements a reusable plugin system
+ which supports loading plugins in other languages via loaders. It relies
+ heavily on GObjectIntrospection to expose its API to the other languages.
+ .
+ This package contains the gplugin-gtk3-viewer application for viewing plugins.
+
+Package: gir1.2-gplugin-gtk3-1.0
+Architecture: any
+Depends: ${gir:Depends}, ${misc:Depends}, libgplugin0, libgplugin-gtk3-0
+Conflicts: gir1.2-gplugin-gtk-1.0
+Replaces: gir1.2-gplugin-gtk-1.0
+Section: introspection
+Description: typelib for libgplugin
+ GPlugin is a GObject based library that implements a reusable plugin system
+ which supports loading plugins in other languages via loaders. It relies
+ heavily on GObjectIntrospection to expose its API to the other languages.
+ .
+ This package can be used by other packages using the GIRepository format to
+ generate dynamic bindings for libgplugin-gtk3.
+
+Package: libgplugin-gtk4-0
+Architecture: any
+Depends: ${misc:Depends}, ${shlibs:Depends}, libgtk-4-1, libgplugin0
+Description: GTK3 bindings for GPlugin
+ GPlugin is a GObject based library that implements a reusable plugin system
+ which supports loading plugins in other languages via loaders. It relies
+ heavily on GObjectIntrospection to expose its API to the other languages.
+ .
+ This library provides some default GTK4 widgets for GPlugin.
+
+Package: libgplugin-gtk4-dev
+Architecture: any
+Section: libdevel
+Depends: ${misc:Depends}, libgtk-4-dev, libgplugin-gtk4-0 (= ${binary:Version})
+Conflicts: libgplugin-gtk-dev
+Replaces: libgplugin-gtk-dev
+Description: Development file for libgplugin-gtk4-0
+ GPlugin is a GObject based library that implements a reusable plugin system
+ which supports loading plugins in other languages via loaders. It relies
+ heavily on GObjectIntrospection to expose its API to the other languages.
+ .
+ This library provides the developmental headers for the GPlugin GTK4 bindings.
+
+Package: gir1.2-gplugin-gtk4-1.0
+Architecture: any
+Depends: ${gir:Depends}, ${misc:Depends}, libgplugin0, libgplugin-gtk4-0
+Section: introspection
+Description: typelib for libgplugin
+ GPlugin is a GObject based library that implements a reusable plugin system
+ which supports loading plugins in other languages via loaders. It relies
+ heavily on GObjectIntrospection to expose its API to the other languages.
+ .
+ This package can be used by other packages using the GIRepository format to
+ generate dynamic bindings for libgplugin-gtk4.
+
+Package: libgplugin-lua
+Architecture: any
+Depends: ${misc:Depends}, ${shlibs:Depends}, liblua5.1-0,
+         libgplugin0, gir1.2-gplugin-1.0
+Description: GPlugin Lua Loader
+ GPlugin is a GObject based library that implements a reusable plugin system
+ which supports loading plugins in other languages via loaders. It relies
+ heavily on GObjectIntrospection to expose its API to the other languages.
+ .
+ This package allows GPlugin to load plugins written in the Lua programming
+ language.
+
+Package: libgplugin-python3
+Architecture: any
+Depends: ${misc:Depends}, ${shlibs:Depends}, python3, python3-gi,
+         libgplugin0, gir1.2-gplugin-1.0
+Description: GPlugin Python3 Loader
+ GPlugin is a GObject based library that implements a reusable plugin system
+ which supports loading plugins in other languages via loaders. It relies
+ heavily on GObjectIntrospection to expose its API to the other languages.
+ .
+ This package allows GPlugin to load plugins written in the Python3 programming
+ language.
+
+Package: libgplugin-perl5
+Architecture: any
+Depends: ${misc:Depends}, ${shlibs:Depends}, perl, libglib-perl,
+         libglib-object-introspection-perl, libgplugin0, gir1.2-gplugin-1.0
+Description: GPlugin Perl5 Loader
+ GPlugin is a GObject based library that implements a reusable plugin system
+ which supports loading plugins in other languages via loaders. It relies
+ heavily on GObjectIntrospection to expose its API to the other languages.
+ .
+ This package allows GPlugin to load plugins written in the Perl5 programming
+ language.
+

@@ -1,0 +1,12 @@
+prefix=/usr/local
+libdir=${prefix}/lib/x86_64-linux-gnu
+includedir=${prefix}/include
+
+plugindir=${libdir}/finch-3
+
+Name: Finch
+Description: Finch is an instant messenger application that uses libpurple for protocol support and ncurses (libgnt) for the UI.
+Version: 3.0.0-devel
+Requires: gnt, purple-3
+Libs: -L${libdir} -lfinch3
+Cflags: -I${includedir}/finch-3

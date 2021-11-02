@@ -16171,8 +16171,8 @@ fi
 
 
 pkg_failed=no
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for glib-2.0 >= 2.16.0 gobject-2.0 gmodule-2.0 gthread-2.0" >&5
-$as_echo_n "checking for glib-2.0 >= 2.16.0 gobject-2.0 gmodule-2.0 gthread-2.0... " >&6; }
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for GLIB" >&5
+$as_echo_n "checking for GLIB... " >&6; }
 
 if test -n "$GLIB_CFLAGS"; then
     pkg_cv_GLIB_CFLAGS="$GLIB_CFLAGS"
@@ -16212,7 +16212,7 @@ fi
 
 
 if test $pkg_failed = yes; then
-        { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+   	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
 $as_echo "no" >&6; }
 
 if $PKG_CONFIG --atleast-pkgconfig-version 0.20; then
@@ -16239,7 +16239,7 @@ If you have these installed already you may need to install pkg-config so
 I can find them.
 " "$LINENO" 5
 elif test $pkg_failed = untried; then
-        { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+     	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
 $as_echo "no" >&6; }
 
 	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
@@ -16263,8 +16263,8 @@ fi
 
 
 pkg_failed=no
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for gio-unix-2.0 >= 2.26" >&5
-$as_echo_n "checking for gio-unix-2.0 >= 2.26... " >&6; }
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for GIO_UNIX" >&5
+$as_echo_n "checking for GIO_UNIX... " >&6; }
 
 if test -n "$GIO_UNIX_CFLAGS"; then
     pkg_cv_GIO_UNIX_CFLAGS="$GIO_UNIX_CFLAGS"
@@ -16304,7 +16304,7 @@ fi
 
 
 if test $pkg_failed = yes; then
-        { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+   	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
 $as_echo "no" >&6; }
 
 if $PKG_CONFIG --atleast-pkgconfig-version 0.20; then
@@ -16331,7 +16331,7 @@ Alternatively, you may set the environment variables GIO_UNIX_CFLAGS
 and GIO_UNIX_LIBS to avoid the need to call pkg-config.
 See the pkg-config man page for more details." "$LINENO" 5
 elif test $pkg_failed = untried; then
-        { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+     	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
 $as_echo "no" >&6; }
 	{ { $as_echo "$as_me:${as_lineno-$LINENO}: error: in \`$ac_pwd':" >&5
 $as_echo "$as_me: error: in \`$ac_pwd':" >&2;}
@@ -17160,8 +17160,8 @@ fi
 if test "x$enable_gtkui" = "xyes" ; then
 
 pkg_failed=no
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for gtk+-2.0 >= 2.10.0" >&5
-$as_echo_n "checking for gtk+-2.0 >= 2.10.0... " >&6; }
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for GTK" >&5
+$as_echo_n "checking for GTK... " >&6; }
 
 if test -n "$GTK_CFLAGS"; then
     pkg_cv_GTK_CFLAGS="$GTK_CFLAGS"
@@ -17201,7 +17201,7 @@ fi
 
 
 if test $pkg_failed = yes; then
-        { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+   	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
 $as_echo "no" >&6; }
 
 if $PKG_CONFIG --atleast-pkgconfig-version 0.20; then
@@ -17227,7 +17227,7 @@ Pidgin.  If you want to build only Finch then specify --disable-gtkui when
 running configure.
 " "$LINENO" 5
 elif test $pkg_failed = untried; then
-        { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+     	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
 $as_echo "no" >&6; }
 
 		{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
@@ -17251,8 +17251,8 @@ fi
 
 
 pkg_failed=no
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for pango >= 1.4.0" >&5
-$as_echo_n "checking for pango >= 1.4.0... " >&6; }
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for PANGO" >&5
+$as_echo_n "checking for PANGO... " >&6; }
 
 if test -n "$PANGO_CFLAGS"; then
     pkg_cv_PANGO_CFLAGS="$PANGO_CFLAGS"
@@ -17292,7 +17292,7 @@ fi
 
 
 if test $pkg_failed = yes; then
-        { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+   	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
 $as_echo "no" >&6; }
 
 if $PKG_CONFIG --atleast-pkgconfig-version 0.20; then
@@ -17310,7 +17310,7 @@ fi
 
 	:
 elif test $pkg_failed = untried; then
-        { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+     	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
 $as_echo "no" >&6; }
 	:
 else
@@ -17326,8 +17326,8 @@ fi
 				if test "x$with_x" = "xyes" ; then
 
 pkg_failed=no
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for x11" >&5
-$as_echo_n "checking for x11... " >&6; }
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for X11" >&5
+$as_echo_n "checking for X11... " >&6; }
 
 if test -n "$X11_CFLAGS"; then
     pkg_cv_X11_CFLAGS="$X11_CFLAGS"
@@ -17367,7 +17367,7 @@ fi
 
 
 if test $pkg_failed = yes; then
-        { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+   	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
 $as_echo "no" >&6; }
 
 if $PKG_CONFIG --atleast-pkgconfig-version 0.20; then
@@ -17399,7 +17399,7 @@ Use --without-x if you do not need X11 support.
 				fi
 
 elif test $pkg_failed = untried; then
-        { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+     	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
 $as_echo "no" >&6; }
 	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
 $as_echo "no" >&6; }
@@ -17655,8 +17655,8 @@ Use --disable-sm if you do not need session management support.
 				if test "x$enable_gtkspell" = "xyes" ; then
 
 pkg_failed=no
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for gtkspell-2.0 >= 2.0.2" >&5
-$as_echo_n "checking for gtkspell-2.0 >= 2.0.2... " >&6; }
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for GTKSPELL" >&5
+$as_echo_n "checking for GTKSPELL... " >&6; }
 
 if test -n "$GTKSPELL_CFLAGS"; then
     pkg_cv_GTKSPELL_CFLAGS="$GTKSPELL_CFLAGS"
@@ -17696,7 +17696,7 @@ fi
 
 
 if test $pkg_failed = yes; then
-        { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+   	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
 $as_echo "no" >&6; }
 
 if $PKG_CONFIG --atleast-pkgconfig-version 0.20; then
@@ -17723,7 +17723,7 @@ Use --disable-gtkspell if you do not need it.
 " "$LINENO" 5
 			fi
 elif test $pkg_failed = untried; then
-        { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+     	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
 $as_echo "no" >&6; }
 
 			{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
@@ -17755,8 +17755,8 @@ $as_echo "#define USE_GTKSPELL 1" >>confdefs.h
 		evo_deps="libebook-1.2 libedata-book-1.2 evolution-data-server-1.2 < 3.6"
 
 pkg_failed=no
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for $evo_deps" >&5
-$as_echo_n "checking for $evo_deps... " >&6; }
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for EVOLUTION_ADDRESSBOOK" >&5
+$as_echo_n "checking for EVOLUTION_ADDRESSBOOK... " >&6; }
 
 if test -n "$EVOLUTION_ADDRESSBOOK_CFLAGS"; then
     pkg_cv_EVOLUTION_ADDRESSBOOK_CFLAGS="$EVOLUTION_ADDRESSBOOK_CFLAGS"
@@ -17796,7 +17796,7 @@ fi
 
 
 if test $pkg_failed = yes; then
-        { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+   	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
 $as_echo "no" >&6; }
 
 if $PKG_CONFIG --atleast-pkgconfig-version 0.20; then
@@ -17816,7 +17816,7 @@ fi
 			enable_gevolution="no"
 
 elif test $pkg_failed = untried; then
-        { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+     	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
 $as_echo "no" >&6; }
 
 			enable_gevolution="no"
@@ -17832,8 +17832,8 @@ fi
 			evo_deps="libebook-1.0 libedata-book-1.0"
 
 pkg_failed=no
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for $evo_deps" >&5
-$as_echo_n "checking for $evo_deps... " >&6; }
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for EVOLUTION_ADDRESSBOOK" >&5
+$as_echo_n "checking for EVOLUTION_ADDRESSBOOK... " >&6; }
 
 if test -n "$EVOLUTION_ADDRESSBOOK_CFLAGS"; then
     pkg_cv_EVOLUTION_ADDRESSBOOK_CFLAGS="$EVOLUTION_ADDRESSBOOK_CFLAGS"
@@ -17873,7 +17873,7 @@ fi
 
 
 if test $pkg_failed = yes; then
-        { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+   	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
 $as_echo "no" >&6; }
 
 if $PKG_CONFIG --atleast-pkgconfig-version 0.20; then
@@ -17893,7 +17893,7 @@ fi
 				enable_gevolution="no"
 
 elif test $pkg_failed = untried; then
-        { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+     	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
 $as_echo "no" >&6; }
 
 				enable_gevolution="no"
@@ -17927,8 +17927,8 @@ Use --disable-gevolution if you do not need it.
 				if test "x$enable_cap" = "xyes"; then
 
 pkg_failed=no
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for sqlite3 >= 3.3" >&5
-$as_echo_n "checking for sqlite3 >= 3.3... " >&6; }
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for SQLITE3" >&5
+$as_echo_n "checking for SQLITE3... " >&6; }
 
 if test -n "$SQLITE3_CFLAGS"; then
     pkg_cv_SQLITE3_CFLAGS="$SQLITE3_CFLAGS"
@@ -17968,7 +17968,7 @@ fi
 
 
 if test $pkg_failed = yes; then
-        { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+   	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
 $as_echo "no" >&6; }
 
 if $PKG_CONFIG --atleast-pkgconfig-version 0.20; then
@@ -17995,7 +17995,7 @@ Use --disable-cap if you do not need the Contact Availability Prediction plugin.
 " "$LINENO" 5
 			fi
 elif test $pkg_failed = untried; then
-        { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+     	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
 $as_echo "no" >&6; }
 
 			{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
@@ -18063,8 +18063,8 @@ fi
 if test "x$enable_consoleui" = "xyes"; then
 
 pkg_failed=no
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for gnt >= 2.14.0" >&5
-$as_echo_n "checking for gnt >= 2.14.0... " >&6; }
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for LIBGNT" >&5
+$as_echo_n "checking for LIBGNT... " >&6; }
 
 if test -n "$LIBGNT_CFLAGS"; then
     pkg_cv_LIBGNT_CFLAGS="$LIBGNT_CFLAGS"
@@ -18104,7 +18104,7 @@ fi
 
 
 if test $pkg_failed = yes; then
-        { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+   	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
 $as_echo "no" >&6; }
 
 if $PKG_CONFIG --atleast-pkgconfig-version 0.20; then
@@ -18131,7 +18131,7 @@ Finch will not be built. You must have libgnt >= 2.14.0 development headers inst
 	enable_consoleui=no
 
 elif test $pkg_failed = untried; then
-        { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+     	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
 $as_echo "no" >&6; }
 
 	if test "x$force_finch" = "xyes"; then
@@ -18438,8 +18438,8 @@ fi
 
 
 pkg_failed=no
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for libxml-2.0 >= 2.6.0" >&5
-$as_echo_n "checking for libxml-2.0 >= 2.6.0... " >&6; }
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for LIBXML" >&5
+$as_echo_n "checking for LIBXML... " >&6; }
 
 if test -n "$LIBXML_CFLAGS"; then
     pkg_cv_LIBXML_CFLAGS="$LIBXML_CFLAGS"
@@ -18479,7 +18479,7 @@ fi
 
 
 if test $pkg_failed = yes; then
-        { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+   	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
 $as_echo "no" >&6; }
 
 if $PKG_CONFIG --atleast-pkgconfig-version 0.20; then
@@ -18502,7 +18502,7 @@ $as_echo "no" >&6; }
 You must have libxml2 >= 2.6.0 development headers installed to build.
 " "$LINENO" 5
 elif test $pkg_failed = untried; then
-        { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+     	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
 $as_echo "no" >&6; }
 
 	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
@@ -18656,8 +18656,8 @@ if test "x$enable_gst" != "xno"; then
 	if test "x$with_gstreamer" = "xauto"; then
 
 pkg_failed=no
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for gstreamer-1.0" >&5
-$as_echo_n "checking for gstreamer-1.0... " >&6; }
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for GSTREAMER" >&5
+$as_echo_n "checking for GSTREAMER... " >&6; }
 
 if test -n "$GSTREAMER_CFLAGS"; then
     pkg_cv_GSTREAMER_CFLAGS="$GSTREAMER_CFLAGS"
@@ -18697,7 +18697,7 @@ fi
 
 
 if test $pkg_failed = yes; then
-        { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+   	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
 $as_echo "no" >&6; }
 
 if $PKG_CONFIG --atleast-pkgconfig-version 0.20; then
@@ -18716,8 +18716,8 @@ fi
 
 
 pkg_failed=no
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for gstreamer-0.10" >&5
-$as_echo_n "checking for gstreamer-0.10... " >&6; }
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for GSTREAMER" >&5
+$as_echo_n "checking for GSTREAMER... " >&6; }
 
 if test -n "$GSTREAMER_CFLAGS"; then
     pkg_cv_GSTREAMER_CFLAGS="$GSTREAMER_CFLAGS"
@@ -18757,7 +18757,7 @@ fi
 
 
 if test $pkg_failed = yes; then
-        { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+   	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
 $as_echo "no" >&6; }
 
 if $PKG_CONFIG --atleast-pkgconfig-version 0.20; then
@@ -18785,7 +18785,7 @@ Use --disable-gstreamer if you do not need GStreamer (sound) support.
 				fi
 
 elif test $pkg_failed = untried; then
-        { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+     	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
 $as_echo "no" >&6; }
 
 				{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
@@ -18814,13 +18814,13 @@ $as_echo "#define USE_GSTREAMER 1" >>confdefs.h
 fi
 
 elif test $pkg_failed = untried; then
-        { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+     	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
 $as_echo "no" >&6; }
 
 
 pkg_failed=no
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for gstreamer-0.10" >&5
-$as_echo_n "checking for gstreamer-0.10... " >&6; }
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for GSTREAMER" >&5
+$as_echo_n "checking for GSTREAMER... " >&6; }
 
 if test -n "$GSTREAMER_CFLAGS"; then
     pkg_cv_GSTREAMER_CFLAGS="$GSTREAMER_CFLAGS"
@@ -18860,7 +18860,7 @@ fi
 
 
 if test $pkg_failed = yes; then
-        { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+   	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
 $as_echo "no" >&6; }
 
 if $PKG_CONFIG --atleast-pkgconfig-version 0.20; then
@@ -18888,7 +18888,7 @@ Use --disable-gstreamer if you do not need GStreamer (sound) support.
 				fi
 
 elif test $pkg_failed = untried; then
-        { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+     	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
 $as_echo "no" >&6; }
 
 				{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
@@ -18933,8 +18933,8 @@ fi
 	elif test "x$with_gstreamer" = "x1.0"; then
 
 pkg_failed=no
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for gstreamer-1.0" >&5
-$as_echo_n "checking for gstreamer-1.0... " >&6; }
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for GSTREAMER" >&5
+$as_echo_n "checking for GSTREAMER... " >&6; }
 
 if test -n "$GSTREAMER_CFLAGS"; then
     pkg_cv_GSTREAMER_CFLAGS="$GSTREAMER_CFLAGS"
@@ -18974,7 +18974,7 @@ fi
 
 
 if test $pkg_failed = yes; then
-        { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+   	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
 $as_echo "no" >&6; }
 
 if $PKG_CONFIG --atleast-pkgconfig-version 0.20; then
@@ -19002,7 +19002,7 @@ Use --disable-gstreamer if you do not need GStreamer (sound) support.
 			fi
 
 elif test $pkg_failed = untried; then
-        { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+     	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
 $as_echo "no" >&6; }
 
 			{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
@@ -19031,8 +19031,8 @@ fi
 	elif test "x$with_gstreamer" = "x0.10"; then
 
 pkg_failed=no
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for gstreamer-0.10" >&5
-$as_echo_n "checking for gstreamer-0.10... " >&6; }
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for GSTREAMER" >&5
+$as_echo_n "checking for GSTREAMER... " >&6; }
 
 if test -n "$GSTREAMER_CFLAGS"; then
     pkg_cv_GSTREAMER_CFLAGS="$GSTREAMER_CFLAGS"
@@ -19072,7 +19072,7 @@ fi
 
 
 if test $pkg_failed = yes; then
-        { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+   	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
 $as_echo "no" >&6; }
 
 if $PKG_CONFIG --atleast-pkgconfig-version 0.20; then
@@ -19100,7 +19100,7 @@ Use --disable-gstreamer if you do not need GStreamer (sound) support.
 			fi
 
 elif test $pkg_failed = untried; then
-        { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+     	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
 $as_echo "no" >&6; }
 
 			{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
@@ -19157,8 +19157,8 @@ fi
 	if test "x$enable_gstvideo" != "xno"; then
 
 pkg_failed=no
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for gstreamer-video-1.0" >&5
-$as_echo_n "checking for gstreamer-video-1.0... " >&6; }
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for GSTVIDEO" >&5
+$as_echo_n "checking for GSTVIDEO... " >&6; }
 
 if test -n "$GSTVIDEO_CFLAGS"; then
     pkg_cv_GSTVIDEO_CFLAGS="$GSTVIDEO_CFLAGS"
@@ -19198,7 +19198,7 @@ fi
 
 
 if test $pkg_failed = yes; then
-        { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+   	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
 $as_echo "no" >&6; }
 
 if $PKG_CONFIG --atleast-pkgconfig-version 0.20; then
@@ -19218,7 +19218,7 @@ fi
 			enable_gstvideo="no"
 
 elif test $pkg_failed = untried; then
-        { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+     	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
 $as_echo "no" >&6; }
 
 			enable_gstvideo="no"
@@ -19252,8 +19252,8 @@ fi
 	if test "x$enable_gstinterfaces" != "xno"; then
 
 pkg_failed=no
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for gstreamer-interfaces-0.10" >&5
-$as_echo_n "checking for gstreamer-interfaces-0.10... " >&6; }
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for GSTINTERFACES" >&5
+$as_echo_n "checking for GSTINTERFACES... " >&6; }
 
 if test -n "$GSTINTERFACES_CFLAGS"; then
     pkg_cv_GSTINTERFACES_CFLAGS="$GSTINTERFACES_CFLAGS"
@@ -19293,7 +19293,7 @@ fi
 
 
 if test $pkg_failed = yes; then
-        { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+   	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
 $as_echo "no" >&6; }
 
 if $PKG_CONFIG --atleast-pkgconfig-version 0.20; then
@@ -19313,7 +19313,7 @@ fi
 			enable_gstinterfaces="no"
 
 elif test $pkg_failed = untried; then
-        { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+     	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
 $as_echo "no" >&6; }
 
 			enable_gstinterfaces="no"
@@ -19347,8 +19347,8 @@ if test "x$enable_farstream" != "xno"; then
 	if test "x$with_gstreamer" = "x1.0"; then
 
 pkg_failed=no
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for farstream-0.2 >= 0.2.7" >&5
-$as_echo_n "checking for farstream-0.2 >= 0.2.7... " >&6; }
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for FARSTREAM" >&5
+$as_echo_n "checking for FARSTREAM... " >&6; }
 
 if test -n "$FARSTREAM_CFLAGS"; then
     pkg_cv_FARSTREAM_CFLAGS="$FARSTREAM_CFLAGS"
@@ -19388,7 +19388,7 @@ fi
 
 
 if test $pkg_failed = yes; then
-        { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+   	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
 $as_echo "no" >&6; }
 
 if $PKG_CONFIG --atleast-pkgconfig-version 0.20; then
@@ -19408,7 +19408,7 @@ fi
 		        enable_farstream="no"
 
 elif test $pkg_failed = untried; then
-        { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+     	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
 $as_echo "no" >&6; }
 
 		        enable_farstream="no"
@@ -19426,8 +19426,8 @@ fi
 	else
 
 pkg_failed=no
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for farstream-0.1" >&5
-$as_echo_n "checking for farstream-0.1... " >&6; }
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for FARSTREAM" >&5
+$as_echo_n "checking for FARSTREAM... " >&6; }
 
 if test -n "$FARSTREAM_CFLAGS"; then
     pkg_cv_FARSTREAM_CFLAGS="$FARSTREAM_CFLAGS"
@@ -19467,7 +19467,7 @@ fi
 
 
 if test $pkg_failed = yes; then
-        { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+   	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
 $as_echo "no" >&6; }
 
 if $PKG_CONFIG --atleast-pkgconfig-version 0.20; then
@@ -19487,8 +19487,8 @@ fi
 			# Try farsight.
 
 pkg_failed=no
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for farsight2-0.10 >= 0.0.9" >&5
-$as_echo_n "checking for farsight2-0.10 >= 0.0.9... " >&6; }
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for FARSTREAM" >&5
+$as_echo_n "checking for FARSTREAM... " >&6; }
 
 if test -n "$FARSTREAM_CFLAGS"; then
     pkg_cv_FARSTREAM_CFLAGS="$FARSTREAM_CFLAGS"
@@ -19528,7 +19528,7 @@ fi
 
 
 if test $pkg_failed = yes; then
-        { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+   	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
 $as_echo "no" >&6; }
 
 if $PKG_CONFIG --atleast-pkgconfig-version 0.20; then
@@ -19548,7 +19548,7 @@ fi
 			        enable_farstream="no"
 
 elif test $pkg_failed = untried; then
-        { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+     	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
 $as_echo "no" >&6; }
 
 			        enable_farstream="no"
@@ -19568,14 +19568,14 @@ $as_echo "#define HAVE_FARSIGHT 1" >>confdefs.h
 fi
 
 elif test $pkg_failed = untried; then
-        { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+     	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
 $as_echo "no" >&6; }
 
 			# Try farsight.
 
 pkg_failed=no
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for farsight2-0.10 >= 0.0.9" >&5
-$as_echo_n "checking for farsight2-0.10 >= 0.0.9... " >&6; }
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for FARSTREAM" >&5
+$as_echo_n "checking for FARSTREAM... " >&6; }
 
 if test -n "$FARSTREAM_CFLAGS"; then
     pkg_cv_FARSTREAM_CFLAGS="$FARSTREAM_CFLAGS"
@@ -19615,7 +19615,7 @@ fi
 
 
 if test $pkg_failed = yes; then
-        { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+   	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
 $as_echo "no" >&6; }
 
 if $PKG_CONFIG --atleast-pkgconfig-version 0.20; then
@@ -19635,7 +19635,7 @@ fi
 			        enable_farstream="no"
 
 elif test $pkg_failed = untried; then
-        { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+     	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
 $as_echo "no" >&6; }
 
 			        enable_farstream="no"
@@ -19708,8 +19708,8 @@ if test "x$enable_vv" != "xno" -a "x$with_gstreamer" = "x1.0"; then
 $as_echo_n "checking for raw data support in Farstream... " >&6; }
 
 pkg_failed=no
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for gstreamer-app-1.0" >&5
-$as_echo_n "checking for gstreamer-app-1.0... " >&6; }
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for GSTAPP" >&5
+$as_echo_n "checking for GSTAPP... " >&6; }
 
 if test -n "$GSTAPP_CFLAGS"; then
     pkg_cv_GSTAPP_CFLAGS="$GSTAPP_CFLAGS"
@@ -19749,7 +19749,7 @@ fi
 
 
 if test $pkg_failed = yes; then
-        { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+   	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
 $as_echo "no" >&6; }
 
 if $PKG_CONFIG --atleast-pkgconfig-version 0.20; then
@@ -19768,7 +19768,7 @@ fi
 	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
 $as_echo "no" >&6; }
 elif test $pkg_failed = untried; then
-        { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+     	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
 $as_echo "no" >&6; }
 	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
 $as_echo "no" >&6; }
@@ -19803,8 +19803,8 @@ fi
 if test "x$enable_idn" != "xno"; then
 
 pkg_failed=no
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for libidn >= 0.0.0" >&5
-$as_echo_n "checking for libidn >= 0.0.0... " >&6; }
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for IDN" >&5
+$as_echo_n "checking for IDN... " >&6; }
 
 if test -n "$IDN_CFLAGS"; then
     pkg_cv_IDN_CFLAGS="$IDN_CFLAGS"
@@ -19844,7 +19844,7 @@ fi
 
 
 if test $pkg_failed = yes; then
-        { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+   	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
 $as_echo "no" >&6; }
 
 if $PKG_CONFIG --atleast-pkgconfig-version 0.20; then
@@ -19872,7 +19872,7 @@ Use --disable-idn if you do not need it.
 		fi
 
 elif test $pkg_failed = untried; then
-        { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+     	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
 $as_echo "no" >&6; }
 
 		{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
@@ -19910,8 +19910,8 @@ fi
 if test "x$enable_meanwhile" = "xyes"; then
 
 pkg_failed=no
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for meanwhile >= 1.0.0 meanwhile < 2.0.0" >&5
-$as_echo_n "checking for meanwhile >= 1.0.0 meanwhile < 2.0.0... " >&6; }
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for MEANWHILE" >&5
+$as_echo_n "checking for MEANWHILE... " >&6; }
 
 if test -n "$MEANWHILE_CFLAGS"; then
     pkg_cv_MEANWHILE_CFLAGS="$MEANWHILE_CFLAGS"
@@ -19951,7 +19951,7 @@ fi
 
 
 if test $pkg_failed = yes; then
-        { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+   	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
 $as_echo "no" >&6; }
 
 if $PKG_CONFIG --atleast-pkgconfig-version 0.20; then
@@ -19976,7 +19976,7 @@ Use --disable-meanwhile if you do not need meanwhile (Sametime) support.
 " "$LINENO" 5
 		fi
 elif test $pkg_failed = untried; then
-        { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+     	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
 $as_echo "no" >&6; }
 
 		have_meanwhile="no"
@@ -20029,8 +20029,8 @@ fi
 
 
 pkg_failed=no
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for avahi-client avahi-glib" >&5
-$as_echo_n "checking for avahi-client avahi-glib... " >&6; }
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for AVAHI" >&5
+$as_echo_n "checking for AVAHI... " >&6; }
 
 if test -n "$AVAHI_CFLAGS"; then
     pkg_cv_AVAHI_CFLAGS="$AVAHI_CFLAGS"
@@ -20070,7 +20070,7 @@ fi
 
 
 if test $pkg_failed = yes; then
-        { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+   	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
 $as_echo "no" >&6; }
 
 if $PKG_CONFIG --atleast-pkgconfig-version 0.20; then
@@ -20091,7 +20091,7 @@ fi
 		avahilibs="no"
 
 elif test $pkg_failed = untried; then
-        { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+     	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
 $as_echo "no" >&6; }
 
 		avahiincludes="no"
@@ -20219,8 +20219,8 @@ fi
 if test "x$silc_manual_check" = "xno"; then
 
 pkg_failed=no
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for silcclient >= 1.1" >&5
-$as_echo_n "checking for silcclient >= 1.1... " >&6; }
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for SILC" >&5
+$as_echo_n "checking for SILC... " >&6; }
 
 if test -n "$SILC_CFLAGS"; then
     pkg_cv_SILC_CFLAGS="$SILC_CFLAGS"
@@ -20260,7 +20260,7 @@ fi
 
 
 if test $pkg_failed = yes; then
-        { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+   	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
 $as_echo "no" >&6; }
 
 if $PKG_CONFIG --atleast-pkgconfig-version 0.20; then
@@ -20280,7 +20280,7 @@ fi
 		have_silc="no"
 
 elif test $pkg_failed = untried; then
-        { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+     	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
 $as_echo "no" >&6; }
 
 		have_silc="no"
@@ -20299,8 +20299,8 @@ fi
 	if test "x$have_silc" = "xno"; then
 
 pkg_failed=no
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for silcclient" >&5
-$as_echo_n "checking for silcclient... " >&6; }
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for SILC" >&5
+$as_echo_n "checking for SILC... " >&6; }
 
 if test -n "$SILC_CFLAGS"; then
     pkg_cv_SILC_CFLAGS="$SILC_CFLAGS"
@@ -20340,7 +20340,7 @@ fi
 
 
 if test $pkg_failed = yes; then
-        { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+   	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
 $as_echo "no" >&6; }
 
 if $PKG_CONFIG --atleast-pkgconfig-version 0.20; then
@@ -20360,7 +20360,7 @@ fi
 			have_silc="no"
 
 elif test $pkg_failed = untried; then
-        { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+     	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
 $as_echo "no" >&6; }
 
 			have_silc="no"
@@ -20379,8 +20379,8 @@ fi
 				if test "x$have_silc" = "xno"; then
 
 pkg_failed=no
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for silc" >&5
-$as_echo_n "checking for silc... " >&6; }
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for SILC" >&5
+$as_echo_n "checking for SILC... " >&6; }
 
 if test -n "$SILC_CFLAGS"; then
     pkg_cv_SILC_CFLAGS="$SILC_CFLAGS"
@@ -20420,7 +20420,7 @@ fi
 
 
 if test $pkg_failed = yes; then
-        { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+   	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
 $as_echo "no" >&6; }
 
 if $PKG_CONFIG --atleast-pkgconfig-version 0.20; then
@@ -20440,7 +20440,7 @@ fi
 				have_silc="no"
 
 elif test $pkg_failed = untried; then
-        { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+     	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
 $as_echo "no" >&6; }
 
 				have_silc="no"
@@ -20622,8 +20622,8 @@ fi
 
 
 pkg_failed=no
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for libgadu >= 1.12.0" >&5
-$as_echo_n "checking for libgadu >= 1.12.0... " >&6; }
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for LIBGADU" >&5
+$as_echo_n "checking for LIBGADU... " >&6; }
 
 if test -n "$LIBGADU_CFLAGS"; then
     pkg_cv_LIBGADU_CFLAGS="$LIBGADU_CFLAGS"
@@ -20663,7 +20663,7 @@ fi
 
 
 if test $pkg_failed = yes; then
-        { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+   	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
 $as_echo "no" >&6; }
 
 if $PKG_CONFIG --atleast-pkgconfig-version 0.20; then
@@ -20681,7 +20681,7 @@ fi
 
 	have_libgadu=no
 elif test $pkg_failed = untried; then
-        { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+     	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
 $as_echo "no" >&6; }
 	have_libgadu=no
 else
@@ -20850,8 +20850,8 @@ _ACEOF
 
 
 pkg_failed=no
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for gnutls >= 2.10.0" >&5
-$as_echo_n "checking for gnutls >= 2.10.0... " >&6; }
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for GNUTLS_2_10" >&5
+$as_echo_n "checking for GNUTLS_2_10... " >&6; }
 
 if test -n "$GNUTLS_2_10_CFLAGS"; then
     pkg_cv_GNUTLS_2_10_CFLAGS="$GNUTLS_2_10_CFLAGS"
@@ -20891,7 +20891,7 @@ fi
 
 
 if test $pkg_failed = yes; then
-        { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+   	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
 $as_echo "no" >&6; }
 
 if $PKG_CONFIG --atleast-pkgconfig-version 0.20; then
@@ -20909,7 +20909,7 @@ fi
 
 	:
 elif test $pkg_failed = untried; then
-        { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+     	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
 $as_echo "no" >&6; }
 	:
 else
@@ -21425,8 +21425,8 @@ fi
 if test "x$enable_dbus" = "xyes" ; then
 
 pkg_failed=no
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for dbus-1 >= 0.60 dbus-glib-1 >= 0.60" >&5
-$as_echo_n "checking for dbus-1 >= 0.60 dbus-glib-1 >= 0.60... " >&6; }
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for DBUS" >&5
+$as_echo_n "checking for DBUS... " >&6; }
 
 if test -n "$DBUS_CFLAGS"; then
     pkg_cv_DBUS_CFLAGS="$DBUS_CFLAGS"
@@ -21466,7 +21466,7 @@ fi
 
 
 if test $pkg_failed = yes; then
-        { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+   	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
 $as_echo "no" >&6; }
 
 if $PKG_CONFIG --atleast-pkgconfig-version 0.20; then
@@ -21491,7 +21491,7 @@ Use --disable-dbus if you do not need D-Bus support.
 " "$LINENO" 5
 	fi
 elif test $pkg_failed = untried; then
-        { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+     	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
 $as_echo "no" >&6; }
 
 	enable_dbus=no
@@ -21518,8 +21518,8 @@ if test "x$enable_dbus" = "xyes" ; then
 	if test "x$enable_nm" = "xyes" ; then
 
 pkg_failed=no
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for libnm" >&5
-$as_echo_n "checking for libnm... " >&6; }
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for NETWORKMANAGER" >&5
+$as_echo_n "checking for NETWORKMANAGER... " >&6; }
 
 if test -n "$NETWORKMANAGER_CFLAGS"; then
     pkg_cv_NETWORKMANAGER_CFLAGS="$NETWORKMANAGER_CFLAGS"
@@ -21559,7 +21559,7 @@ fi
 
 
 if test $pkg_failed = yes; then
-        { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+   	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
 $as_echo "no" >&6; }
 
 if $PKG_CONFIG --atleast-pkgconfig-version 0.20; then
@@ -21578,8 +21578,8 @@ fi
 
 
 pkg_failed=no
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for NetworkManager >= 0.5.0" >&5
-$as_echo_n "checking for NetworkManager >= 0.5.0... " >&6; }
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for NETWORKMANAGER" >&5
+$as_echo_n "checking for NETWORKMANAGER... " >&6; }
 
 if test -n "$NETWORKMANAGER_CFLAGS"; then
     pkg_cv_NETWORKMANAGER_CFLAGS="$NETWORKMANAGER_CFLAGS"
@@ -21619,7 +21619,7 @@ fi
 
 
 if test $pkg_failed = yes; then
-        { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+   	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
 $as_echo "no" >&6; }
 
 if $PKG_CONFIG --atleast-pkgconfig-version 0.20; then
@@ -21644,7 +21644,7 @@ Use --disable-nm if you do not need NetworkManager support.
 " "$LINENO" 5
 				fi
 elif test $pkg_failed = untried; then
-        { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+     	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
 $as_echo "no" >&6; }
 
 				enable_nm=no
@@ -21669,13 +21669,13 @@ $as_echo "#define HAVE_NETWORKMANAGER 1" >>confdefs.h
 fi
 
 elif test $pkg_failed = untried; then
-        { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+     	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
 $as_echo "no" >&6; }
 
 
 pkg_failed=no
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for NetworkManager >= 0.5.0" >&5
-$as_echo_n "checking for NetworkManager >= 0.5.0... " >&6; }
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for NETWORKMANAGER" >&5
+$as_echo_n "checking for NETWORKMANAGER... " >&6; }
 
 if test -n "$NETWORKMANAGER_CFLAGS"; then
     pkg_cv_NETWORKMANAGER_CFLAGS="$NETWORKMANAGER_CFLAGS"
@@ -21715,7 +21715,7 @@ fi
 
 
 if test $pkg_failed = yes; then
-        { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+   	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
 $as_echo "no" >&6; }
 
 if $PKG_CONFIG --atleast-pkgconfig-version 0.20; then
@@ -21740,7 +21740,7 @@ Use --disable-nm if you do not need NetworkManager support.
 " "$LINENO" 5
 				fi
 elif test $pkg_failed = untried; then
-        { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+     	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
 $as_echo "no" >&6; }
 
 				enable_nm=no
@@ -21792,8 +21792,8 @@ fi
 if test "$enable_unity" = yes; then
 
 pkg_failed=no
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for unity >= 6.8 messaging-menu >= 12.10" >&5
-$as_echo_n "checking for unity >= 6.8 messaging-menu >= 12.10... " >&6; }
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for UNITY" >&5
+$as_echo_n "checking for UNITY... " >&6; }
 
 if test -n "$UNITY_CFLAGS"; then
     pkg_cv_UNITY_CFLAGS="$UNITY_CFLAGS"
@@ -21833,7 +21833,7 @@ fi
 
 
 if test $pkg_failed = yes; then
-        { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+   	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
 $as_echo "no" >&6; }
 
 if $PKG_CONFIG --atleast-pkgconfig-version 0.20; then
@@ -21856,7 +21856,7 @@ $as_echo "no" >&6; }
 You must have libunity9 >= 6.8 and libmessaging-menu >= 12.10 to build the unity integration plugin.
 	" "$LINENO" 5
 elif test $pkg_failed = untried; then
-        { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+     	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
 $as_echo "no" >&6; }
 
 		{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
@@ -22027,8 +22027,8 @@ fi
 if test x"$enable_mono" = x"yes" ; then
 
 pkg_failed=no
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for mono" >&5
-$as_echo_n "checking for mono... " >&6; }
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for MONO" >&5
+$as_echo_n "checking for MONO... " >&6; }
 
 if test -n "$MONO_CFLAGS"; then
     pkg_cv_MONO_CFLAGS="$MONO_CFLAGS"
@@ -22068,7 +22068,7 @@ fi
 
 
 if test $pkg_failed = yes; then
-        { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+   	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
 $as_echo "no" >&6; }
 
 if $PKG_CONFIG --atleast-pkgconfig-version 0.20; then
@@ -22093,7 +22093,7 @@ Use --disable-mono if you do not need Mono support.
 " "$LINENO" 5
 
 elif test $pkg_failed = untried; then
-        { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+     	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
 $as_echo "no" >&6; }
 
 		{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
@@ -22814,8 +22814,8 @@ fi
 		if `$PKG_CONFIG --exists mozilla-nss`; then
 
 pkg_failed=no
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for mozilla-nss" >&5
-$as_echo_n "checking for mozilla-nss... " >&6; }
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for NSS" >&5
+$as_echo_n "checking for NSS... " >&6; }
 
 if test -n "$NSS_CFLAGS"; then
     pkg_cv_NSS_CFLAGS="$NSS_CFLAGS"
@@ -22855,7 +22855,7 @@ fi
 
 
 if test $pkg_failed = yes; then
-        { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+   	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
 $as_echo "no" >&6; }
 
 if $PKG_CONFIG --atleast-pkgconfig-version 0.20; then
@@ -22877,7 +22877,7 @@ $as_echo "no" >&6; }
 				have_nss="no"
 
 elif test $pkg_failed = untried; then
-        { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+     	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
 $as_echo "no" >&6; }
 
 				{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
@@ -22898,8 +22898,8 @@ fi
 		elif `$PKG_CONFIG --exists nss`; then
 
 pkg_failed=no
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for nss" >&5
-$as_echo_n "checking for nss... " >&6; }
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for NSS" >&5
+$as_echo_n "checking for NSS... " >&6; }
 
 if test -n "$NSS_CFLAGS"; then
     pkg_cv_NSS_CFLAGS="$NSS_CFLAGS"
@@ -22939,7 +22939,7 @@ fi
 
 
 if test $pkg_failed = yes; then
-        { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+   	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
 $as_echo "no" >&6; }
 
 if $PKG_CONFIG --atleast-pkgconfig-version 0.20; then
@@ -22961,7 +22961,7 @@ $as_echo "no" >&6; }
 				have_nss="no"
 
 elif test $pkg_failed = untried; then
-        { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+     	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
 $as_echo "no" >&6; }
 
 				{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
@@ -22982,8 +22982,8 @@ fi
 		elif `$PKG_CONFIG --exists microb-engine-nss`; then
 
 pkg_failed=no
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for microb-engine-nss" >&5
-$as_echo_n "checking for microb-engine-nss... " >&6; }
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for NSS" >&5
+$as_echo_n "checking for NSS... " >&6; }
 
 if test -n "$NSS_CFLAGS"; then
     pkg_cv_NSS_CFLAGS="$NSS_CFLAGS"
@@ -23023,7 +23023,7 @@ fi
 
 
 if test $pkg_failed = yes; then
-        { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+   	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
 $as_echo "no" >&6; }
 
 if $PKG_CONFIG --atleast-pkgconfig-version 0.20; then
@@ -23045,7 +23045,7 @@ $as_echo "no" >&6; }
 				have_nss="no"
 
 elif test $pkg_failed = untried; then
-        { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+     	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
 $as_echo "no" >&6; }
 
 				{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
@@ -24383,8 +24383,8 @@ fi
 
 
 pkg_failed=no
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for check >= 0.9.4" >&5
-$as_echo_n "checking for check >= 0.9.4... " >&6; }
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for CHECK" >&5
+$as_echo_n "checking for CHECK... " >&6; }
 
 if test -n "$CHECK_CFLAGS"; then
     pkg_cv_CHECK_CFLAGS="$CHECK_CFLAGS"
@@ -24424,7 +24424,7 @@ fi
 
 
 if test $pkg_failed = yes; then
-        { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+   	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
 $as_echo "no" >&6; }
 
 if $PKG_CONFIG --atleast-pkgconfig-version 0.20; then
@@ -24443,7 +24443,7 @@ fi
 	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no, testing is disabled" >&5
 $as_echo "no, testing is disabled" >&6; }
 elif test $pkg_failed = untried; then
-        { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+     	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
 $as_echo "no" >&6; }
 	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no, testing is disabled" >&5
 $as_echo "no, testing is disabled" >&6; }
@@ -26676,9 +26676,7 @@ $as_echo X/"$am_mf" |
     { { $as_echo "$as_me:${as_lineno-$LINENO}: error: in \`$ac_pwd':" >&5
 $as_echo "$as_me: error: in \`$ac_pwd':" >&2;}
 as_fn_error $? "Something went wrong bootstrapping makefile fragments
-    for automatic dependency tracking.  If GNU make was not used, consider
-    re-running the configure script with MAKE=\"gmake\" (or whatever is
-    necessary).  You can also try re-running configure with the
+    for automatic dependency tracking.  Try re-running configure with the
     '--disable-dependency-tracking' option to at least be able to build
     the package (albeit without support for automatic dependency tracking).
 See \`config.log' for more details" "$LINENO" 5; }

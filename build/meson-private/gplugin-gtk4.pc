@@ -1,0 +1,12 @@
+prefix=/usr/local
+libdir=${prefix}/lib/x86_64-linux-gnu
+includedir=${prefix}/include
+
+Name: gplugin-gtk4
+Description: GTK4 widgets for GPlugin
+Version: 0.35.1-dev
+Requires: glib-2.0 >=  2.52.0, gobject-2.0, gmodule-2.0
+Requires.private: pangocairo, pango, gio-2.0, fribidi >=  1.0.6, libthai >=  0.1.9, harfbuzz >=  2.2.0, fontconfig >=  2.11.91, freetype2, xrender, xft >=  2.0.0, cairo >=  1.14.0, harfbuzz-gobject >=  2.2.0, graphene-1.0, pangoft2, gio-unix-2.0 >=  2.64.0, gdk-pixbuf-2.0 >=  2.30.0, cairo-gobject >=  1.14.0, epoxy >=  1.4, libpng, libtiff-4, libjpeg, xkbcommon >=  0.2.0, wayland-client >=  1.16.91, wayland-egl, xi, xext, x11, xcursor, xdamage, xfixes, xrandr >=  1.2.99, xinerama
+Libs: -L${libdir} -lgplugin-gtk4 -Wl,-Bsymbolic -Wl,-z,relro -Wl,-z,now -lgtk-4
+Libs.private: -lm -lcairo-script-interpreter -lrt -pthread
+Cflags: -I${includedir}/gplugin-gtk4-1.0

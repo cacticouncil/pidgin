@@ -1,0 +1,12 @@
+prefix=/home/isarodriguez/pidgin/build
+srcdir=/home/isarodriguez/pidgin
+libdir=${prefix}/lib/x86_64-linux-gnu
+includedir=${prefix}/include
+
+Name: LibGNT
+Description: Glib Ncurses Toolkit is a collection of curses-widgets.
+Version: 3.0.0-devel
+Requires: glib-2.0 >=  2.52.0
+Requires.private: ncursesw, panelw, libxml-2.0 >=  2.6.0, gobject-2.0, gmodule-2.0, python-3.8-embed >= 3.8
+Libs: -L${prefix}/subprojects/libgnt -lgnt
+Cflags: -I${prefix}/subprojects/libgnt -I${srcdir}/subprojects/libgnt

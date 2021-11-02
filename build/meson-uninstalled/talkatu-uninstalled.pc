@@ -1,0 +1,11 @@
+prefix=/home/isarodriguez/pidgin/build
+srcdir=/home/isarodriguez/pidgin
+libdir=${prefix}/lib/x86_64-linux-gnu
+includedir=${prefix}/include
+
+Name: talkatu
+Description: A set of instant message related widgets
+Version: 0.1.0-dev
+Requires: glib-2.0, gobject-2.0, gtk+-3.0
+Libs: -L${prefix}/subprojects/talkatu/talkatu -ltalkatu
+Cflags: -I${prefix}/subprojects/talkatu/talkatu -I${srcdir}/subprojects/talkatu/talkatu -I${prefix}/subprojects/talkatu/. -I${srcdir}/subprojects/talkatu/.

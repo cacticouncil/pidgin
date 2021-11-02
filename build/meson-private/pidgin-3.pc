@@ -1,0 +1,12 @@
+prefix=/usr/local
+libdir=${prefix}/lib/x86_64-linux-gnu
+includedir=${prefix}/include
+
+plugindir=${libdir}/pidgin-3
+
+Name: Pidgin
+Description: Pidgin is a GTK3-based instant messenger application.
+Version: 3.0.0-devel
+Requires: gtk+-3.0, purple-3, talkatu, gplugin-gtk
+Libs: -L${libdir} -lpidgin3
+Cflags: -I${includedir}/pidgin-3

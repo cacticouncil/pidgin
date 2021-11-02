@@ -1,0 +1,224 @@
+environment:
+  - ARCH=amd64
+  - BUILD_NUMBER
+  - DOCS_VERSION=latest
+  - PACKAGECLOUD_REPO=pidgin/experimental
+  - REGISTRY_HOST=docker.io
+  - REPOSITORY=talkatu/builders
+
+tasks:
+  import:
+    type: docker/import
+    files: .:.
+
+  login:
+    type: docker/login
+    server: ${REGISTRY_HOST}
+    username: ${REGISTRY_USERNAME}
+    password: ${REGISTRY_PASSWORD}
+  logout:
+    type: docker/logout
+    server: ${REGISTRY_HOST}
+
+  clean:
+    type: convey/clean
+    files:
+      - debian-bullseye-amd64
+      - debian-buster-amd64
+      - debian-buster-i386
+      - fedora-31-amd64
+      - fedora-32-amd64
+      - fedora-33-amd64
+      - fedora-rawhide-amd64
+      - mingw-w64-i686
+      - mingw-w64-x86_64
+      - pvs-studio
+      - scanbuild
+      - valgrind
+
+  build:
+    type: docker/run
+    image: ${REGISTRY_HOST}/${REPOSITORY}:${DISTRO}-${VERSION}-${ARCH}
+
+  export:
+    type: docker/export
+    files: ${DISTRO}-${VERSION}-${ARCH}
+
+  build-target:
+    type: docker/run
+    image: ${REGISTRY_HOST}/${REPOSITORY}:${TARGET}
+
+  export-target:
+    type: docker/export
+    files: ${TARGET}
+
+  docs-build:
+    type: docker/run
+    image: talkatu/builders:debian-buster-amd64
+    script:
+      - cd ${CONVEY_WORKSPACE}
+      - meson build-docs
+      - ninja -C build-docs talkatu-doc
+  docs-build-image:
+    type: docker/build
+    dockerfile: talkatu/reference/Dockerfile
+    tag: talkatu/docs:${DOCS_VERSION}
+    files:
+      - build-docs/talkatu/reference/html:.
+  docs-publish-image:
+    type: docker/push
+    image: talkatu/docs:${DOCS_VERSION}
+
+  package-cloud:
+    type: docker/run
+    image: rwgrim/package_cloud:latest
+    environment: [PACKAGECLOUD_TOKEN]
+    command: push --yes --verbose ${PACKAGECLOUD_REPO}/${DISTRO}/${VERSION} ${PATTERN}
+    workdir: ${CONVEY_WORKSPACE}/${DISTRO}-${VERSION}-${ARCH}
+
+  publish-deb:
+    type: convey/extend
+    task: package-cloud
+    environment:
+      - PATTERN=debs/*.deb
+
+  publish-debsrc:
+    type: convey/extend
+    task: package-cloud
+    environment:
+      - PATTERN=debs/*.dsc
+
+  publish-rpm:
+    type: convey/extend
+    task: package-cloud
+    environment:
+      - PATTERN=x86_64/*.rpm
+
+  import-artifacts:
+    type: docker/import
+    files:
+      - ${DISTRO}-${VERSION}-${ARCH}
+
+plans:
+  debian-bullseye-amd64:
+    environment: [DISTRO=debian, VERSION=bullseye]
+    stages:
+      - tasks: [import, build, export]
+  debian-buster-amd64:
+    environment: [DISTRO=debian, VERSION=buster]
+    stages:
+      - tasks: [import, build, export]
+  debian-buster-i386:
+    environment: [DISTRO=debian, VERSION=buster, ARCH=i386]
+    stages:
+      - tasks: [import, build, export]
+
+  docs:
+    stages:
+      - tasks:
+          - import
+          - docs-build
+          - docs-build-image
+
+  ci-docs:
+    stages:
+      - name: prep
+        tasks:
+          - login
+      - name: build
+        tasks:
+          - import
+          - docs-build
+          - docs-build-image
+          - docs-publish-image
+      - name: final
+        run: always
+        tasks:
+          - logout
+
+  fedora-31-amd64:
+    environment: [DISTRO=fedora, VERSION=31]
+    stages:
+      - tasks: [import, build, export]
+  fedora-32-amd64:
+    environment: [DISTRO=fedora, VERSION=32]
+    stages:
+      - tasks: [import, build, export]
+  fedora-33-amd64:
+    environment: [DISTRO=fedora, VERSION=33]
+    stages:
+      - tasks: [import, build, export]
+  fedora-rawhide-amd64:
+    environment: [DISTRO=fedora, VERSION=rawhide]
+    stages:
+      - tasks: [import, build, export]
+
+  mingw-w64-i686:
+    environment: [DISTRO=mingw, VERSION=w64, ARCH=i686, FILES=mingw]
+    stages:
+      - tasks: [import, build, export]
+  mingw-w64-x86_64:
+    environment: [DISTRO=mingw, VERSION=w64, ARCH=x86_64, FILES=mingw]
+    stages:
+      - tasks: [import, build, export]
+
+  pvs-studio:
+    environment:
+      - TARGET=pvs-studio
+      - PVS_STUDIO_USERNAME
+      - PVS_STUDIO_KEY
+      - PVS_IGNORED_CODES=V568
+    stages:
+      - tasks: [import, build-target]
+      - tasks: [export-target]
+        run: always
+
+  scanbuild:
+    environment: [TARGET=scanbuild]
+    stages:
+      - tasks: [import, build-target]
+      - tasks: [export-target]
+        run: always
+
+  valgrind:
+    environment: [TARGET=valgrind]
+    stages:
+      - tasks: [import, build-target, export-target]
+
+  publish:
+    stages:
+      - name: publish-debian
+        environment:
+          - DISTRO=debian
+          - VERSION=buster
+        tasks:
+          - import-artifacts
+          - publish-deb
+          - publish-debsrc
+
+      - name: publish-fedora-29
+        environment:
+          - DISTRO=fedora
+          - VERSION=29
+        tasks:
+          - import-artifacts
+          - publish-rpm
+      - name: publish-fedora-30
+        environment:
+          - DISTRO=fedora
+          - VERSION=30
+        tasks:
+          - import-artifacts
+          - publish-rpm
+      - name: publish-fedora-31
+        environment:
+          - DISTRO=fedora
+          - VERSION=31
+        tasks:
+          - import-artifacts
+          - publish-rpm
+
+  clean:
+    stages:
+      - tasks: clean
+

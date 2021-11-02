@@ -1,0 +1,94 @@
+Source: talkatu
+Section: libs
+Priority: optional
+Maintainer: Gary Kramlich <grim@reaperworld.com>
+Build-Depends: debhelper-compat (=12),
+               meson, libglib2.0-dev,
+               libgtk-3-dev, libgtk-3-bin,
+               gettext, help2man,
+               gobject-introspection,
+               libgspell-1-dev, libgladeui-dev,
+               libgumbo-dev, libcmark-dev,
+               valac
+Homepage: https://keep.imfreedom.org/talkatu/talkatu/
+Vcs-Browser: https://keep.imfreedom.org/talkatu/talkatu/file/default
+Vcs-Hg: https://keep.imfreedom.org/talkatu/talkatu/
+Standards-Version: 4.1.5
+
+Package: libtalkatu0
+Architecture: any
+Depends: ${misc:Depends},
+         ${shlibs:Depends},
+         libtalkatu-common (=${source:Version}),
+         libglib2.0-0 (>=2.40.0),
+         libgtk-3-0 (>=3.10.0),
+         libgspell-1-1,
+         libgumbo1,
+         libcmark0
+Description: GTK widgets for chat applications
+ Talkatu provides support for parsing and rendering plain text, HTML, and
+ Markdown inside of GTK.
+ .
+ This package contains the main library.
+
+Package: libtalkatu-dev
+Architecture: any
+Section: libdevel
+Depends: ${misc:Depends},
+         libtalkatu0 (=${binary:Version}),
+         gir1.2-talkatu-0.0 (=${binary:Version}),
+         libglib2.0-dev,
+         libgtk-3-dev
+Description: Development files for the talkatu library
+ Talkatu provides support for parsing and rendering plain text, HTML, and
+ Markdown inside of GTK.
+ .
+ This package includes the files used for development against libtalkatu.
+
+Package: libtalkatu-common
+Architecture: all
+Section: misc
+Depends: ${misc:Depends},
+Description: Common files for the talkatu library
+ Talkatu provides support for parsing and rendering plain text, HTML, and
+ Markdown inside of GTK.
+ .
+ This package contains the common files that the library needs.
+
+Package: libtalkatu-doc
+Architecture: all
+Section: doc
+Depends: ${misc:Depends}
+Suggests: libtalkatu-dev
+Description: Documentation for the talkatu library
+ Talkatu provides support for parsing and rendering plain text, HTML, and
+ Markdown inside of GTK.
+ .
+ This package contains the documentation for the library.
+
+Package: talkatu-demo
+Architecture: any
+Section: utils
+Depends: ${misc:Depends},
+         ${shlibs:Depends},
+         libtalkatu0 (=${binary:Version}),
+         libglib2.0-0 (>=2.40.0),
+         libgtk-3-0 (>=3.10.0)
+Description: Demo for the talkatu library
+ Talkatu provides support for parsing and rendering plain text, HTML, and
+ Markdown inside of GTK.
+ .
+ This package contains the demo application.
+
+Package: gir1.2-talkatu-0.0
+Architecture: any
+Depends: ${gir:Depends},
+         ${misc:Depends},
+         libtalkatu0 (=${binary:Version})
+Section: introspection
+Description: typelib for talkatu library
+ Talkatu provides support for parsing and rendering plain text, HTML, and
+ Markdown inside of GTK.
+ .
+ This package can be used by other packages using the GIRepository format to
+ generate dynamic bindings for libtalkatu.

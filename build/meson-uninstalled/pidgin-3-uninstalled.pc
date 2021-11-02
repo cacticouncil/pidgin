@@ -1,0 +1,11 @@
+prefix=/home/isarodriguez/pidgin/build
+srcdir=/home/isarodriguez/pidgin
+libdir=${prefix}/lib/x86_64-linux-gnu
+includedir=${prefix}/include
+
+Name: Pidgin
+Description: Pidgin is a GTK3-based instant messenger application.
+Version: 3.0.0-devel
+Requires: gtk+-3.0, purple-3, talkatu, gplugin-gtk
+Libs: -L${prefix}/pidgin -lpidgin3
+Cflags: -I${prefix}/pidgin -I${srcdir}/pidgin -I${prefix}/. -I${srcdir}/. -I${prefix}/subprojects/gplugin/. -I${srcdir}/subprojects/gplugin/. -I${prefix}/subprojects/gplugin/gplugin-gtk4/. -I${srcdir}/subprojects/gplugin/gplugin-gtk4/. -I${prefix}/subprojects/gtk/. -I${srcdir}/subprojects/gtk/. -I${prefix}/subprojects/gtk/gtk -I${srcdir}/subprojects/gtk/gtk -I${prefix}/subprojects/pango/. -I${srcdir}/subprojects/pango/. -I${prefix}/subprojects/pango/pango/. -I${srcdir}/subprojects/pango/pango/. -I${prefix}/subprojects/graphene/include/. -I${srcdir}/subprojects/graphene/include/. -I${prefix}/subprojects/gtk/gdk/x11 -I${srcdir}/subprojects/gtk/gdk/x11 -I${prefix}/subprojects/gtk/gdk/. -I${srcdir}/subprojects/gtk/gdk/. -I${prefix}/subprojects/talkatu/. -I${srcdir}/subprojects/talkatu/. -I${prefix}/subprojects/talkatu/talkatu/. -I${srcdir}/subprojects/talkatu/talkatu/. -I${prefix}/libpurple/. -I${srcdir}/libpurple/. -I${prefix}/subprojects/gplugin/gplugin/. -I${srcdir}/subprojects/gplugin/gplugin/.

@@ -1,0 +1,15 @@
+ 0x000000000000000e (SONAME)             Library soname: [libgplugin-gtk3.so.0]
+__bss_start B
+_edata D
+_end B
+gplugin_gtk_plugin_info_get_plugin T
+gplugin_gtk_plugin_info_get_type T
+gplugin_gtk_plugin_info_new T
+gplugin_gtk_plugin_info_set_plugin T
+gplugin_gtk_store_get_column_types T
+gplugin_gtk_store_get_type T
+gplugin_gtk_store_new T
+gplugin_gtk_view_get_show_internal T
+gplugin_gtk_view_get_type T
+gplugin_gtk_view_new T
+gplugin_gtk_view_set_show_internal T

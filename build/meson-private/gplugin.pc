@@ -1,0 +1,12 @@
+prefix=/usr/local
+libdir=${prefix}/lib/x86_64-linux-gnu
+includedir=${prefix}/include
+
+plugindir=${libdir}
+
+Name: gplugin
+Description: A fully featured GModule based plugin library
+Version: 0.35.1-dev
+Requires: glib-2.0 >=  2.52.0, gobject-2.0, gmodule-2.0
+Libs: -L${libdir} -lgplugin
+Cflags: -I${includedir}/gplugin-1.0

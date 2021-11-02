@@ -1,0 +1,11 @@
+prefix=/home/isarodriguez/pidgin/build
+srcdir=/home/isarodriguez/pidgin
+libdir=${prefix}/lib/x86_64-linux-gnu
+includedir=${prefix}/include
+
+Name: Finch
+Description: Finch is an instant messenger application that uses libpurple for protocol support and ncurses (libgnt) for the UI.
+Version: 3.0.0-devel
+Requires: gnt, purple-3
+Libs: -L${prefix}/finch -lfinch3
+Cflags: -I${prefix}/finch -I${srcdir}/finch -I${prefix}/. -I${srcdir}/. -I${prefix}/libpurple/. -I${srcdir}/libpurple/. -I${prefix}/subprojects/gplugin/. -I${srcdir}/subprojects/gplugin/. -I${prefix}/subprojects/gplugin/gplugin/. -I${srcdir}/subprojects/gplugin/gplugin/. -I${prefix}/subprojects/libgnt/. -I${srcdir}/subprojects/libgnt/.

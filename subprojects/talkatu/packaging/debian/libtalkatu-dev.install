@@ -1,0 +1,6 @@
+usr/include/
+usr/lib/*/libtalkatu.so
+usr/lib/*/pkgconfig/*.pc
+usr/share/gir-1.0/
+debian/tmp/usr/share/vala/vapi/talkatu.deps
+debian/tmp/usr/share/vala/vapi/talkatu.vapi

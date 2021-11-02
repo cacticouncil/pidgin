@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<glade-catalog name="Talkatu"
+               version="0.1.0-dev"
+               library="talkatu"
+               domain="talkatu"
+               depends="gtk+"
+               book="Talkatu">
+  <glade-widget-classes>
+    <glade-widget-class name="TalkatuEditor" generic-name="editor" title="Editor">
+      <internal-children>
+        <object name="toolbar"/>
+        <object name="input"/>
+        <object name="send_button"/>
+      </internal-children>
+    </glade-widget-class>
+
+    <glade-widget-class name="TalkatuAttachmentDialog" generic-name="attachment_dialog" title="Attachment Dialog"/>
+    <glade-widget-class name="TalkatuAttachmentPreview" generic-name="attachment_preview" title="Attachment Preview"/>
+    <glade-widget-class name="TalkatuHistory" generic-name="history" title="History"/>
+    <glade-widget-class name="TalkatuHistoryRow" generic-name="history_row" title="HistoryRow"/>
+    <glade-widget-class name="TalkatuInput" generic-name="input" title="Input"/>
+    <glade-widget-class name="TalkatuLinkDialog" generic-name="link_dialog" title="LinkDialog"/>
+    <glade-widget-class name="TalkatuMenuToolButton" generic-name="menu_tool_button" title="MenuToolButton"/>
+    <glade-widget-class name="TalkatuScrolledWindow" generic-name="scrolled_window" title="ScrolledWindow"/>
+    <glade-widget-class name="TalkatuToolDrawer" generic-name="tool_drawer" title="ToolDrawer"/>
+    <glade-widget-class name="TalkatuToolbar" generic-name="toolbar" title="Toolbar"/>
+    <glade-widget-class name="TalkatuView" generic-name="view" title="View"/>
+    <glade-widget-class name="TalkatuTagTable" generic-name="tag-table" title="Tag Table" toplevel="True"/>
+    <glade-widget-class name="TalkatuTypingLabel" generic-name="typing-label" title="Typing Label"/>
+
+    <glade-widget-class name="TalkatuBuffer" generic-name="buffer" title="Buffer" toplevel="True">
+      <properties>
+        <property translatable="True" multiline="True" id="text"/>
+      </properties>
+    </glade-widget-class>
+
+    <glade-widget-class name="TalkatuHtmlBuffer" generic-name="buffer" title="HTML Buffer" toplevel="True">
+      <properties>
+        <property translatable="True" multiline="True" id="text"/>
+      </properties>
+    </glade-widget-class>
+
+    <glade-widget-class name="TalkatuMarkdownBuffer" generic-name="buffer" title="Markdown Buffer" toplevel="True">
+      <properties>
+        <property translatable="True" multiline="True" id="text"/>
+      </properties>
+    </glade-widget-class>
+
+    <glade-widget-class name="TalkatuWholeBuffer" generic-name="buffer" title="Whole Buffer" toplevel="True">
+      <properties>
+        <property translatable="True" multiline="True" id="text"/>
+      </properties>
+    </glade-widget-class>
+
+  </glade-widget-classes>
+  <glade-widget-group name="Talkatu" title="Talkatu">
+    <glade-widget-class-ref name="TalkatuAttachmentDialog"/>
+    <glade-widget-class-ref name="TalkatuAttachmentPreview"/>
+    <glade-widget-class-ref name="TalkatuBuffer"/>
+    <glade-widget-class-ref name="TalkatuEditor"/>
+    <glade-widget-class-ref name="TalkatuHistory"/>
+    <glade-widget-class-ref name="TalkatuHistoryRow"/>
+    <glade-widget-class-ref name="TalkatuHtmlBuffer"/>
+    <glade-widget-class-ref name="TalkatuInput"/>
+    <glade-widget-class-ref name="TalkatuLinkDialog"/>
+    <glade-widget-class-ref name="TalkatuMarkdownBuffer"/>
+    <glade-widget-class-ref name="TalkatuMenuToolButton"/>
+    <glade-widget-class-ref name="TalkatuScrolledWindow"/>
+    <glade-widget-class-ref name="TalkatuToolDrawer"/>
+    <glade-widget-class-ref name="TalkatuToolbar"/>
+    <glade-widget-class-ref name="TalkatuTypingLabel"/>
+    <glade-widget-class-ref name="TalkatuView"/>
+    <glade-widget-class-ref name="TalkatuWholeBuffer"/>
+    <glade-widget-class-ref name="TalkatuTagTable"/>
+  </glade-widget-group>
+</glade-catalog>

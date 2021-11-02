@@ -1,0 +1,30 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<gresources>
+  <gresource prefix='/org/gtk/libgsk'>
+
+    <file alias='gl/preamble.glsl'>gl/resources/preamble.glsl</file>
+    <file alias='gl/preamble.fs.glsl'>gl/resources/preamble.fs.glsl</file>
+    <file alias='gl/preamble.vs.glsl'>gl/resources/preamble.vs.glsl</file>
+    <file alias='gl/border.glsl'>gl/resources/border.glsl</file>
+    <file alias='gl/blit.glsl'>gl/resources/blit.glsl</file>
+    <file alias='gl/coloring.glsl'>gl/resources/coloring.glsl</file>
+    <file alias='gl/color.glsl'>gl/resources/color.glsl</file>
+    <file alias='gl/linear_gradient.glsl'>gl/resources/linear_gradient.glsl</file>
+    <file alias='gl/radial_gradient.glsl'>gl/resources/radial_gradient.glsl</file>
+    <file alias='gl/conic_gradient.glsl'>gl/resources/conic_gradient.glsl</file>
+    <file alias='gl/color_matrix.glsl'>gl/resources/color_matrix.glsl</file>
+    <file alias='gl/blur.glsl'>gl/resources/blur.glsl</file>
+    <file alias='gl/inset_shadow.glsl'>gl/resources/inset_shadow.glsl</file>
+    <file alias='gl/outset_shadow.glsl'>gl/resources/outset_shadow.glsl</file>
+    <file alias='gl/unblurred_outset_shadow.glsl'>gl/resources/unblurred_outset_shadow.glsl</file>
+    <file alias='gl/cross_fade.glsl'>gl/resources/cross_fade.glsl</file>
+    <file alias='gl/blend.glsl'>gl/resources/blend.glsl</file>
+    <file alias='gl/repeat.glsl'>gl/resources/repeat.glsl</file>
+    <file alias='gl/custom.glsl'>gl/resources/custom.glsl</file>
+    <file alias='gl/filled_border.glsl'>gl/resources/filled_border.glsl</file>
+
+
+
+
+  </gresource>
+</gresources>

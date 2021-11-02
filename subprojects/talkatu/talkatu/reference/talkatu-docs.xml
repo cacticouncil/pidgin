@@ -1,0 +1,83 @@
+<?xml version="1.0"?>
+<!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.1.2//EN"
+               "http://www.oasis-open.org/docbook/xml/4.1.2/docbookx.dtd" [
+
+<!ENTITY % local.common.attrib "xmlns:xi  CDATA  #FIXED 'http://www.w3.org/2003/XInclude'">
+<!ENTITY version SYSTEM "version.xml">
+]>
+<book id="index" xmlns:xi="http://www.w3.org/2003/XInclude">
+  <bookinfo>
+    <title>Talkatu Reference Manual</title>
+    <abstract>
+      <title>Talkatu &version;</title>
+      <para>
+        Talkatu is a collection of Gtk+ widgets that are useful for
+        communication applications like Pidgin.
+      </para>
+    </abstract>
+  </bookinfo>
+
+  <part id="object-hierarchy">
+    <title>Object Hierarchy</title>
+
+    <xi:include href="xml/tree_index.sgml"/>
+  </part>
+
+  <part id="API">
+	  <title>API Reference</title>
+
+    <xi:include href="xml/talkatuactiongroup.xml"/>
+    <xi:include href="xml/talkatutag.xml"/>
+    <xi:include href="xml/talkatutagtable.xml"/>
+
+    <xi:include href="xml/talkatubuffer.xml"/>
+    <xi:include href="xml/talkatuhtmlbuffer.xml"/>
+    <xi:include href="xml/talkatumarkdownbuffer.xml"/>
+    <xi:include href="xml/talkatuwholebuffer.xml"/>
+
+    <xi:include href="xml/talkatumarkup.xml"/>
+
+    <xi:include href="xml/talkatuhistory.xml"/>
+    <xi:include href="xml/talkatuhistoryrow.xml"/>
+
+    <xi:include href="xml/talkatuhtmlrenderer.xml"/>
+    <xi:include href="xml/talkatuhtmlpangorenderer.xml"/>
+
+    <xi:include href="xml/talkatuinput.xml"/>
+
+    <xi:include href="xml/talkatueditor.xml"/>
+    <xi:include href="xml/talkatuview.xml"/>
+
+    <xi:include href="xml/talkatumessage.xml"/>
+    <xi:include href="xml/talkatumessageactions.xml"/>
+
+    <xi:include href="xml/talkatutoolbar.xml"/>
+    <xi:include href="xml/talkatutooldrawer.xml"/>
+    <xi:include href="xml/talkatumenutoolbutton.xml"/>
+
+    <xi:include href="xml/talkatuscrolledwindow.xml"/>
+
+    <xi:include href="xml/talkatutypinglabel.xml"/>
+
+    <xi:include href="xml/talkatuattachment.xml"/>
+    <xi:include href="xml/talkatuattachmentdialog.xml"/>
+    <xi:include href="xml/talkatuattachmentpreview.xml"/>
+    <xi:include href="xml/talkatusimpleattachment.xml"/>
+
+    <xi:include href="xml/talkatucore.xml"/>
+    <xi:include href="xml/talkatucodeset.xml"/>
+    <xi:include href="xml/talkatuversion.xml"/>
+
+    <xi:include href="xml/talkatulinkdialog.xml"/>
+  </part>
+
+  <index id="api-index-full">
+    <title>Index</title>
+    <xi:include href="xml/api-index-full.xml"><xi:fallback /></xi:include>
+  </index>
+  <index id="api-index-deprecated" role="deprecated">
+    <title>Index of deprecated symbols</title>
+    <xi:include href="xml/api-index-deprecated.xml"><xi:fallback /></xi:include>
+  </index>
+  <xi:include href="xml/annotation-glossary.xml"><xi:fallback /></xi:include>
+</book>

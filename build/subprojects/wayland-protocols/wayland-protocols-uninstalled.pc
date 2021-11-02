@@ -1,0 +1,5 @@
+pkgdatadir=/home/isarodriguez/pidgin/subprojects/wayland-protocols
+
+Name: Wayland Protocols
+Description: Wayland protocol files (not installed)
+Version: 1.23

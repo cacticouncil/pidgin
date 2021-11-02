@@ -1,0 +1,570 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Generated with glade 3.38.2 
+
+Talkatu - GTK widgets for chat applications
+Copyright (C) 2017-2020 Gary Kramlich <grim@reaperworld.com>
+
+This program is free software; you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation; either version 2 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this library; if not, see <https://www.gnu.org/licenses/>.
+
+-->
+<interface>
+  <requires lib="Talkatu" version="0.0"/>
+  <requires lib="gtk+" version="3.18"/>
+  <!-- interface-license-type gplv2 -->
+  <!-- interface-name Talkatu -->
+  <!-- interface-description GTK widgets for chat applications -->
+  <!-- interface-copyright Gary Kramlich <grim@reaperworld.com> -->
+  <template class="TalkatuDemoWindow" parent="GtkWindow">
+    <property name="can-focus">False</property>
+    <property name="border-width">12</property>
+    <signal name="delete-event" handler="talkatu_demo_window_closed_cb" swapped="no"/>
+    <child>
+      <object class="GtkPaned">
+        <property name="visible">True</property>
+        <property name="can-focus">True</property>
+        <property name="orientation">vertical</property>
+        <property name="wide-handle">True</property>
+        <child>
+          <object class="TalkatuScrolledWindow">
+            <property name="visible">True</property>
+            <property name="can-focus">True</property>
+            <property name="shadow-type">in</property>
+            <child>
+              <object class="TalkatuHistory" id="history">
+                <property name="name">history</property>
+                <property name="visible">True</property>
+                <property name="can-focus">True</property>
+                <property name="events">GDK_POINTER_MOTION_MASK | GDK_POINTER_MOTION_HINT_MASK | GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK</property>
+                <property name="hexpand-set">True</property>
+                <property name="vexpand-set">True</property>
+              </object>
+            </child>
+          </object>
+          <packing>
+            <property name="resize">True</property>
+            <property name="shrink">False</property>
+          </packing>
+        </child>
+        <child>
+          <object class="GtkBox">
+            <property name="visible">True</property>
+            <property name="can-focus">False</property>
+            <property name="orientation">vertical</property>
+            <child>
+              <object class="GtkToolbar">
+                <property name="visible">True</property>
+                <property name="can-focus">False</property>
+                <child>
+                  <object class="GtkRadioToolButton" id="toggle_plain">
+                    <property name="visible">True</property>
+                    <property name="can-focus">False</property>
+                    <property name="tooltip-text" translatable="yes">Use a TalkatuBuffer</property>
+                    <property name="label" translatable="yes">Plain</property>
+                    <property name="use-underline">True</property>
+                    <property name="icon-name">text-x-generic</property>
+                    <property name="active">True</property>
+                    <signal name="toggled" handler="talkatu_demo_window_buffer_changed_cb" object="TalkatuDemoWindow" swapped="no"/>
+                  </object>
+                  <packing>
+                    <property name="expand">False</property>
+                    <property name="homogeneous">True</property>
+                  </packing>
+                </child>
+                <child>
+                  <object class="GtkRadioToolButton" id="toggle_whole">
+                    <property name="visible">True</property>
+                    <property name="can-focus">False</property>
+                    <property name="tooltip-text" translatable="yes">Use a TalkatuWholeBuffer</property>
+                    <property name="label" translatable="yes">Whole</property>
+                    <property name="use-underline">True</property>
+                    <property name="icon-name">ascii</property>
+                    <property name="group">toggle_plain</property>
+                    <signal name="toggled" handler="talkatu_demo_window_buffer_changed_cb" object="TalkatuDemoWindow" swapped="no"/>
+                  </object>
+                  <packing>
+                    <property name="expand">False</property>
+                    <property name="homogeneous">True</property>
+                  </packing>
+                </child>
+                <child>
+                  <object class="GtkRadioToolButton" id="toggle_html">
+                    <property name="visible">True</property>
+                    <property name="can-focus">False</property>
+                    <property name="tooltip-text" translatable="yes">Use a TalkatuHTMLBuffer</property>
+                    <property name="label" translatable="yes">HTML</property>
+                    <property name="use-underline">True</property>
+                    <property name="icon-name">text-html</property>
+                    <property name="group">toggle_plain</property>
+                    <signal name="toggled" handler="talkatu_demo_window_buffer_changed_cb" object="TalkatuDemoWindow" swapped="no"/>
+                  </object>
+                  <packing>
+                    <property name="expand">False</property>
+                    <property name="homogeneous">True</property>
+                  </packing>
+                </child>
+                <child>
+                  <object class="GtkRadioToolButton" id="toggle_markdown">
+                    <property name="visible">True</property>
+                    <property name="can-focus">False</property>
+                    <property name="tooltip-text" translatable="yes">Use a TalkatuMarkdownBuffer</property>
+                    <property name="label" translatable="yes">Markdown</property>
+                    <property name="use-underline">True</property>
+                    <property name="icon-name">text-x-generic-template</property>
+                    <property name="group">toggle_plain</property>
+                    <signal name="toggled" handler="talkatu_demo_window_buffer_changed_cb" object="TalkatuDemoWindow" swapped="no"/>
+                  </object>
+                  <packing>
+                    <property name="expand">False</property>
+                    <property name="homogeneous">True</property>
+                  </packing>
+                </child>
+                <child>
+                  <object class="GtkSeparatorToolItem">
+                    <property name="visible">True</property>
+                    <property name="can-focus">False</property>
+                  </object>
+                  <packing>
+                    <property name="expand">False</property>
+                    <property name="homogeneous">True</property>
+                  </packing>
+                </child>
+                <child>
+                  <object class="GtkToolButton">
+                    <property name="visible">True</property>
+                    <property name="can-focus">False</property>
+                    <property name="tooltip-text" translatable="yes">Insert HTML from a file</property>
+                    <property name="label" translatable="yes">Insert HTML</property>
+                    <property name="use-underline">True</property>
+                    <property name="icon-name">text-html</property>
+                    <signal name="clicked" handler="talkatu_demo_window_insert_html_cb" object="TalkatuDemoWindow" swapped="no"/>
+                  </object>
+                  <packing>
+                    <property name="expand">False</property>
+                    <property name="homogeneous">True</property>
+                  </packing>
+                </child>
+                <child>
+                  <object class="GtkToolButton">
+                    <property name="visible">True</property>
+                    <property name="can-focus">False</property>
+                    <property name="tooltip-text" translatable="yes">Insert Markdown from a file</property>
+                    <property name="label" translatable="yes">Insert Markdown</property>
+                    <property name="use-underline">True</property>
+                    <property name="icon-name">text-x-generic</property>
+                    <signal name="clicked" handler="talkatu_demo_window_insert_markdown_cb" object="TalkatuDemoWindow" swapped="no"/>
+                  </object>
+                  <packing>
+                    <property name="expand">False</property>
+                    <property name="homogeneous">True</property>
+                  </packing>
+                </child>
+                <child>
+                  <object class="GtkSeparatorToolItem">
+                    <property name="visible">True</property>
+                    <property name="can-focus">False</property>
+                  </object>
+                  <packing>
+                    <property name="expand">False</property>
+                    <property name="homogeneous">True</property>
+                  </packing>
+                </child>
+                <child>
+                  <object class="GtkToggleToolButton" id="author_button">
+                    <property name="visible">True</property>
+                    <property name="can-focus">False</property>
+                    <property name="label" translatable="yes">Author</property>
+                    <property name="use-underline">True</property>
+                    <property name="icon-name">system-users</property>
+                    <signal name="toggled" handler="talkatu_demo_window_author_toggled_cb" object="author_popover" swapped="no"/>
+                  </object>
+                  <packing>
+                    <property name="expand">False</property>
+                    <property name="homogeneous">True</property>
+                  </packing>
+                </child>
+                <child>
+                  <object class="GtkToggleToolButton" id="author_name_color_button">
+                    <property name="visible">True</property>
+                    <property name="can-focus">False</property>
+                    <property name="label" translatable="yes">Color</property>
+                    <property name="use-underline">True</property>
+                    <property name="icon-name">color-select-symbolic</property>
+                    <signal name="toggled" handler="talkatu_demo_window_author_name_color_toggled_cb" object="author_name_color_popover" swapped="no"/>
+                  </object>
+                  <packing>
+                    <property name="expand">False</property>
+                    <property name="homogeneous">True</property>
+                  </packing>
+                </child>
+                <child>
+                  <object class="GtkSeparatorToolItem">
+                    <property name="visible">True</property>
+                    <property name="can-focus">False</property>
+                  </object>
+                  <packing>
+                    <property name="expand">False</property>
+                    <property name="homogeneous">True</property>
+                  </packing>
+                </child>
+                <child>
+                  <object class="GtkToggleToolButton" id="toggle_toolbar">
+                    <property name="visible">True</property>
+                    <property name="can-focus">False</property>
+                    <property name="tooltip-text" translatable="yes">Toggle toolbar visibility</property>
+                    <property name="label" translatable="yes">Toolbar</property>
+                    <property name="use-underline">True</property>
+                  </object>
+                  <packing>
+                    <property name="expand">False</property>
+                    <property name="homogeneous">True</property>
+                  </packing>
+                </child>
+                <child>
+                  <object class="GtkToggleToolButton" id="toggle_send_button">
+                    <property name="visible">True</property>
+                    <property name="can-focus">False</property>
+                    <property name="tooltip-text" translatable="yes">Toggle send button visibility</property>
+                    <property name="label" translatable="yes">Send Button</property>
+                    <property name="use-underline">True</property>
+                  </object>
+                  <packing>
+                    <property name="expand">False</property>
+                    <property name="homogeneous">True</property>
+                  </packing>
+                </child>
+                <child>
+                  <object class="GtkToggleToolButton" id="toggle_edited">
+                    <property name="visible">True</property>
+                    <property name="can-focus">False</property>
+                    <property name="tooltip-text" translatable="yes">Toggle whether the message is edited</property>
+                    <property name="label" translatable="yes">Edited</property>
+                    <property name="use-underline">True</property>
+                  </object>
+                  <packing>
+                    <property name="expand">False</property>
+                    <property name="homogeneous">True</property>
+                  </packing>
+                </child>
+              </object>
+              <packing>
+                <property name="expand">False</property>
+                <property name="fill">True</property>
+                <property name="position">0</property>
+              </packing>
+            </child>
+            <child>
+              <object class="TalkatuEditor" id="editor">
+                <property name="orientation">vertical</property>
+                <property name="visible">True</property>
+                <property name="events">GDK_POINTER_MOTION_MASK | GDK_POINTER_MOTION_HINT_MASK | GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK</property>
+                <property name="hexpand-set">True</property>
+                <property name="vexpand-set">True</property>
+                <child internal-child="toolbar">
+                  <object class="TalkatuToolbar">
+                    <property name="events">GDK_POINTER_MOTION_MASK | GDK_POINTER_MOTION_HINT_MASK | GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK</property>
+                    <property name="hexpand-set">True</property>
+                    <property name="vexpand-set">True</property>
+                  </object>
+                  <packing>
+                    <property name="fill">False</property>
+                  </packing>
+                </child>
+                <child internal-child="input">
+                  <object class="TalkatuInput">
+                    <property name="hexpand-set">True</property>
+                    <property name="vexpand-set">True</property>
+                    <property name="buffer">buffer_plain</property>
+                    <signal name="open-url" handler="talkatu_demo_window_view_open_url_cb" object="TalkatuDemoWindow" swapped="no"/>
+                    <signal name="send-message" handler="talkatu_demo_window_view_send_message_cb" object="TalkatuDemoWindow" swapped="no"/>
+                  </object>
+                  <packing>
+                    <property name="fill">False</property>
+                  </packing>
+                </child>
+                <child internal-child="send_button">
+                  <object class="GtkButton">
+                    <property name="can-focus">False</property>
+                    <property name="receives-default">False</property>
+                  </object>
+                  <packing>
+                    <property name="fill">False</property>
+                  </packing>
+                </child>
+              </object>
+              <packing>
+                <property name="expand">True</property>
+                <property name="fill">True</property>
+                <property name="position">1</property>
+              </packing>
+            </child>
+            <child>
+              <object class="TalkatuTypingLabel" id="typing">
+                <property name="visible">True</property>
+                <property name="events">GDK_POINTER_MOTION_MASK | GDK_POINTER_MOTION_HINT_MASK | GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK</property>
+              </object>
+              <packing>
+                <property name="expand">False</property>
+                <property name="fill">True</property>
+                <property name="position">2</property>
+              </packing>
+            </child>
+          </object>
+          <packing>
+            <property name="resize">True</property>
+            <property name="shrink">False</property>
+          </packing>
+        </child>
+      </object>
+    </child>
+  </template>
+  <object class="GtkPopover" id="author_name_color_popover">
+    <property name="can-focus">False</property>
+    <property name="relative-to">author_button</property>
+    <signal name="closed" handler="talkatu_demo_window_author_name_color_popover_closed_cb" object="author_name_color_button" swapped="no"/>
+    <child>
+      <object class="GtkBox">
+        <property name="visible">True</property>
+        <property name="can-focus">False</property>
+        <property name="border-width">6</property>
+        <property name="orientation">vertical</property>
+        <child>
+          <object class="GtkRadioButton" id="author_name_color_item">
+            <property name="label" translatable="yes">Not set</property>
+            <property name="visible">True</property>
+            <property name="can-focus">True</property>
+            <property name="receives-default">False</property>
+            <property name="active">True</property>
+            <property name="draw-indicator">True</property>
+            <signal name="toggled" handler="talkatu_demo_window_author_name_color_changed" object="TalkatuDemoWindow" swapped="no"/>
+          </object>
+          <packing>
+            <property name="expand">False</property>
+            <property name="fill">True</property>
+            <property name="position">0</property>
+          </packing>
+        </child>
+        <child>
+          <object class="GtkRadioButton">
+            <property name="label" translatable="yes">Red</property>
+            <property name="visible">True</property>
+            <property name="can-focus">True</property>
+            <property name="receives-default">False</property>
+            <property name="draw-indicator">True</property>
+            <property name="group">author_name_color_item</property>
+            <signal name="toggled" handler="talkatu_demo_window_author_name_color_changed" object="TalkatuDemoWindow" swapped="no"/>
+          </object>
+          <packing>
+            <property name="expand">False</property>
+            <property name="fill">True</property>
+            <property name="position">1</property>
+          </packing>
+        </child>
+        <child>
+          <object class="GtkRadioButton">
+            <property name="label" translatable="yes">Green</property>
+            <property name="visible">True</property>
+            <property name="can-focus">True</property>
+            <property name="receives-default">False</property>
+            <property name="draw-indicator">True</property>
+            <property name="group">author_name_color_item</property>
+            <signal name="toggled" handler="talkatu_demo_window_author_name_color_changed" object="TalkatuDemoWindow" swapped="no"/>
+          </object>
+          <packing>
+            <property name="expand">False</property>
+            <property name="fill">True</property>
+            <property name="position">2</property>
+          </packing>
+        </child>
+        <child>
+          <object class="GtkRadioButton">
+            <property name="label" translatable="yes">Blue</property>
+            <property name="visible">True</property>
+            <property name="can-focus">True</property>
+            <property name="receives-default">False</property>
+            <property name="draw-indicator">True</property>
+            <property name="group">author_name_color_item</property>
+            <signal name="toggled" handler="talkatu_demo_window_author_name_color_changed" object="TalkatuDemoWindow" swapped="no"/>
+          </object>
+          <packing>
+            <property name="expand">False</property>
+            <property name="fill">True</property>
+            <property name="position">3</property>
+          </packing>
+        </child>
+        <child>
+          <object class="GtkRadioButton">
+            <property name="label" translatable="yes">Yellow</property>
+            <property name="visible">True</property>
+            <property name="can-focus">True</property>
+            <property name="receives-default">False</property>
+            <property name="draw-indicator">True</property>
+            <property name="group">author_name_color_item</property>
+            <signal name="toggled" handler="talkatu_demo_window_author_name_color_changed" object="TalkatuDemoWindow" swapped="no"/>
+          </object>
+          <packing>
+            <property name="expand">False</property>
+            <property name="fill">True</property>
+            <property name="position">4</property>
+          </packing>
+        </child>
+        <child>
+          <object class="GtkRadioButton">
+            <property name="label" translatable="yes">Purple</property>
+            <property name="visible">True</property>
+            <property name="can-focus">True</property>
+            <property name="receives-default">False</property>
+            <property name="draw-indicator">True</property>
+            <property name="group">author_name_color_item</property>
+            <signal name="toggled" handler="talkatu_demo_window_author_name_color_changed" object="TalkatuDemoWindow" swapped="no"/>
+          </object>
+          <packing>
+            <property name="expand">False</property>
+            <property name="fill">True</property>
+            <property name="position">5</property>
+          </packing>
+        </child>
+      </object>
+    </child>
+  </object>
+  <object class="GtkPopover" id="author_popover">
+    <property name="can-focus">False</property>
+    <property name="relative-to">author_button</property>
+    <signal name="closed" handler="talkatu_demo_window_author_popover_closed_cb" object="author_button" swapped="no"/>
+    <child>
+      <object class="GtkBox">
+        <property name="visible">True</property>
+        <property name="can-focus">False</property>
+        <property name="border-width">6</property>
+        <property name="orientation">vertical</property>
+        <child>
+          <object class="GtkRadioButton" id="author_item">
+            <property name="label" translatable="yes">Alice</property>
+            <property name="visible">True</property>
+            <property name="can-focus">True</property>
+            <property name="receives-default">False</property>
+            <property name="active">True</property>
+            <property name="draw-indicator">True</property>
+            <signal name="toggled" handler="talkatu_demo_window_author_changed" object="TalkatuDemoWindow" swapped="no"/>
+          </object>
+          <packing>
+            <property name="expand">False</property>
+            <property name="fill">True</property>
+            <property name="position">0</property>
+          </packing>
+        </child>
+        <child>
+          <object class="GtkRadioButton">
+            <property name="label" translatable="yes">Bob</property>
+            <property name="visible">True</property>
+            <property name="can-focus">True</property>
+            <property name="receives-default">False</property>
+            <property name="draw-indicator">True</property>
+            <property name="group">author_item</property>
+            <signal name="toggled" handler="talkatu_demo_window_author_changed" object="TalkatuDemoWindow" swapped="no"/>
+          </object>
+          <packing>
+            <property name="expand">False</property>
+            <property name="fill">True</property>
+            <property name="position">1</property>
+          </packing>
+        </child>
+        <child>
+          <object class="GtkRadioButton">
+            <property name="label" translatable="yes">Carol</property>
+            <property name="visible">True</property>
+            <property name="can-focus">True</property>
+            <property name="receives-default">False</property>
+            <property name="draw-indicator">True</property>
+            <property name="group">author_item</property>
+            <signal name="toggled" handler="talkatu_demo_window_author_changed" object="TalkatuDemoWindow" swapped="no"/>
+          </object>
+          <packing>
+            <property name="expand">False</property>
+            <property name="fill">True</property>
+            <property name="position">2</property>
+          </packing>
+        </child>
+        <child>
+          <object class="GtkRadioButton">
+            <property name="label" translatable="yes">David</property>
+            <property name="visible">True</property>
+            <property name="can-focus">True</property>
+            <property name="receives-default">False</property>
+            <property name="draw-indicator">True</property>
+            <property name="group">author_item</property>
+            <signal name="toggled" handler="talkatu_demo_window_author_changed" object="TalkatuDemoWindow" swapped="no"/>
+          </object>
+          <packing>
+            <property name="expand">False</property>
+            <property name="fill">True</property>
+            <property name="position">3</property>
+          </packing>
+        </child>
+        <child>
+          <object class="GtkRadioButton">
+            <property name="label" translatable="yes">Eve</property>
+            <property name="visible">True</property>
+            <property name="can-focus">True</property>
+            <property name="receives-default">False</property>
+            <property name="draw-indicator">True</property>
+            <property name="group">author_item</property>
+            <signal name="toggled" handler="talkatu_demo_window_author_changed" object="TalkatuDemoWindow" swapped="no"/>
+          </object>
+          <packing>
+            <property name="expand">False</property>
+            <property name="fill">True</property>
+            <property name="position">4</property>
+          </packing>
+        </child>
+        <child>
+          <object class="GtkRadioButton">
+            <property name="label" translatable="yes">Mallory</property>
+            <property name="visible">True</property>
+            <property name="can-focus">True</property>
+            <property name="receives-default">False</property>
+            <property name="draw-indicator">True</property>
+            <property name="group">author_item</property>
+            <signal name="toggled" handler="talkatu_demo_window_author_changed" object="TalkatuDemoWindow" swapped="no"/>
+          </object>
+          <packing>
+            <property name="expand">False</property>
+            <property name="fill">True</property>
+            <property name="position">5</property>
+          </packing>
+        </child>
+      </object>
+    </child>
+  </object>
+  <object class="TalkatuTagTable" id="table_history"/>
+  <object class="TalkatuTagTable" id="table_html"/>
+  <object class="TalkatuHtmlBuffer" id="buffer_html">
+    <property name="tag-table">table_html</property>
+    <signal name="changed" handler="talkatu_demo_window_buffer_modified_cb" object="TalkatuDemoWindow" swapped="no"/>
+  </object>
+  <object class="TalkatuTagTable" id="table_markdown"/>
+  <object class="TalkatuMarkdownBuffer" id="buffer_markdown">
+    <property name="tag-table">table_markdown</property>
+    <signal name="changed" handler="talkatu_demo_window_buffer_modified_cb" object="TalkatuDemoWindow" swapped="no"/>
+  </object>
+  <object class="TalkatuTagTable" id="table_plain"/>
+  <object class="TalkatuBuffer" id="buffer_plain">
+    <property name="tag-table">table_plain</property>
+    <signal name="changed" handler="talkatu_demo_window_buffer_modified_cb" object="TalkatuDemoWindow" swapped="no"/>
+  </object>
+  <object class="TalkatuWholeBuffer" id="buffer_whole">
+    <property name="tag-table">table_plain</property>
+    <property name="style">whole</property>
+    <signal name="changed" handler="talkatu_demo_window_buffer_modified_cb" object="TalkatuDemoWindow" swapped="no"/>
+  </object>
+</interface>

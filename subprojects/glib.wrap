@@ -1,0 +1,7 @@
+[wrap-git]
+url = https://gitlab.gnome.org/GNOME/glib.git
+revision = master
+depth = 1
+
+[provide]
+dependency_names = gir1.2-glib-2.0

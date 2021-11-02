@@ -1,0 +1,282 @@
+<?xml version="1.0"?>
+<!-- This file was automatically generated from C sources - DO NOT EDIT!
+To affect the contents of this file, edit the original C definitions,
+and/or use gtk-doc annotations.  -->
+<repository version="1.2"
+            xmlns="http://www.gtk.org/introspection/core/1.0"
+            xmlns:c="http://www.gtk.org/introspection/c/1.0"
+            xmlns:glib="http://www.gtk.org/introspection/glib/1.0">
+  <include name="GPlugin" version="1.0"/>
+  <include name="Gtk" version="3.0"/>
+  <package name="gplugin-gtk3"/>
+  <c:include name="gplugin-gtk.h"/>
+  <namespace name="GPluginGtk3"
+             version="1.0"
+             shared-library="libgplugin-gtk3.so.0"
+             c:identifier-prefixes="GPluginGtk"
+             c:symbol-prefixes="gplugin_gtk">
+    <class name="PluginInfo"
+           c:symbol-prefix="plugin_info"
+           c:type="GPluginGtkPluginInfo"
+           parent="Gtk.Box"
+           glib:type-name="GPluginGtkPluginInfo"
+           glib:get-type="gplugin_gtk_plugin_info_get_type"
+           glib:type-struct="PluginInfoClass">
+      <doc xml:space="preserve"
+           filename="gplugin-gtk3/gplugin-gtk-plugin-info.c"
+           line="24">A widget that displays a [class@GPlugin.PluginInfo] in a user friendly way.</doc>
+      <source-position filename="gplugin-gtk3/gplugin-gtk-plugin-info.h"
+                       line="36"/>
+      <implements name="Atk.ImplementorIface"/>
+      <implements name="Gtk.Buildable"/>
+      <implements name="Gtk.Orientable"/>
+      <constructor name="new" c:identifier="gplugin_gtk_plugin_info_new">
+        <doc xml:space="preserve"
+             filename="gplugin-gtk3/gplugin-gtk-plugin-info.c"
+             line="417">Create a new widget which can be used to display info about a
+[class@GPlugin.Plugin].</doc>
+        <source-position filename="gplugin-gtk3/gplugin-gtk-plugin-info.h"
+                         line="43"/>
+        <return-value transfer-ownership="full">
+          <doc xml:space="preserve"
+               filename="gplugin-gtk3/gplugin-gtk-plugin-info.c"
+               line="423">The new display widget.</doc>
+          <type name="Gtk.Widget" c:type="GtkWidget*"/>
+        </return-value>
+      </constructor>
+      <method name="get_plugin"
+              c:identifier="gplugin_gtk_plugin_info_get_plugin">
+        <doc xml:space="preserve"
+             filename="gplugin-gtk3/gplugin-gtk-plugin-info.c"
+             line="470">Returns the plugin that's being displayed.</doc>
+        <source-position filename="gplugin-gtk3/gplugin-gtk-plugin-info.h"
+                         line="48"/>
+        <return-value transfer-ownership="full">
+          <doc xml:space="preserve"
+               filename="gplugin-gtk3/gplugin-gtk-plugin-info.c"
+               line="476">The plugin that's being displayed.</doc>
+          <type name="GPlugin.Plugin" c:type="GPluginPlugin*"/>
+        </return-value>
+        <parameters>
+          <instance-parameter name="info" transfer-ownership="none">
+            <doc xml:space="preserve"
+                 filename="gplugin-gtk3/gplugin-gtk-plugin-info.c"
+                 line="472">The widget instance.</doc>
+            <type name="PluginInfo" c:type="GPluginGtkPluginInfo*"/>
+          </instance-parameter>
+        </parameters>
+      </method>
+      <method name="set_plugin"
+              c:identifier="gplugin_gtk_plugin_info_set_plugin">
+        <doc xml:space="preserve"
+             filename="gplugin-gtk3/gplugin-gtk-plugin-info.c"
+             line="431">Sets the plugin that should be displayed.
+
+A @plugin value of %NULL will clear the widget.</doc>
+        <source-position filename="gplugin-gtk3/gplugin-gtk-plugin-info.h"
+                         line="45"/>
+        <return-value transfer-ownership="none">
+          <type name="none" c:type="void"/>
+        </return-value>
+        <parameters>
+          <instance-parameter name="info" transfer-ownership="none">
+            <doc xml:space="preserve"
+                 filename="gplugin-gtk3/gplugin-gtk-plugin-info.c"
+                 line="433">The widget instance.</doc>
+            <type name="PluginInfo" c:type="GPluginGtkPluginInfo*"/>
+          </instance-parameter>
+          <parameter name="plugin" transfer-ownership="none">
+            <doc xml:space="preserve"
+                 filename="gplugin-gtk3/gplugin-gtk-plugin-info.c"
+                 line="434">The plugin instance.</doc>
+            <type name="GPlugin.Plugin" c:type="GPluginPlugin*"/>
+          </parameter>
+        </parameters>
+      </method>
+    </class>
+    <record name="PluginInfoClass"
+            c:type="GPluginGtkPluginInfoClass"
+            glib:is-gtype-struct-for="PluginInfo">
+      <source-position filename="gplugin-gtk3/gplugin-gtk-plugin-info.h"
+                       line="36"/>
+      <field name="parent_class">
+        <type name="Gtk.BoxClass" c:type="GtkBoxClass"/>
+      </field>
+    </record>
+    <class name="Store"
+           c:symbol-prefix="store"
+           c:type="GPluginGtkStore"
+           parent="Gtk.ListStore"
+           glib:type-name="GPluginGtkStore"
+           glib:get-type="gplugin_gtk_store_get_type"
+           glib:type-struct="StoreClass">
+      <doc xml:space="preserve"
+           filename="gplugin-gtk3/gplugin-gtk-store.c"
+           line="34">A [class@Gtk.ListStore] that contains all of the known plugins in GPlugin.</doc>
+      <source-position filename="gplugin-gtk3/gplugin-gtk-store.h" line="34"/>
+      <implements name="Gtk.Buildable"/>
+      <implements name="Gtk.TreeDragDest"/>
+      <implements name="Gtk.TreeDragSource"/>
+      <implements name="Gtk.TreeModel"/>
+      <implements name="Gtk.TreeSortable"/>
+      <constructor name="new" c:identifier="gplugin_gtk_store_new">
+        <doc xml:space="preserve"
+             filename="gplugin-gtk3/gplugin-gtk-store.c"
+             line="279">Create a new #GPluginGtkStore which is a prepopulated [class@Gtk.TreeStore].</doc>
+        <source-position filename="gplugin-gtk3/gplugin-gtk-store.h"
+                         line="51"/>
+        <return-value transfer-ownership="full">
+          <doc xml:space="preserve"
+               filename="gplugin-gtk3/gplugin-gtk-store.c"
+               line="284">A new list store prepopulated with all of the
+         plugins.</doc>
+          <type name="Store" c:type="GPluginGtkStore*"/>
+        </return-value>
+      </constructor>
+      <function name="get_column_types"
+                c:identifier="gplugin_gtk_store_get_column_types">
+        <doc xml:space="preserve"
+             filename="gplugin-gtk3/gplugin-gtk-store.c"
+             line="293">Returns the columns that #GPluginGtkStore's will use.</doc>
+        <source-position filename="gplugin-gtk3/gplugin-gtk-store.h"
+                         line="53"/>
+        <return-value transfer-ownership="none">
+          <doc xml:space="preserve"
+               filename="gplugin-gtk3/gplugin-gtk-store.c"
+               line="298">A list of [type@GLib.Type]'s for the columns that
+         the store will use.</doc>
+          <type name="GType" c:type="const GType*"/>
+        </return-value>
+      </function>
+    </class>
+    <record name="StoreClass"
+            c:type="GPluginGtkStoreClass"
+            glib:is-gtype-struct-for="Store">
+      <source-position filename="gplugin-gtk3/gplugin-gtk-store.h" line="34"/>
+      <field name="parent_class">
+        <type name="Gtk.ListStoreClass" c:type="GtkListStoreClass"/>
+      </field>
+    </record>
+    <enumeration name="StoreColumns" c:type="GPluginGtkStoreColumns">
+      <doc xml:space="preserve"
+           filename="gplugin-gtk3/gplugin-gtk-store.c"
+           line="22">An enum declaring the columns in a [class@GPluginGtk3.Store].</doc>
+      <source-position filename="gplugin-gtk3/gplugin-gtk-store.h" line="49"/>
+      <member name="enabled_column"
+              value="0"
+              c:identifier="GPLUGIN_GTK_STORE_ENABLED_COLUMN">
+        <doc xml:space="preserve"
+             filename="gplugin-gtk3/gplugin-gtk-store.c"
+             line="24">The disabled column.  This is used when a
+                                   plugin is in a state that can't be
+                                   changed.  So the row should be disabled.</doc>
+      </member>
+      <member name="loaded_column"
+              value="1"
+              c:identifier="GPLUGIN_GTK_STORE_LOADED_COLUMN">
+        <doc xml:space="preserve"
+             filename="gplugin-gtk3/gplugin-gtk-store.c"
+             line="27">The loaded column.</doc>
+      </member>
+      <member name="plugin_column"
+              value="2"
+              c:identifier="GPLUGIN_GTK_STORE_PLUGIN_COLUMN">
+        <doc xml:space="preserve"
+             filename="gplugin-gtk3/gplugin-gtk-store.c"
+             line="28">The plugin column.</doc>
+      </member>
+      <member name="markup_column"
+              value="3"
+              c:identifier="GPLUGIN_GTK_STORE_MARKUP_COLUMN">
+        <doc xml:space="preserve"
+             filename="gplugin-gtk3/gplugin-gtk-store.c"
+             line="29">The markup column.</doc>
+      </member>
+    </enumeration>
+    <class name="View"
+           c:symbol-prefix="view"
+           c:type="GPluginGtkView"
+           parent="Gtk.TreeView"
+           glib:type-name="GPluginGtkView"
+           glib:get-type="gplugin_gtk_view_get_type"
+           glib:type-struct="ViewClass">
+      <doc xml:space="preserve"
+           filename="gplugin-gtk3/gplugin-gtk-view.c"
+           line="23">A [class@Gtk.TreeView] widget that displays all the plugins and some basic
+information about them.</doc>
+      <source-position filename="gplugin-gtk3/gplugin-gtk-view.h" line="34"/>
+      <implements name="Atk.ImplementorIface"/>
+      <implements name="Gtk.Buildable"/>
+      <implements name="Gtk.Scrollable"/>
+      <constructor name="new" c:identifier="gplugin_gtk_view_new">
+        <doc xml:space="preserve"
+             filename="gplugin-gtk3/gplugin-gtk-view.c"
+             line="237">Creates a new [class@GPluginGtk3.View].</doc>
+        <source-position filename="gplugin-gtk3/gplugin-gtk-view.h" line="41"/>
+        <return-value transfer-ownership="full">
+          <doc xml:space="preserve"
+               filename="gplugin-gtk3/gplugin-gtk-view.c"
+               line="242">The new view.</doc>
+          <type name="Gtk.Widget" c:type="GtkWidget*"/>
+        </return-value>
+      </constructor>
+      <method name="get_show_internal"
+              c:identifier="gplugin_gtk_view_get_show_internal">
+        <doc xml:space="preserve"
+             filename="gplugin-gtk3/gplugin-gtk-view.c"
+             line="278">Returns whether or not @view is showing internal plugins.</doc>
+        <source-position filename="gplugin-gtk3/gplugin-gtk-view.h" line="46"/>
+        <return-value transfer-ownership="none">
+          <type name="gboolean" c:type="gboolean"/>
+        </return-value>
+        <parameters>
+          <instance-parameter name="view" transfer-ownership="none">
+            <doc xml:space="preserve"
+                 filename="gplugin-gtk3/gplugin-gtk-view.c"
+                 line="280">The GTK view instance.</doc>
+            <type name="View" c:type="GPluginGtkView*"/>
+          </instance-parameter>
+        </parameters>
+      </method>
+      <method name="set_show_internal"
+              c:identifier="gplugin_gtk_view_set_show_internal">
+        <doc xml:space="preserve"
+             filename="gplugin-gtk3/gplugin-gtk-view.c"
+             line="260">This function will toggle whether or not the widget will show internal
+plugins.</doc>
+        <source-position filename="gplugin-gtk3/gplugin-gtk-view.h" line="43"/>
+        <return-value transfer-ownership="none">
+          <type name="none" c:type="void"/>
+        </return-value>
+        <parameters>
+          <instance-parameter name="view" transfer-ownership="none">
+            <doc xml:space="preserve"
+                 filename="gplugin-gtk3/gplugin-gtk-view.c"
+                 line="262">The GTK view instance.</doc>
+            <type name="View" c:type="GPluginGtkView*"/>
+          </instance-parameter>
+          <parameter name="show_internal" transfer-ownership="none">
+            <doc xml:space="preserve"
+                 filename="gplugin-gtk3/gplugin-gtk-view.c"
+                 line="263">Whether or not to show internal plugins.</doc>
+            <type name="gboolean" c:type="gboolean"/>
+          </parameter>
+        </parameters>
+      </method>
+      <property name="show-internal" writable="1" transfer-ownership="none">
+        <doc xml:space="preserve"
+             filename="gplugin-gtk3/gplugin-gtk-view.c"
+             line="218">Whether or not to show internal plugins.</doc>
+        <type name="gboolean" c:type="gboolean"/>
+      </property>
+    </class>
+    <record name="ViewClass"
+            c:type="GPluginGtkViewClass"
+            glib:is-gtype-struct-for="View">
+      <source-position filename="gplugin-gtk3/gplugin-gtk-view.h" line="34"/>
+      <field name="parent_class">
+        <type name="Gtk.TreeViewClass" c:type="GtkTreeViewClass"/>
+      </field>
+    </record>
+  </namespace>
+</repository>

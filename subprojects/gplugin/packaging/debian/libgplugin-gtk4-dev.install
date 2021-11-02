@@ -1,0 +1,4 @@
+usr/include/gplugin-gtk4-1.0
+debian/tmp/usr/lib/*/libgplugin-gtk4.so
+debian/tmp/usr/lib/*/pkgconfig/gplugin-gtk4.pc
+debian/tmp/usr/share/gir-1.0/GPluginGtk4-1.0.gir

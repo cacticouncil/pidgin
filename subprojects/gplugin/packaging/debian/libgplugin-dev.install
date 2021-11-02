@@ -1,0 +1,7 @@
+debian/tmp/usr/include/gplugin-1.0
+debian/tmp/usr/lib/*/libgplugin.so
+debian/tmp/usr/lib/*/pkgconfig/gplugin.pc
+debian/tmp/usr/share/gir-1.0/GPlugin-1.0.gir
+debian/tmp/usr/share/gplugin/valgrind/gplugin.supp
+debian/tmp/usr/share/vala/vapi/gplugin.deps
+debian/tmp/usr/share/vala/vapi/gplugin.vapi

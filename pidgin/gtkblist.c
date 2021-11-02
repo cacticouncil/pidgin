@@ -415,6 +415,7 @@ static void gtk_blist_renderer_editing_cancelled_cb(GtkCellRenderer *renderer, P
 	pidgin_blist_refresh(list);
 }
 
+//gets called when you try to edit an alias of someone/group in your buddy list
 static void gtk_blist_renderer_editing_started_cb(GtkCellRenderer *renderer,
 		GtkCellEditable *editable,
 		gchar *path_str,
@@ -432,16 +433,20 @@ static void gtk_blist_renderer_editing_started_cb(GtkCellRenderer *renderer,
 
 	switch (purple_blist_node_get_type(node)) {
 	case PURPLE_BLIST_CONTACT_NODE:
-		text = purple_contact_get_alias(PURPLE_CONTACT(node));
+		text = purple_contact_get_alias(PURPLE_CONTACT(node)); //-> a DM in Slack
+		printf("this is the contact name: %s \n", text);
 		break;
 	case PURPLE_BLIST_BUDDY_NODE:
 		text = purple_buddy_get_alias(PURPLE_BUDDY(node));
+		printf("this is the buddy name: %s \n", text);
 		break;
 	case PURPLE_BLIST_GROUP_NODE:
 		text = purple_group_get_name(PURPLE_GROUP(node));
+		printf("this is the group name: %s \n", text);
 		break;
 	case PURPLE_BLIST_CHAT_NODE:
-		text = purple_chat_get_name(PURPLE_CHAT(node));
+		text = purple_chat_get_name(PURPLE_CHAT(node)); //-> a channel in Slack
+		printf("this is the chat name: %s \n", text);
 		break;
 	default:
 		g_return_if_reached();
@@ -1170,6 +1175,8 @@ static void gtk_blist_row_expanded_cb(GtkTreeView *tv, GtkTreeIter *iter, GtkTre
 {
 	PurpleBlistNode *node;
 
+	//iter parameter is referencing a row
+	//get me the value from column NODE_COLUMN, store it in node
 	gtk_tree_model_get(GTK_TREE_MODEL(gtkblist->treemodel), iter, NODE_COLUMN, &node, -1);
 
 	if (PURPLE_BLIST_NODE_IS_GROUP(node)) {
@@ -3286,6 +3293,8 @@ pidgin_blist_create_tooltip(GtkWidget *widget, GtkTreePath *path,
 	}
 
 	gtk_tree_model_get_iter(GTK_TREE_MODEL(gtkblist->treemodel), &iter, path);
+	gboolean isvalid = gtk_tree_store_iter_is_valid(GTK_TREE_MODEL(gtkblist->treemodel), &iter);
+	printf("is good iter valid? %d \n", isvalid);
 	gtk_tree_model_get(GTK_TREE_MODEL(gtkblist->treemodel), &iter, NODE_COLUMN, &node, -1);
 
 	return pidgin_blist_create_tooltip_for_node(widget, node, w, h);
@@ -4792,6 +4801,7 @@ static void pidgin_blist_new_list(PurpleBuddyList *blist)
 
 static void pidgin_blist_new_node(PurpleBlistNode *node)
 {
+	printf("You are in pidgin_blist_new_node() \n");
 	node->ui_data = g_new0(struct _pidgin_blist_node, 1);
 }
 
@@ -5485,6 +5495,7 @@ treeview_style_set (GtkWidget *widget,
 		    GtkStyle *prev_style,
 		    gpointer data)
 {
+	printf("You are in treeview_style_set() \n");
 	PurpleBuddyList *list = data;
 	PurpleBlistNode *node = list->root;
 	while (node) {
@@ -5587,6 +5598,7 @@ kiosk_page()
 static void
 pidgin_blist_build_layout(PurpleBuddyList *list)
 {
+	printf("You are in pidgin_blist_build_layout() \n");
 	GtkTreeViewColumn *column;
 	PidginBlistLayout *layout;
 	PidginBlistTheme *theme;
@@ -5606,7 +5618,7 @@ pidgin_blist_build_layout(PurpleBuddyList *list)
 
 	gtk_tree_view_column_clear(column);
 
-	/* group */
+	/* group */ //->> rendering the small dropdown arrows next to the Workspaces names
 	rend = pidgin_cell_renderer_expander_new();
 	gtk_tree_view_column_pack_start(column, rend, FALSE);
 	gtk_tree_view_column_set_attributes(column, rend,
@@ -5616,7 +5628,7 @@ pidgin_blist_build_layout(PurpleBuddyList *list)
 					    "cell-background-gdk", BGCOLOR_COLUMN,
 					    NULL);
 
-	/* contact */
+	/* contact */ //->> rendering the small dropdown arrows next to the Workspaces names
 	rend = pidgin_cell_renderer_expander_new();
 	gtk_tree_view_column_pack_start(column, rend, FALSE);
 	gtk_tree_view_column_set_attributes(column, rend,
@@ -5626,7 +5638,10 @@ pidgin_blist_build_layout(PurpleBuddyList *list)
 					    "cell-background-gdk", BGCOLOR_COLUMN,
 					    NULL);
 
-	for (i = 0; i < 5; i++) {
+	
+	
+
+	for (i = 0; i < 5; i++) { // different cell renderers that render every part of the channel and dm list 
 
 		if (status_icon == i) {
 			/* status icons */
@@ -5640,9 +5655,11 @@ pidgin_blist_build_layout(PurpleBuddyList *list)
 			g_object_set(rend, "xalign", 0.0, "xpad", 6, "ypad", 0, NULL);
 
 		} else if (text == i) {
+			printf("text, this is i %i", i);
 			/* name */
 			gtkblist->text_rend = rend = gtk_cell_renderer_text_new();
 			gtk_tree_view_column_pack_start(column, rend, TRUE);
+			printf("hello form the other side");
 			gtk_tree_view_column_set_attributes(column, rend,
 							    "cell-background-gdk", BGCOLOR_COLUMN,
 							    "markup", NAME_COLUMN,
@@ -5650,8 +5667,17 @@ pidgin_blist_build_layout(PurpleBuddyList *list)
 			g_signal_connect(G_OBJECT(rend), "editing-started", G_CALLBACK(gtk_blist_renderer_editing_started_cb), NULL);
 			g_signal_connect(G_OBJECT(rend), "editing-canceled", G_CALLBACK(gtk_blist_renderer_editing_cancelled_cb), list);
 			g_signal_connect(G_OBJECT(rend), "edited", G_CALLBACK(gtk_blist_renderer_edited_cb), list);
-			g_object_set(rend, "ypad", 0, "yalign", 0.5, NULL);
-			g_object_set(rend, "ellipsize", PANGO_ELLIPSIZE_END, NULL);
+			//g_object_set(rend, "ypad", 0, "yalign", 0.5, NULL);
+			//g_object_set(rend, "ellipsize", PANGO_ELLIPSIZE_END, NULL);
+			g_object_set(rend,
+               "cell-background", "Orange",
+               "cell-background-set", TRUE,
+               NULL);
+
+
+			// rend = gtk_cell_renderer_text_new();
+			// g_object_set(rend, "text", "Boooo!", NULL);
+			// gtk_tree_view_column_pack_start(column, rend, FALSE);
 
 			/* idle */
 			rend = gtk_cell_renderer_text_new();
@@ -5662,6 +5688,9 @@ pidgin_blist_build_layout(PurpleBuddyList *list)
 							    "visible", IDLE_VISIBLE_COLUMN,
 							    "cell-background-gdk", BGCOLOR_COLUMN,
 							    NULL);
+
+		    
+
 		} else if (emblem == i) {
 			/* emblem */
 			rend = gtk_cell_renderer_pixbuf_new();
@@ -5694,6 +5723,33 @@ pidgin_blist_build_layout(PurpleBuddyList *list)
 		}
 
 	}/* end for loop */
+
+	GtkTreeIter first_row_iter;
+	gtk_tree_model_get_iter_from_string(gtkblist->treemodel, &first_row_iter, "0");
+	gboolean isvalid = gtk_tree_store_iter_is_valid(gtkblist->treemodel, &first_row_iter);
+	printf("is iter valid (build layout func)? %d \n", isvalid);
+
+	gint number_of_children1 = gtk_tree_model_iter_n_children(gtkblist->treemodel,  &first_row_iter);
+	printf(" (build layout func) the # of children first_row_iter has is : %d \n", number_of_children1);
+
+
+	// GtkTreeIter* first_row_iter;
+	// GtkTreeIter* iter;
+	// GtkTreeViewColumn *col;
+	// gtk_tree_model_get_iter_from_string(gtkblist->treemodel, first_row_iter, "0");
+	// gtk_tree_store_insert(gtkblist->treemodel, iter, first_row_iter, 0);
+	// gtk_tree_store_set(gtkblist->treemodel, iter, CHANNEL_COLUMN, "Channels", -1);
+	// rend = gtk_cell_renderer_text_new();
+	// //g_object_set(rend, "text", "holiii", NULL);
+	//   g_object_set(rend,
+    //            "cell-background", "Orange",
+    //            "cell-background-set", TRUE,
+    //            NULL);
+	
+	// gtk_tree_view_column_pack_start(column, rend, FALSE);
+	// gtk_tree_view_column_set_attributes(column, rend, "text", CHANNEL_COLUMN, NULL);
+	//col = gtk_tree_view_column_new();
+	//gtk_tree_view_column_add_attribute(col, rend, "text", CHANNEL_COLUMN);
 
 }
 
@@ -5741,9 +5797,10 @@ pidgin_blist_search_equal_func(GtkTreeModel *model, gint column,
 
 	return res;
 }
-
+//function called to start showing all the shit???///
 static void pidgin_blist_show(PurpleBuddyList *list)
 {
+	printf("You are in pidgin_blist_show() \n");
 	PidginBuddyListPrivate *priv;
 	void *handle;
 	GtkTreeViewColumn *column;
@@ -5755,7 +5812,7 @@ static void pidgin_blist_show(PurpleBuddyList *list)
 	char *pretty, *tmp;
 	const char *theme_name;
 	GtkAccelGroup *accel_group;
-	GtkTreeSelection *selection;
+	GtkTreeSelection *selection; //-> to select a row
 	GtkTargetEntry dte[] = {{"PURPLE_BLIST_NODE", GTK_TARGET_SAME_APP, DRAG_ROW},
 				{"application/x-im-contact", 0, DRAG_BUDDY},
 				{"text/x-vcard", 0, DRAG_VCARD },
@@ -5827,8 +5884,8 @@ static void pidgin_blist_show(PurpleBuddyList *list)
 
 	/****************************** Notebook *************************************/
 	gtkblist->notebook = gtk_notebook_new();
-	gtk_notebook_set_show_tabs(GTK_NOTEBOOK(gtkblist->notebook), FALSE);
-	gtk_notebook_set_show_border(GTK_NOTEBOOK(gtkblist->notebook), FALSE);
+	gtk_notebook_set_show_tabs(GTK_NOTEBOOK(gtkblist->notebook), TRUE);
+	gtk_notebook_set_show_border(GTK_NOTEBOOK(gtkblist->notebook), TRUE);
 	gtk_box_pack_start(GTK_BOX(gtkblist->main_vbox), gtkblist->notebook, TRUE, TRUE, 0);
 
 #if 0
@@ -5899,6 +5956,10 @@ static void pidgin_blist_show(PurpleBuddyList *list)
 	g_signal_connect(G_OBJECT(ebox), "button-press-event", G_CALLBACK(headline_box_press_cb), gtkblist);
 
 	/****************************** GtkTreeView **********************************/
+	//creating tree model where # of model columns and types is stored
+	//model is where data to be displayed is stored
+	//Each TreeViewColumn contains at least one CellRenderer. 
+	//Cell renderers are what actually display the data - items in the model are mapped to cell renderers.
 	gtkblist->treemodel = gtk_tree_store_new(BLIST_COLUMNS,
 						 GDK_TYPE_PIXBUF, /* Status icon */
 						 G_TYPE_BOOLEAN,  /* Status icon visible */
@@ -5916,7 +5977,8 @@ static void pidgin_blist_show(PurpleBuddyList *list)
 						 GDK_TYPE_PIXBUF, /* Emblem */
 						 G_TYPE_BOOLEAN,  /* Emblem visible */
 						 GDK_TYPE_PIXBUF, /* Protocol icon */
-						 G_TYPE_BOOLEAN   /* Protocol visible */
+						 G_TYPE_BOOLEAN,   /* Protocol visible */
+						 G_TYPE_STRING
 						);
 
 	gtkblist->treeview = gtk_tree_view_new_with_model(GTK_TREE_MODEL(gtkblist->treemodel));
@@ -5965,6 +6027,8 @@ static void pidgin_blist_show(PurpleBuddyList *list)
 	gtkblist->text_column = gtk_tree_view_column_new ();
 	gtk_tree_view_append_column(GTK_TREE_VIEW(gtkblist->treeview), gtkblist->text_column);
 	pidgin_blist_build_layout(list);
+
+	//first_row_iter is still invalid at this point
 
 	g_signal_connect(G_OBJECT(gtkblist->treeview), "row-activated", G_CALLBACK(gtk_blist_row_activated_cb), NULL);
 	g_signal_connect(G_OBJECT(gtkblist->treeview), "row-expanded", G_CALLBACK(gtk_blist_row_expanded_cb), NULL);
@@ -6037,7 +6101,7 @@ static void pidgin_blist_show(PurpleBuddyList *list)
 	pidgin_blist_update_plugin_actions();
 	pidgin_blist_update_sort_methods();
 
-	/* OK... let's show this bad boy. */
+	/* OK... let's show this bad boy. */ //---IS THIS WHERE THEY SHOW BUDDY LIST?
 	pidgin_blist_refresh(list);
 	pidgin_blist_restore_position();
 	gtk_widget_show_all(GTK_WIDGET(gtkblist->vbox));
@@ -6063,7 +6127,7 @@ static void pidgin_blist_show(PurpleBuddyList *list)
 
 	/* sorting */
 	purple_prefs_connect_callback(handle, PIDGIN_PREFS_ROOT "/blist/sort_type",
-			_prefs_change_sort_method, NULL);
+			_prefs_change_sort_method, NULL); 
 
 	/* menus */
 	purple_prefs_connect_callback(handle, PIDGIN_PREFS_ROOT "/sound/mute",
@@ -6126,10 +6190,48 @@ static void pidgin_blist_show(PurpleBuddyList *list)
 	/* emit our created signal */
 	handle = pidgin_blist_get_handle();
 	purple_signal_emit(handle, "gtkblist-created", list);
+
+	printf("Isa code");
+
+	// GtkTreeIter first_row_iter;
+	// GtkTreeIter iter;
+	// GtkTreeViewColumn *col;
+	// GtkCellRenderer *rend;
+	// col = gtkblist->text_column;
+	// gtk_tree_model_get_iter_from_string(gtkblist->treemodel, &first_row_iter, "0");
+	// gboolean isvalid = gtk_tree_store_iter_is_valid(gtkblist->treemodel, &first_row_iter);
+	// printf("is iter valid? %d \n", isvalid);
+
+	// gint number_of_children1 = gtk_tree_model_iter_n_children(gtkblist->treemodel,  &first_row_iter);
+	// printf("the # of children first_row_iter has is : %d \n", number_of_children1);
+
+	// gtk_tree_store_append(gtkblist->treemodel, &iter, &first_row_iter);
+	// gtk_tree_store_set(gtkblist->treemodel, &iter, CHANNEL_COLUMN, "Channels", -1);
+	// rend = gtk_cell_renderer_text_new();
+	// //g_object_set(rend, "text", "holiii", NULL);
+	// //   g_object_set(rend,
+    // //            "cell-background", "Orange",
+    // //            "cell-background-set", TRUE,
+    // //            NULL);
+	
+	// gtk_tree_view_column_pack_start(col, rend, FALSE);
+	// gtk_tree_view_column_add_attribute(col, rend, "text", CHANNEL_COLUMN);
+	// //g_object_set(rend, "ypad", 0, "yalign", 0.5, NULL);
+	// //g_object_set(rend, "ellipsize", PANGO_ELLIPSIZE_END, NULL);
+	// // g_object_set(rend, "text", "holiii", NULL);
+	// //   g_object_set(gtkblist->text_rend,
+    // //            "cell-background", "Orange",
+    // //            "cell-background-set", TRUE,
+    // //            NULL);
+
+	// //checking how mnay children iter has which is the iterator pointing to the "Channels" row
+	// gint number_of_children = gtk_tree_model_iter_n_children(gtkblist->treemodel,  &iter);
+	// printf("the # of children iter has is : %d \n", number_of_children);
 }
 
-static void redo_buddy_list(PurpleBuddyList *list, gboolean remove, gboolean rerender)
+static void  redo_buddy_list(PurpleBuddyList *list, gboolean remove, gboolean rerender)
 {
+	printf("You are in redo_buddy_list() \n");
 	PurpleBlistNode *node;
 
 	gtkblist = PIDGIN_BLIST(list);
@@ -6159,6 +6261,7 @@ static void redo_buddy_list(PurpleBuddyList *list, gboolean remove, gboolean rer
 
 void pidgin_blist_refresh(PurpleBuddyList *list)
 {
+	printf("You are in pidgin_blist_refresh() \n");
 	redo_buddy_list(list, FALSE, TRUE);
 }
 
@@ -6175,6 +6278,8 @@ pidgin_blist_update_refresh_timeout()
 }
 
 static gboolean get_iter_from_node(PurpleBlistNode *node, GtkTreeIter *iter) {
+
+	printf("You are in get_iter_from_node() \n");
 	struct _pidgin_blist_node *gtknode = (struct _pidgin_blist_node *)node->ui_data;
 	GtkTreePath *path;
 
@@ -6272,6 +6377,7 @@ static void pidgin_blist_selection_changed(GtkTreeSelection *selection, gpointer
 
 static gboolean insert_node(PurpleBuddyList *list, PurpleBlistNode *node, GtkTreeIter *iter)
 {
+	printf("You are in insert_node() \n");
 	GtkTreeIter parent_iter, cur, *curptr = NULL;
 	struct _pidgin_blist_node *gtknode = node->ui_data;
 	GtkTreePath *newpath;
@@ -6358,6 +6464,7 @@ static gboolean pidgin_blist_group_has_show_offline_buddy(PurpleGroup *group)
 static void pidgin_blist_update_group(PurpleBuddyList *list,
                                       PurpleBlistNode *node)
 {
+	printf("You are in pidgin_update_group() \n");
 	gint count;
 	PurpleGroup *group;
 	PurpleBlistNode* gnode;
@@ -6420,6 +6527,7 @@ static void pidgin_blist_update_group(PurpleBuddyList *list,
 		gtk_tree_path_free(path);
 
 		title = pidgin_get_group_title(gnode, expanded);
+		printf("this is the title at pidgin_blist_update_group: %s \n", (char*)title);
 		biglist = purple_prefs_get_bool(PIDGIN_PREFS_ROOT "/blist/show_buddy_icons");
 
 		if (biglist) {
@@ -6506,6 +6614,7 @@ static char *pidgin_get_group_title(PurpleBlistNode *gnode, gboolean expanded)
 
 static void buddy_node(PurpleBuddy *buddy, GtkTreeIter *iter, PurpleBlistNode *node)
 {
+	printf("You are in buddy_node() \n");
 	PurplePresence *presence = purple_buddy_get_presence(buddy);
 	GdkPixbuf *status, *avatar, *emblem, *prpl_icon;
 	GdkColor *color = NULL;
@@ -6615,6 +6724,7 @@ static void buddy_node(PurpleBuddy *buddy, GtkTreeIter *iter, PurpleBlistNode *n
 	can know in advance which buddy has changed so we can just update that */
 static void pidgin_blist_update_contact(PurpleBuddyList *list, PurpleBlistNode *node)
 {
+	printf("You are in pidgin_blist_update_contact() \n");
 	PurpleBlistNode *cnode;
 	PurpleContact *contact;
 	PurpleBuddy *buddy;
@@ -6711,6 +6821,7 @@ static void pidgin_blist_update_contact(PurpleBuddyList *list, PurpleBlistNode *
 
 static void pidgin_blist_update_buddy(PurpleBuddyList *list, PurpleBlistNode *node, gboolean status_change)
 {
+	printf("You are in pidgin_blist_update_buddy() \n");
 	PurpleBuddy *buddy;
 	struct _pidgin_blist_node *gtkparentnode;
 
@@ -6743,6 +6854,7 @@ static void pidgin_blist_update_buddy(PurpleBuddyList *list, PurpleBlistNode *no
 
 static void pidgin_blist_update_chat(PurpleBuddyList *list, PurpleBlistNode *node)
 {
+	printf("You are in pidgin_blist_update_chat() \n");
 	PurpleChat *chat;
 
 	g_return_if_fail(PURPLE_BLIST_NODE_IS_CHAT(node));
@@ -6855,6 +6967,7 @@ static void pidgin_blist_update_chat(PurpleBuddyList *list, PurpleBlistNode *nod
 
 static void pidgin_blist_update(PurpleBuddyList *list, PurpleBlistNode *node)
 {
+	printf("You are in pidgin_blist_update() \n");
 	if (list)
 		gtkblist = PIDGIN_BLIST(list);
 	if(!gtkblist || !gtkblist->treeview || !node)
@@ -6880,10 +6993,35 @@ static void pidgin_blist_update(PurpleBuddyList *list, PurpleBlistNode *node)
 			return;
 	}
 
+	GtkTreeIter first_row_iter;
+	GtkTreeIter iter;
+	GtkTreeViewColumn *col;
+	GtkCellRenderer *rend;
+	col = gtkblist->text_column;
+	gtk_tree_model_get_iter_from_string(gtkblist->treemodel, &first_row_iter, "0");
+	gboolean isvalid = gtk_tree_store_iter_is_valid(gtkblist->treemodel, &first_row_iter);
+	printf("is iter valid? %d \n", isvalid);
+
+	gint number_of_children1 = gtk_tree_model_iter_n_children(gtkblist->treemodel,  &first_row_iter);
+	printf("the # of children first_row_iter has is : %d \n", number_of_children1);
+
+	gtk_tree_store_append(gtkblist->treemodel, &iter, &first_row_iter);
+	gtk_tree_store_set(gtkblist->treemodel, &iter, CHANNEL_COLUMN, "Channels", -1);
+	rend = gtk_cell_renderer_text_new();
+	
+	gtk_tree_view_column_pack_start(col, rend, FALSE);
+	gtk_tree_view_column_add_attribute(col, rend, "text", CHANNEL_COLUMN);
+
+	// //checking how mnay children iter has which is the iterator pointing to the "Channels" row
+	gint number_of_children = gtk_tree_model_iter_n_children(gtkblist->treemodel,  &iter);
+	printf("the # of children iter has is : %d \n", number_of_children);
+
+
 }
 
 static void pidgin_blist_destroy(PurpleBuddyList *list)
 {
+	printf("You are in pidgin_blist_destroy() \n");
 	PidginBuddyListPrivate *priv;
 
 	if (!list || !list->ui_data)
@@ -6960,6 +7098,7 @@ static void pidgin_blist_set_visible(PurpleBuddyList *list, gboolean show)
 static GList *
 groups_tree(void)
 {
+	printf("You are in groups_tree() \n");
 	static GList *list = NULL;
 	char *tmp2;
 	PurpleGroup *g;
@@ -6989,6 +7128,8 @@ groups_tree(void)
 
 	return list;
 }
+
+//The following functions add buddies, chats and groups/////
 
 static void
 add_buddy_select_account_cb(GObject *w, PurpleAccount *account,
@@ -7446,11 +7587,13 @@ static PurpleBlistUiOps blist_ui_ops =
 PurpleBlistUiOps *
 pidgin_blist_get_ui_ops(void)
 {
+	printf("You are in pidgin_blist_get_ui_ops() \n");
 	return &blist_ui_ops;
 }
 
 PidginBuddyList *pidgin_blist_get_default_gtk_blist()
 {
+	printf("You are in pidgin_blist_get_default_gtk_blist() \n");
 	return gtkblist;
 }
 
@@ -7553,6 +7696,7 @@ pidgin_blist_get_theme()
 
 void pidgin_blist_init(void)
 {
+	printf("You are in pidgin_blist_init() \n");
 	void *gtk_blist_handle = pidgin_blist_get_handle();
 
 	cached_emblems = g_hash_table_new_full(g_str_hash, g_str_equal, g_free, NULL);
@@ -7701,6 +7845,7 @@ void pidgin_blist_sort_method_set(const char *id){
 
 static void sort_method_none(PurpleBlistNode *node, PurpleBuddyList *blist, GtkTreeIter parent_iter, GtkTreeIter *cur, GtkTreeIter *iter)
 {
+	printf("You are in sort_method_none() \n");
 	PurpleBlistNode *sibling = node->prev;
 	GtkTreeIter sibling_iter;
 
@@ -7720,6 +7865,31 @@ static void sort_method_none(PurpleBlistNode *node, PurpleBuddyList *blist, GtkT
 
 static void sort_method_alphabetical(PurpleBlistNode *node, PurpleBuddyList *blist, GtkTreeIter groupiter, GtkTreeIter *cur, GtkTreeIter *iter)
 {
+	printf("You are in sort_method_alphabeticaL() \n");
+	// GtkTreeIter first_row_iter;
+	// GtkTreeIter iterat;
+	// GtkTreeViewColumn *col;
+	// GtkCellRenderer *rend;
+	// col = gtkblist->text_column;
+	// gtk_tree_model_get_iter_from_string(gtkblist->treemodel, &first_row_iter, "0");
+	// gboolean isvalid = gtk_tree_store_iter_is_valid(gtkblist->treemodel, &first_row_iter);
+	// printf("is iter valid? %d \n", isvalid);
+
+	// gint number_of_children1 = gtk_tree_model_iter_n_children(gtkblist->treemodel,  &first_row_iter);
+	// printf("the # of children first_row_iter has is : %d \n", number_of_children1);
+
+	// gtk_tree_store_append(gtkblist->treemodel, &iterat, &first_row_iter);
+	// gtk_tree_store_set(gtkblist->treemodel, &iterat, CHANNEL_COLUMN, "Channels", -1);
+	// rend = gtk_cell_renderer_text_new();
+	
+	// gtk_tree_view_column_pack_start(col, rend, FALSE);
+	// gtk_tree_view_column_add_attribute(col, rend, "text", CHANNEL_COLUMN);
+
+	
+	// //checking how mnay children iter has which is the iterator pointing to the "Channels" row
+	// gint number_of_children = gtk_tree_model_iter_n_children(gtkblist->treemodel,  &iterat);
+	// printf("the # of children iterat has in alpha is : %d \n", number_of_children);
+
 	GtkTreeIter more_z;
 
 	const char *my_name;
@@ -7780,6 +7950,7 @@ static void sort_method_alphabetical(PurpleBlistNode *node, PurpleBuddyList *bli
 
 static void sort_method_status(PurpleBlistNode *node, PurpleBuddyList *blist, GtkTreeIter groupiter, GtkTreeIter *cur, GtkTreeIter *iter)
 {
+	printf("You are in sort_method_status() \n");
 	GtkTreeIter more_z;
 
 	PurpleBuddy *my_buddy, *this_buddy;
@@ -7862,6 +8033,7 @@ static void sort_method_status(PurpleBlistNode *node, PurpleBuddyList *blist, Gt
 
 static void sort_method_log_activity(PurpleBlistNode *node, PurpleBuddyList *blist, GtkTreeIter groupiter, GtkTreeIter *cur, GtkTreeIter *iter)
 {
+	printf("You are in sort_method_log_activity() \n");
 	GtkTreeIter more_z;
 
 	int activity_score = 0, this_log_activity_score = 0;

@@ -1,0 +1,33 @@
+#!/usr/bin/make -f
+
+export DH_VERBOSE = 1
+export DEB_BUILD_MAINT_OPTIONS = hardening=+all
+
+export ARTIFACTS_DIR ?= ..
+
+BUILD_DIR := debian/build
+
+%:
+	dh $@ --with gir
+
+override_dh_auto_clean:
+	rm -rf $(BUILD_DIR)
+
+override_dh_auto_configure:
+	mkdir -p $(BUILD_DIR)
+	meson --prefix /usr --warnlevel 3 $(BUILD_DIR)
+
+override_dh_auto_build:
+	ninja -v -C $(BUILD_DIR)
+
+override_dh_auto_test:
+	ninja -v -C $(BUILD_DIR) test
+
+override_dh_auto_install:
+	DESTDIR=$(CURDIR)/debian/tmp ninja -v -C $(BUILD_DIR) install
+
+override_dh_builddeb:
+	# copy the dsc and the tar file to the uploads dir
+	cp ../gplugin_*.dsc ../gplugin_*.tar.* $(ARTIFACTS_DIR)
+	dh_builddeb $@ --destdir=$(ARTIFACTS_DIR)
+

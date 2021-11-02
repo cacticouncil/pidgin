@@ -1,0 +1,6 @@
+usr/include/gplugin-gtk3-1.0
+debian/tmp/usr/lib/*/libgplugin-gtk3.so
+debian/tmp/usr/lib/*/pkgconfig/gplugin-gtk3.pc
+debian/tmp/usr/share/gir-1.0/GPluginGtk3-1.0.gir
+debian/tmp/usr/share/vala/vapi/gplugin-gtk3.deps
+debian/tmp/usr/share/vala/vapi/gplugin-gtk3.vapi

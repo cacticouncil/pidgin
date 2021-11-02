@@ -1,0 +1,14 @@
+prefix=/usr/local
+libdir=${prefix}/lib/x86_64-linux-gnu
+includedir=${prefix}/include
+
+plugindir=${libdir}/purple-3
+
+Name: libpurple
+Description: libpurple is a GLib-based instant messenger library.
+Version: 3.0.0-devel
+Requires: glib-2.0 >=  2.52.0, gplugin
+Requires.private: gio-2.0, gobject-2.0, libsoup-2.4 >=  2.42, libxml-2.0 >=  2.6.0, farstream-0.2 >=  0.2.7, gstreamer-1.0 >= 1.14, gstreamer-video-1.0, gstreamer-app-1.0, json-glib-1.0 >=  0.14.0
+Libs: -L${libdir} -lpurple
+Libs.private: -lm
+Cflags: -I${includedir}/purple-3 -I${includedir}/purple-3/libpurple

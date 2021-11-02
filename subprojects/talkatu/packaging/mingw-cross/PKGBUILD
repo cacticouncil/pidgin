@@ -1,0 +1,48 @@
+_realname=talkatu
+pkgbase=mingw-w64-${_realname}-hg
+pkgname="${MINGW_PACKAGE_PREFIX}-${_realname}-hg"
+provides=(${MINGW_PACKAGE_PREFIX}-${_realname})
+conflicts=(${MINGW_PACKAGE_PREFIX}-${_realname})
+pkgver=r0.XXXXXXXX
+pkgrel=1
+pkgdesc="GTK Widgets for chat clients (mingw-w64)"
+arch=('any')
+url="https://keep.imfreedom.org/talkatu/talkatu/"
+license=(GPL2+)
+makedepends=("${MINGW_PACKAGE_PREFIX}-pkg-config")
+depends=("${MINGW_PACKAGE_PREFIX}-adwaita-icon-theme"
+         "${MINGW_PACKAGE_PREFIX}-cmark"
+         "${MINGW_PACKAGE_PREFIX}-gettext"
+         "${MINGW_PACKAGE_PREFIX}-glib2"
+         "${MINGW_PACKAGE_PREFIX}-glade"
+         "${MINGW_PACKAGE_PREFIX}-gspell"
+         "${MINGW_PACKAGE_PREFIX}-gtk3"
+         "${MINGW_PACKAGE_PREFIX}-gumbo-parser"
+         "${MINGW_PACKAGE_PREFIX}-vala")
+options=(!libtool strip staticlibs)
+
+pkgver() {
+  printf "r%s.%s" "$(hg identify -n)" "$(hg identify -i)"
+}
+
+build() {
+  meson \
+      --buildtype plain \
+      --prefix=/${MINGW_PACKAGE_PREFIX} \
+      --cross-file=${MINGW_PACKAGE_PREFIX}.txt \
+       -Ddoc=false \
+       -Dintrospection=false \
+       -Dvapi=false \
+       -Dhelp2man=false \
+       ..
+
+  ninja
+}
+
+package() {
+  DESTDIR="${pkgdir}" ninja install
+
+  install -Dm644 "../COPYING" "${pkgdir}${MINGW_PACKAGE_PREFIX}/share/licenses/${_realname}/COPYING"
+}
+
+

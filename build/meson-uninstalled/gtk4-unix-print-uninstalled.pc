@@ -1,0 +1,9 @@
+prefix=/home/isarodriguez/pidgin/build
+srcdir=/home/isarodriguez/pidgin
+libdir=${prefix}/lib/x86_64-linux-gnu
+includedir=${prefix}/include
+
+Name: GTK
+Description: GTK Unix print support
+Version: 4.5.0
+Requires: gtk4, gio-2.0 >=  2.64.0
