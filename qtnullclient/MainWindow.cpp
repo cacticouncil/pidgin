@@ -7,6 +7,8 @@
 //==============================================================================
 
 #include "MainWindow.h"
+#include "SlackWindow.h"
+
 #include "qtnullclient.h"
 
 #include <iostream>
@@ -22,6 +24,8 @@ MainWindow::MainWindow(QWidget *parent)
 {
     ui->setupUi(this);
     connectionStatusId = 0;
+
+    connect(ui->ProtocolListWidget, SIGNAL(currentItemChanged(QListWidgetItem*,QListWidgetItem*)), this, SLOT(currentItemChanged(QListWidgetItem*,QListWidgetItem*)));
 }
 
 
@@ -45,12 +49,33 @@ void MainWindow::setConnectionStatusId(int value)
     {
         connectionStatusId = value;
         connectionStatusIdChanged(value);
+        
+        SlackWindow *s = new SlackWindow;
+        s->show();
     }   
 }
 
 int MainWindow::getConnectionStatusId()
 {
     return connectionStatusId;
+}
+
+void MainWindow::currentItemChanged(QListWidgetItem *current, QListWidgetItem *previous)
+{
+    if (ui->ProtocolListWidget->currentRow() == 8)
+    {
+        ui->slackWSLineEdit->setVisible(true);
+        ui->slackWSLabel->setVisible(true);
+        ui->WSLabel->setVisible(true);
+        ui->userLabel->setText("E-Mail:");
+    }
+    else
+    {
+        ui->slackWSLineEdit->setVisible(false);
+        ui->slackWSLabel->setVisible(false);
+        ui->WSLabel->setVisible(false);
+        ui->userLabel->setText("Username:");
+    }
 }
 
 // Important functionality that is triggered upon user clicking "Connect"
@@ -61,19 +86,22 @@ void MainWindow::on_commandLinkButton_clicked()
     ui->label_5->setText("libpurple initialized.");
 
     // Collect plugin option number from listview
-    int purplePluginNum = static_cast<int>(ui->listWidget->currentRow());
+    int purplePluginNum = static_cast<int>(ui->ProtocolListWidget->currentRow());
     
     // Collect login credentials from lineEdit text boxes
-    QString q_username = ui->lineEdit->text();
-    QString q_password = ui->lineEdit_2->text();
+    QString q_username = ui->userLineEdit->text();
+    QString q_password = ui->passLineEdit->text();
+
+    if (purplePluginNum == 8)
+    {
+        q_username = ui->userLineEdit->text() + '%' + ui->slackWSLineEdit->text() + ".slack.com";
+    }
 
     std::string purpleUsername = q_username.toStdString();
     std::string purplePassword = q_password.toStdString();
 
     ui->label_5->setText("Attempting to connect ...");
-    
-    connectPurplePluginProtocol(purplePluginNum, purpleUsername,
-        purplePassword);
+    connectPurplePluginProtocol(purplePluginNum, purpleUsername, purplePassword);
 
     return;
 }

@@ -117,7 +117,8 @@ struct _PidginConversation
 	PurpleConversation *active_conv;
 	GList *convs;
 	GList *send_history;
-
+	int history_load;
+	
 	PidginWindow *win;
 
 	gboolean make_sound;

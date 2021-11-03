@@ -5909,7 +5909,7 @@ static void pidgin_blist_show(PurpleBuddyList *list)
 	gtk_label_set_markup(GTK_LABEL(label), pretty);
 	g_free(pretty);
 	gtk_notebook_append_page(GTK_NOTEBOOK(gtkblist->notebook),label, NULL);
-	gtkblist->vbox = gtk_vbox_new(FALSE, 0);
+	gtkblist->vbox = gtk_hbox_new(FALSE, 0);
 	gtk_notebook_append_page(GTK_NOTEBOOK(gtkblist->notebook), gtkblist->vbox, NULL);
 	gtk_widget_show_all(gtkblist->notebook);
 	pidgin_blist_select_notebook_page(gtkblist);
@@ -5956,6 +5956,21 @@ static void pidgin_blist_show(PurpleBuddyList *list)
 	g_signal_connect(G_OBJECT(ebox), "leave-notify-event", G_CALLBACK(headline_box_leave_cb), gtkblist);
 	g_signal_connect(G_OBJECT(ebox), "button-press-event", G_CALLBACK(headline_box_press_cb), gtkblist);
 
+	/****************************** Chat Box *************************************/
+	gtkblist->chat_notebook = gtk_vbox_new(FALSE, PIDGIN_HIG_BOX_SPACE);
+	gtk_notebook_set_show_tabs(GTK_NOTEBOOK(gtkblist->chat_notebook), FALSE);
+	gtk_notebook_set_show_border(GTK_NOTEBOOK(gtkblist->chat_notebook), FALSE);
+
+	GtkPositionType pos = purple_prefs_get_int(PIDGIN_PREFS_ROOT "/conversations/tab_side");
+	gtk_notebook_set_tab_pos(GTK_NOTEBOOK(gtkblist->chat_notebook), pos);
+	gtk_notebook_set_scrollable(GTK_NOTEBOOK(gtkblist->chat_notebook), TRUE);
+	gtk_notebook_popup_enable(GTK_NOTEBOOK(gtkblist->chat_notebook));
+	gtk_notebook_set_show_tabs(GTK_NOTEBOOK(gtkblist->chat_notebook), FALSE);
+	gtk_notebook_set_show_border(GTK_NOTEBOOK(gtkblist->chat_notebook), TRUE);
+
+	gtk_widget_show(gtkblist->chat_notebook);
+
+	gtk_box_pack_end(GTK_BOX(gtkblist->vbox), gtkblist->chat_notebook, TRUE, TRUE, 0);	
 	/****************************** GtkTreeView **********************************/
 	//creating tree model where # of model columns and types is stored
 	//model is where data to be displayed is stored

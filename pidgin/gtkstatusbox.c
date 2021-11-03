@@ -548,7 +548,7 @@ pidgin_status_box_set_property(GObject *object, guint param_id,
 						setup_icon_box(statusbox);
 				}
 			} else {
-				setup_icon_box(statusbox);
+				//setup_icon_box(statusbox);
 			}
 		} else {
 			destroy_icon_box(statusbox);

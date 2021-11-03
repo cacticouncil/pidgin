@@ -2942,21 +2942,57 @@ icon_menu(GtkObject *obj, GdkEventButton *e, PidginConversation *gtkconv)
 /**************************************************************************
  * End of the bunch of buddy icon functions
  **************************************************************************/
+ char*
+ itoa(int val, int base)
+ {
+	static char buf[32] = {0};
+	
+	int i = 30;
+	
+	for(; val && i ; --i, val /= base)
+	
+		buf[i] = "0123456789abcdef"[val % base];
+	
+	return &buf[i+1];
+	
+}
+
+void
+pidgin_conv_get_history(PurpleConversation *conv)
+{
+	PidginConversation *gtkconv;
+
+	gtkconv = PIDGIN_CONVERSATION(conv);
+	gtkconv->history_load = gtkconv->history_load + 25;
+
+	char *error, *prefix;
+	char cmd[50];
+	prefix = pidgin_get_cmd_prefix();
+	strcpy(cmd, "history ");
+	strcat(cmd, itoa(gtkconv->history_load, 10));
+
+	purple_cmd_do_command(conv, "clear", "clear", &error);
+	purple_cmd_do_command(conv, cmd, cmd, &error);
+}
+
 void
 pidgin_conv_present_conversation(PurpleConversation *conv)
 {
-	PidginConversation *gtkconv;
+	//Fetch and display recent messages
+	pidgin_conv_get_history(conv);
+
+	/*PidginConversation *gtkconv;
 	GdkModifierType state;
 
 	pidgin_conv_attach_to_conversation(conv);
 	gtkconv = PIDGIN_CONVERSATION(conv);
 
 	pidgin_conv_switch_active_conversation(conv);
-	/* Switch the tab only if the user initiated the event by pressing
-	 * a button or hitting a key. */
+	//Switch the tab only if the user initiated the event by pressing
+	//a button or hitting a key.
 	if (gtk_get_current_event_state(&state))
 		pidgin_conv_window_switch_gtkconv(gtkconv->win, gtkconv);
-	gtk_window_present(GTK_WINDOW(gtkconv->win->window));
+	gtk_window_present(GTK_WINDOW(gtkconv->win->window));*/
 }
 
 GList *
@@ -5317,6 +5353,7 @@ static void
 private_gtkconv_new(PurpleConversation *conv, gboolean hidden)
 {
 	PidginConversation *gtkconv;
+	PidginBuddyList *gtkblist = pidgin_blist_get_default_gtk_blist();
 	PurpleConversationType conv_type = purple_conversation_get_type(conv);
 	GtkWidget *pane = NULL;
 	GtkWidget *tab_cont;
@@ -5393,11 +5430,18 @@ private_gtkconv_new(PurpleConversation *conv, gboolean hidden)
 
 	g_signal_connect(gtkconv->imhtml, "style-set", G_CALLBACK(set_typing_font), gtkconv);
 
+	/* Remove previous pane */
+	GList *children, *iter;
+	children = gtk_container_get_children(GTK_CONTAINER(gtkblist->chat_notebook));
+	for(iter = children; iter != NULL; iter = g_list_next(iter))
+  		gtk_widget_destroy(GTK_WIDGET(iter->data));
+	g_list_free(children);
+
 	/* Setup the container for the tab. */
 	gtkconv->tab_cont = tab_cont = gtk_vbox_new(FALSE, PIDGIN_HIG_BOX_SPACE);
 	g_object_set_data(G_OBJECT(tab_cont), "PidginConversation", gtkconv);
-	gtk_container_set_border_width(GTK_CONTAINER(tab_cont), PIDGIN_HIG_BOX_SPACE);
-	gtk_container_add(GTK_CONTAINER(tab_cont), pane);
+	gtk_container_set_border_width(gtkblist->chat_notebook, PIDGIN_HIG_BOX_SPACE);
+	gtk_container_add(gtkblist->chat_notebook, pane);
 	gtk_widget_show(pane);
 
 	convnode = get_conversation_blist_node(conv);
@@ -6194,6 +6238,8 @@ pidgin_conv_chat_add_users(PurpleConversation *conv, GList *cbuddies, gboolean n
 	 */
 	gtk_tree_sortable_set_sort_column_id(GTK_TREE_SORTABLE(ls),  CHAT_USERS_ALIAS_KEY_COLUMN,
 										 GTK_SORT_ASCENDING);
+
+	pidgin_conv_get_history(conv);
 }
 
 static void
@@ -9494,6 +9540,10 @@ pidgin_conv_window_add_gtkconv(PidginWindow *win, PidginConversation *gtkconv)
 
 	conv_type = purple_conversation_get_type(conv);
 
+	//Close previous conversation
+	if(g_list_last(win->gtkconvs))
+		close_conv_cb(NULL, g_list_last(win->gtkconvs)->data);
+
 	win->gtkconvs = g_list_append(win->gtkconvs, gtkconv);
 	gtkconv->win = win;
 
@@ -9679,8 +9729,8 @@ pidgin_conv_window_remove_gtkconv(PidginWindow *win, PidginConversation *gtkconv
 	if (win->gtkconvs && win->gtkconvs->next == NULL)
 		pidgin_conv_tab_pack(win, win->gtkconvs->data);
 
-	if (!win->gtkconvs && win != hidden_convwin)
-		pidgin_conv_window_destroy(win);
+	//if (!win->gtkconvs && win != hidden_convwin)
+	//	pidgin_conv_window_destroy(win);
 }
 
 PidginConversation *
@@ -9857,7 +9907,7 @@ conv_placement_last_created_win(PidginConversation *conv)
 				G_CALLBACK(gtk_conv_configure_cb), NULL);
 
 		pidgin_conv_window_add_gtkconv(win, conv);
-		pidgin_conv_window_show(win);
+		//pidgin_conv_window_show(win);
 	} else {
 		pidgin_conv_window_add_gtkconv(win, conv);
 	}
