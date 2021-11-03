@@ -4838,7 +4838,7 @@ void pidgin_blist_setup_sort_methods()
 	const char *id;
 
 	pidgin_blist_sort_method_reg("none", _("Manually"), sort_method_none);
-	pidgin_blist_sort_method_reg("node_type", _("By node type"), sort_method_node_type);
+	pidgin_blist_sort_method_reg("node_type", _("By Channels & Direct Messages"), sort_method_node_type);
 	pidgin_blist_sort_method_reg("alphabetical", _("Alphabetically"), sort_method_alphabetical);
 	pidgin_blist_sort_method_reg("status", _("By status"), sort_method_status);
 	pidgin_blist_sort_method_reg("log_size", _("By recent log activity"), sort_method_log_activity);
@@ -5725,13 +5725,13 @@ pidgin_blist_build_layout(PurpleBuddyList *list)
 
 	}/* end for loop */
 
-	GtkTreeIter first_row_iter;
-	gtk_tree_model_get_iter_from_string(gtkblist->treemodel, &first_row_iter, "0");
-	gboolean isvalid = gtk_tree_store_iter_is_valid(gtkblist->treemodel, &first_row_iter);
-	printf("is iter valid (build layout func)? %d \n", isvalid);
+	// GtkTreeIter first_row_iter;
+	// gtk_tree_model_get_iter_from_string(gtkblist->treemodel, &first_row_iter, "0");
+	// gboolean isvalid = gtk_tree_store_iter_is_valid(gtkblist->treemodel, &first_row_iter);
+	// printf("is iter valid (build layout func)? %d \n", isvalid);
 
-	gint number_of_children1 = gtk_tree_model_iter_n_children(gtkblist->treemodel,  &first_row_iter);
-	printf(" (build layout func) the # of children first_row_iter has is : %d \n", number_of_children1);
+	// gint number_of_children1 = gtk_tree_model_iter_n_children(gtkblist->treemodel,  &first_row_iter);
+	// printf(" (build layout func) the # of children first_row_iter has is : %d \n", number_of_children1);
 
 
 	// GtkTreeIter* first_row_iter;
@@ -6194,40 +6194,40 @@ static void pidgin_blist_show(PurpleBuddyList *list)
 
 	printf("Isa code");
 
-	// GtkTreeIter first_row_iter;
-	// GtkTreeIter iter;
-	// GtkTreeViewColumn *col;
-	// GtkCellRenderer *rend;
-	// col = gtkblist->text_column;
-	// gtk_tree_model_get_iter_from_string(gtkblist->treemodel, &first_row_iter, "0");
-	// gboolean isvalid = gtk_tree_store_iter_is_valid(gtkblist->treemodel, &first_row_iter);
-	// printf("is iter valid? %d \n", isvalid);
+	GtkTreeIter first_row_iter;
+	GtkTreeIter iter;
+	GtkTreeViewColumn *col;
+	GtkCellRenderer *rend;
+	col = gtkblist->text_column;
+	gtk_tree_model_get_iter_from_string(gtkblist->treemodel, &first_row_iter, "0");
+	gboolean isvalid = gtk_tree_store_iter_is_valid(gtkblist->treemodel, &first_row_iter);
+	printf("is iter valid? %d \n", isvalid);
 
-	// gint number_of_children1 = gtk_tree_model_iter_n_children(gtkblist->treemodel,  &first_row_iter);
-	// printf("the # of children first_row_iter has is : %d \n", number_of_children1);
+	gint number_of_children1 = gtk_tree_model_iter_n_children(gtkblist->treemodel,  &first_row_iter);
+	printf("the # of children first_row_iter has is : %d \n", number_of_children1);
 
-	// gtk_tree_store_append(gtkblist->treemodel, &iter, &first_row_iter);
-	// gtk_tree_store_set(gtkblist->treemodel, &iter, CHANNEL_COLUMN, "Channels", -1);
-	// rend = gtk_cell_renderer_text_new();
-	// //g_object_set(rend, "text", "holiii", NULL);
-	// //   g_object_set(rend,
-    // //            "cell-background", "Orange",
-    // //            "cell-background-set", TRUE,
-    // //            NULL);
+	gtk_tree_store_append(gtkblist->treemodel, &iter, &first_row_iter);
+	gtk_tree_store_set(gtkblist->treemodel, &iter, CHANNEL_COLUMN, "Channels", -1);
+	rend = gtk_cell_renderer_text_new();
+	//g_object_set(rend, "text", "holiii", NULL);
+	//   g_object_set(rend,
+    //            "cell-background", "Orange",
+    //            "cell-background-set", TRUE,
+    //            NULL);
 	
-	// gtk_tree_view_column_pack_start(col, rend, FALSE);
-	// gtk_tree_view_column_add_attribute(col, rend, "text", CHANNEL_COLUMN);
-	// //g_object_set(rend, "ypad", 0, "yalign", 0.5, NULL);
-	// //g_object_set(rend, "ellipsize", PANGO_ELLIPSIZE_END, NULL);
-	// // g_object_set(rend, "text", "holiii", NULL);
-	// //   g_object_set(gtkblist->text_rend,
-    // //            "cell-background", "Orange",
-    // //            "cell-background-set", TRUE,
-    // //            NULL);
+	gtk_tree_view_column_pack_start(col, rend, FALSE);
+	gtk_tree_view_column_add_attribute(col, rend, "text", CHANNEL_COLUMN);
+	//g_object_set(rend, "ypad", 0, "yalign", 0.5, NULL);
+	//g_object_set(rend, "ellipsize", PANGO_ELLIPSIZE_END, NULL);
+	// g_object_set(rend, "text", "holiii", NULL);
+	//   g_object_set(gtkblist->text_rend,
+    //            "cell-background", "Orange",
+    //            "cell-background-set", TRUE,
+    //            NULL);
 
-	// //checking how mnay children iter has which is the iterator pointing to the "Channels" row
-	// gint number_of_children = gtk_tree_model_iter_n_children(gtkblist->treemodel,  &iter);
-	// printf("the # of children iter has is : %d \n", number_of_children);
+	//checking how mnay children iter has which is the iterator pointing to the "Channels" row
+	gint number_of_children = gtk_tree_model_iter_n_children(gtkblist->treemodel,  &iter);
+	printf("the # of children iter has is : %d \n", number_of_children);
 }
 
 static void  redo_buddy_list(PurpleBuddyList *list, gboolean remove, gboolean rerender)
