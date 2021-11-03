@@ -137,7 +137,7 @@ static gboolean editing_blist = FALSE;
 static GList *pidgin_blist_sort_methods = NULL;
 static struct pidgin_blist_sort_method *current_sort_method = NULL;
 static void sort_method_none(PurpleBlistNode *node, PurpleBuddyList *blist, GtkTreeIter groupiter, GtkTreeIter *cur, GtkTreeIter *iter);
-
+static void sort_method_node_type(PurpleBlistNode *node, PurpleBuddyList *blist, GtkTreeIter groupiter, GtkTreeIter *cur, GtkTreeIter *iter);
 static void sort_method_alphabetical(PurpleBlistNode *node, PurpleBuddyList *blist, GtkTreeIter groupiter, GtkTreeIter *cur, GtkTreeIter *iter);
 static void sort_method_status(PurpleBlistNode *node, PurpleBuddyList *blist, GtkTreeIter groupiter, GtkTreeIter *cur, GtkTreeIter *iter);
 static void sort_method_log_activity(PurpleBlistNode *node, PurpleBuddyList *blist, GtkTreeIter groupiter, GtkTreeIter *cur, GtkTreeIter *iter);
@@ -4838,6 +4838,7 @@ void pidgin_blist_setup_sort_methods()
 	const char *id;
 
 	pidgin_blist_sort_method_reg("none", _("Manually"), sort_method_none);
+	pidgin_blist_sort_method_reg("node_type", _("By node type"), sort_method_node_type);
 	pidgin_blist_sort_method_reg("alphabetical", _("Alphabetically"), sort_method_alphabetical);
 	pidgin_blist_sort_method_reg("status", _("By status"), sort_method_status);
 	pidgin_blist_sort_method_reg("log_size", _("By recent log activity"), sort_method_log_activity);
@@ -6993,28 +6994,28 @@ static void pidgin_blist_update(PurpleBuddyList *list, PurpleBlistNode *node)
 			return;
 	}
 
-	GtkTreeIter first_row_iter;
-	GtkTreeIter iter;
-	GtkTreeViewColumn *col;
-	GtkCellRenderer *rend;
-	col = gtkblist->text_column;
-	gtk_tree_model_get_iter_from_string(gtkblist->treemodel, &first_row_iter, "0");
-	gboolean isvalid = gtk_tree_store_iter_is_valid(gtkblist->treemodel, &first_row_iter);
-	printf("is iter valid? %d \n", isvalid);
+	// GtkTreeIter first_row_iter;
+	// GtkTreeIter iter;
+	// GtkTreeViewColumn *col;
+	// GtkCellRenderer *rend;
+	// col = gtkblist->text_column;
+	// gtk_tree_model_get_iter_from_string(gtkblist->treemodel, &first_row_iter, "0");
+	// gboolean isvalid = gtk_tree_store_iter_is_valid(gtkblist->treemodel, &first_row_iter);
+	// printf("is iter valid? %d \n", isvalid);
 
-	gint number_of_children1 = gtk_tree_model_iter_n_children(gtkblist->treemodel,  &first_row_iter);
-	printf("the # of children first_row_iter has is : %d \n", number_of_children1);
+	// gint number_of_children1 = gtk_tree_model_iter_n_children(gtkblist->treemodel,  &first_row_iter);
+	// printf("the # of children first_row_iter has is : %d \n", number_of_children1);
 
-	gtk_tree_store_append(gtkblist->treemodel, &iter, &first_row_iter);
-	gtk_tree_store_set(gtkblist->treemodel, &iter, CHANNEL_COLUMN, "Channels", -1);
-	rend = gtk_cell_renderer_text_new();
+	// gtk_tree_store_append(gtkblist->treemodel, &iter, &first_row_iter);
+	// gtk_tree_store_set(gtkblist->treemodel, &iter, CHANNEL_COLUMN, "Channels", -1);
+	// rend = gtk_cell_renderer_text_new();
 	
-	gtk_tree_view_column_pack_start(col, rend, FALSE);
-	gtk_tree_view_column_add_attribute(col, rend, "text", CHANNEL_COLUMN);
+	// gtk_tree_view_column_pack_start(col, rend, FALSE);
+	// gtk_tree_view_column_add_attribute(col, rend, "text", CHANNEL_COLUMN);
 
-	// //checking how mnay children iter has which is the iterator pointing to the "Channels" row
-	gint number_of_children = gtk_tree_model_iter_n_children(gtkblist->treemodel,  &iter);
-	printf("the # of children iter has is : %d \n", number_of_children);
+	// // //checking how mnay children iter has which is the iterator pointing to the "Channels" row
+	// gint number_of_children = gtk_tree_model_iter_n_children(gtkblist->treemodel,  &iter);
+	// printf("the # of children iter has is : %d \n", number_of_children);
 
 
 }
@@ -7710,7 +7711,7 @@ void pidgin_blist_init(void)
 	purple_prefs_add_bool(PIDGIN_PREFS_ROOT "/blist/show_protocol_icons", FALSE);
 	purple_prefs_add_bool(PIDGIN_PREFS_ROOT "/blist/list_visible", FALSE);
 	purple_prefs_add_bool(PIDGIN_PREFS_ROOT "/blist/list_maximized", FALSE);
-	purple_prefs_add_string(PIDGIN_PREFS_ROOT "/blist/sort_type", "alphabetical");
+	purple_prefs_add_string(PIDGIN_PREFS_ROOT "/blist/sort_type", "node_type");
 	purple_prefs_add_int(PIDGIN_PREFS_ROOT "/blist/x", 0);
 	purple_prefs_add_int(PIDGIN_PREFS_ROOT "/blist/y", 0);
 	purple_prefs_add_int(PIDGIN_PREFS_ROOT "/blist/width", 250); /* Golden ratio, baby */
@@ -7863,32 +7864,24 @@ static void sort_method_none(PurpleBlistNode *node, PurpleBuddyList *blist, GtkT
 			sibling ? &sibling_iter : NULL);
 }
 
+int channel_dm_compare(PurpleBlistNodeType type1, PurpleBlistNodeType type2) {
+	//if type1 is channel and type2 is dm
+	if (type1 == PURPLE_BLIST_CHAT_NODE && type2 == PURPLE_BLIST_CONTACT_NODE) {
+		return -1;
+	}
+	else if (type1 == PURPLE_BLIST_CONTACT_NODE && type2 == PURPLE_BLIST_CHAT_NODE) {
+		return 1;
+	}
+	else if (type1 == type2) {
+		return 0;
+	}
+
+	return -2;
+}
+
 static void sort_method_alphabetical(PurpleBlistNode *node, PurpleBuddyList *blist, GtkTreeIter groupiter, GtkTreeIter *cur, GtkTreeIter *iter)
 {
 	printf("You are in sort_method_alphabeticaL() \n");
-	// GtkTreeIter first_row_iter;
-	// GtkTreeIter iterat;
-	// GtkTreeViewColumn *col;
-	// GtkCellRenderer *rend;
-	// col = gtkblist->text_column;
-	// gtk_tree_model_get_iter_from_string(gtkblist->treemodel, &first_row_iter, "0");
-	// gboolean isvalid = gtk_tree_store_iter_is_valid(gtkblist->treemodel, &first_row_iter);
-	// printf("is iter valid? %d \n", isvalid);
-
-	// gint number_of_children1 = gtk_tree_model_iter_n_children(gtkblist->treemodel,  &first_row_iter);
-	// printf("the # of children first_row_iter has is : %d \n", number_of_children1);
-
-	// gtk_tree_store_append(gtkblist->treemodel, &iterat, &first_row_iter);
-	// gtk_tree_store_set(gtkblist->treemodel, &iterat, CHANNEL_COLUMN, "Channels", -1);
-	// rend = gtk_cell_renderer_text_new();
-	
-	// gtk_tree_view_column_pack_start(col, rend, FALSE);
-	// gtk_tree_view_column_add_attribute(col, rend, "text", CHANNEL_COLUMN);
-
-	
-	// //checking how mnay children iter has which is the iterator pointing to the "Channels" row
-	// gint number_of_children = gtk_tree_model_iter_n_children(gtkblist->treemodel,  &iterat);
-	// printf("the # of children iterat has in alpha is : %d \n", number_of_children);
 
 	GtkTreeIter more_z;
 
@@ -7903,6 +7896,7 @@ static void sort_method_alphabetical(PurpleBlistNode *node, PurpleBuddyList *bli
 		return;
 	}
 
+	//if no children, enter if statement, but if there are children, set more_z to point to first child of groupiter
 	if (!gtk_tree_model_iter_children(GTK_TREE_MODEL(gtkblist->treemodel), &more_z, &groupiter)) {
 		gtk_tree_store_insert(gtkblist->treemodel, iter, &groupiter, 0);
 		return;
@@ -7913,19 +7907,103 @@ static void sort_method_alphabetical(PurpleBlistNode *node, PurpleBuddyList *bli
 		const char *this_name;
 		int cmp;
 
+		//get node info from more_z and store it in n 
 		gtk_tree_model_get(GTK_TREE_MODEL(gtkblist->treemodel), &more_z, NODE_COLUMN, &n, -1);
 
+		//is first child a contact/dm, 
 		if(PURPLE_BLIST_NODE_IS_CONTACT(n)) {
 			this_name = purple_contact_get_alias((PurpleContact*)n);
-		} else if(PURPLE_BLIST_NODE_IS_CHAT(n)) {
+		} else if(PURPLE_BLIST_NODE_IS_CHAT(n)) { //is first child a chat/channel
 			this_name = purple_chat_get_name((PurpleChat*)n);
 		} else {
 			this_name = NULL;
 		}
 
+		//comparing name of node you are looking to move with name of first child on list
 		cmp = purple_utf8_strcasecmp(my_name, this_name);
 
-		if(this_name && (cmp < 0 || (cmp == 0 && node < n))) {
+// first child name exists and (current node name comes before first child name or (both names are the same and current node is less than first child))
+		if(this_name && (cmp < 0 || (cmp == 0 && node < n))) { //does the current node go before first child?
+			if(cur) {
+				gtk_tree_store_move_before(gtkblist->treemodel, cur, &more_z);
+				*iter = *cur;
+				return;
+			} else {
+				gtk_tree_store_insert_before(gtkblist->treemodel, iter,
+						&groupiter, &more_z);
+				return;
+			}
+		}
+	} while (gtk_tree_model_iter_next (GTK_TREE_MODEL(gtkblist->treemodel), &more_z));
+
+	if(cur) {
+		gtk_tree_store_move_before(gtkblist->treemodel, cur, NULL);
+		*iter = *cur;
+		return;
+	} else {
+		gtk_tree_store_append(gtkblist->treemodel, iter, &groupiter);
+		return;
+	}
+
+}
+
+static void sort_method_node_type(PurpleBlistNode *node, PurpleBuddyList *blist, GtkTreeIter groupiter, GtkTreeIter *cur, GtkTreeIter *iter)
+{
+	printf("You are in sort_method_node_type() \n");
+
+	GtkTreeIter more_z;
+
+	PurpleBlistNode *my_buddy, *this_buddy;
+	PurpleBlistNodeType my_type;
+
+	if(PURPLE_BLIST_NODE_IS_CONTACT(node)) {
+		my_type = PURPLE_BLIST_CONTACT_NODE;
+		my_buddy = node;
+	} else if(PURPLE_BLIST_NODE_IS_CHAT(node)) {
+		my_type = PURPLE_BLIST_CHAT_NODE;
+		my_buddy = node;
+	} else {
+		sort_method_none(node, blist, groupiter, cur, iter);
+		return;
+	}
+
+	//if no children, enter if statement, but if there are children, set more_z to point to first child of groupiter
+	if (!gtk_tree_model_iter_children(GTK_TREE_MODEL(gtkblist->treemodel), &more_z, &groupiter)) {
+		gtk_tree_store_insert(gtkblist->treemodel, iter, &groupiter, 0);
+		return;
+	}
+
+	do {
+		PurpleBlistNode *n;
+		PurpleBlistNodeType this_type;
+		int cmp;
+		int name_cmp;
+
+		//get node info from more_z and store it in n 
+		gtk_tree_model_get(GTK_TREE_MODEL(gtkblist->treemodel), &more_z, NODE_COLUMN, &n, -1);
+
+		//is first child a contact/dm, 
+		if(PURPLE_BLIST_NODE_IS_CONTACT(n)) {
+			this_type = PURPLE_BLIST_CONTACT_NODE;
+			this_buddy = n;
+		} else if(PURPLE_BLIST_NODE_IS_CHAT(n)) { //is first child a chat/channel
+			this_type = PURPLE_BLIST_CHAT_NODE;
+			this_buddy = n;
+		} else {
+			this_type = PURPLE_BLIST_OTHER_NODE;
+		}
+
+		name_cmp = purple_utf8_strcasecmp(
+			purple_contact_get_alias(purple_buddy_get_contact(my_buddy)),
+			(this_buddy
+			 ? purple_contact_get_alias(purple_buddy_get_contact(this_buddy))
+			 : NULL));
+
+		//comparing type of node you are looking to move with type of first child on list
+		cmp = channel_dm_compare(my_type, this_type);
+
+// first child type exists and (current node type comes before first child type or (both types are the same and current node is less than first child))
+		if((this_type != PURPLE_BLIST_OTHER_NODE) && (cmp < 0 || (cmp == 0 && node < n))) { //does the current node go before first child?
 			if(cur) {
 				gtk_tree_store_move_before(gtkblist->treemodel, cur, &more_z);
 				*iter = *cur;
@@ -7970,7 +8048,7 @@ static void sort_method_status(PurpleBlistNode *node, PurpleBuddyList *blist, Gt
 		return;
 	}
 
-
+	//if no children
 	if (!gtk_tree_model_iter_children(GTK_TREE_MODEL(gtkblist->treemodel), &more_z, &groupiter)) {
 		gtk_tree_store_insert(gtkblist->treemodel, iter, &groupiter, 0);
 		return;
