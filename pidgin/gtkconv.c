@@ -68,6 +68,7 @@
 #include "gtkutils.h"
 #include "pidginstock.h"
 #include "pidgintooltip.h"
+#include "gtkcellrendererexpander.h"
 
 #include "gtknickcolors.h"
 
@@ -4948,6 +4949,45 @@ pidgin_conv_setup_quickfind(PidginConversation *gtkconv, GtkWidget *container)
 }
 
 /* }}} */
+enum {
+  LIST_ITEM = 0,
+  N_COLUMNS
+};
+
+void 
+init_list(GtkWidget *list) {
+
+  	GtkCellRendererText *renderer;
+  	GtkTreeViewColumn *column;
+  	GtkListStore *store;
+
+  	renderer = gtk_cell_renderer_text_new();
+  	column = gtk_tree_view_column_new_with_attributes("List Items",
+          	renderer, 
+			"text", LIST_ITEM, 
+			NULL);
+	g_object_set(renderer, "wrap_width", 600, NULL);
+  	gtk_tree_view_append_column(GTK_TREE_VIEW(list), column);
+
+  	store = gtk_list_store_new(N_COLUMNS, G_TYPE_STRING);
+
+  	gtk_tree_view_set_model(GTK_TREE_VIEW(list), 
+      	GTK_TREE_MODEL(store));
+
+  	g_object_unref(store);
+}
+
+void add_to_list(GtkWidget *list, const gchar *str) {
+    
+  	GtkListStore *store;
+  	GtkTreeIter iter;
+
+  	store = GTK_LIST_STORE(gtk_tree_view_get_model
+      	(GTK_TREE_VIEW(list)));
+
+  	gtk_list_store_append(store, &iter);
+  	gtk_list_store_set(store, &iter, LIST_ITEM, str, -1);
+}
 
 static GtkWidget *
 setup_common_pane(PidginConversation *gtkconv)
@@ -5051,6 +5091,67 @@ setup_common_pane(PidginConversation *gtkconv)
 	/* Setup the gtkimhtml widget */
 	frame = pidgin_create_imhtml(FALSE, &gtkconv->imhtml, NULL, &imhtml_sw);
 	gtk_widget_set_size_request(gtkconv->imhtml, -1, 0);
+	
+	/* Setup the TreeView widget */
+	GtkWidget *view = gtk_tree_view_new();
+	init_list(view);
+	//gtk_tree_view_set_headers_visible(GTK_TREE_VIEW(view), FALSE);
+	gtkconv->conv_list = view;
+
+/*	GtkWidget *treeview = gtk_tree_view_new_with_model(GTK_TREE_MODEL(treemodel));
+	gtk_tree_view_set_headers_visible(GTK_TREE_VIEW(treeview), FALSE);
+	gtk_widget_set_size_request(treeview, -1, 0);
+	gtk_tree_view_columns_autosize(GTK_TREE_VIEW(treeview));
+
+ 	GtkTreeViewColumn *column = gtk_tree_view_column_new();
+	gtk_tree_view_append_column(GTK_TREE_VIEW(treeview), column);
+	gtk_tree_view_column_set_visible(column, FALSE);
+	gtk_tree_view_set_expander_column(GTK_TREE_VIEW(treeview), column);
+
+	GtkTreeViewColumn *text_column = gtk_tree_view_column_new();
+	gtk_tree_view_append_column(GTK_TREE_VIEW(treeview), text_column);
+	gtk_tree_view_column_clear(text_column);
+
+	//group
+	rend = pidgin_cell_renderer_expander_new();
+	gtk_tree_view_column_pack_start(text_column, rend, FALSE);
+	gtk_tree_view_column_set_attributes(text_column, rend,
+					    "visible", GROUP_EXPANDER_VISIBLE_COLUMN,
+					    "expander-visible", GROUP_EXPANDER_COLUMN,
+					    "sensitive", GROUP_EXPANDER_COLUMN,
+					    "cell-background-gdk", BGCOLOR_COLUMN,
+					    NULL);
+
+	//contact
+	rend = pidgin_cell_renderer_expander_new();
+	gtk_tree_view_column_pack_start(text_column, rend, FALSE);
+	gtk_tree_view_column_set_attributes(text_column, rend,
+					    "visible", CONTACT_EXPANDER_VISIBLE_COLUMN,
+					    "expander-visible", CONTACT_EXPANDER_COLUMN,
+					    "sensitive", CONTACT_EXPANDER_COLUMN,
+					    "cell-background-gdk", BGCOLOR_COLUMN,
+					    NULL);
+
+	//profile picture
+	rend = gtk_cell_renderer_pixbuf_new();
+	gtk_tree_view_column_pack_start(column, rend, FALSE);
+	gtk_tree_view_column_set_attributes(column, rend,
+						"pixbuf", STATUS_ICON_COLUMN,
+						"visible", STATUS_ICON_VISIBLE_COLUMN,
+						"cell-background-gdk", BGCOLOR_COLUMN,
+						NULL);
+	g_object_set(rend, "xalign", 0.0, "xpad", 6, "ypad", 0, NULL);
+
+	//text
+	rend = gtk_cell_renderer_text_new();
+	gtk_tree_view_column_pack_start(column, rend, TRUE);
+	gtk_tree_view_column_set_attributes(column, rend,
+						"cell-background-gdk", BGCOLOR_COLUMN,
+						"markup", NAME_COLUMN,
+						NULL);
+	g_object_set(rend, "ypad", 0, "yalign", 0.5, NULL);
+	g_object_set(rend, "ellipsize", PANGO_ELLIPSIZE_END, NULL); */
+
 	if (chat) {
 		GtkWidget *hpaned;
 
@@ -5061,14 +5162,21 @@ setup_common_pane(PidginConversation *gtkconv)
 		hpaned = gtk_hpaned_new();
 		gtk_box_pack_start(GTK_BOX(vbox), hpaned, TRUE, TRUE, 0);
 		gtk_widget_show(hpaned);
-		gtk_paned_pack1(GTK_PANED(hpaned), frame, TRUE, TRUE);
+		//gtk_paned_pack1(GTK_PANED(hpaned), frame, TRUE, TRUE);
+		gtk_paned_pack1(GTK_PANED(hpaned),
+			pidgin_make_scrollable(view, GTK_POLICY_AUTOMATIC, GTK_POLICY_AUTOMATIC, GTK_SHADOW_NONE, -1, -1),
+			TRUE, TRUE);
 
 		/* Now add the userlist */
 		setup_chat_userlist(gtkconv, hpaned);
 	} else {
-	 	gtk_box_pack_start(GTK_BOX(vbox), frame, TRUE, TRUE, 0);
-    }
+		//gtk_box_pack_start(GTK_BOX(vbox), frame, TRUE, TRUE, 0);
+		gtk_box_pack_start(GTK_BOX(vbox),
+			pidgin_make_scrollable(view, GTK_POLICY_AUTOMATIC, GTK_POLICY_AUTOMATIC, GTK_SHADOW_NONE, -1, -1),
+			TRUE, TRUE, 0);
+	}
 	gtk_widget_show(frame);
+	gtk_widget_show(view);
 
 	gtk_widget_set_name(gtkconv->imhtml, "pidgin_conv_imhtml");
 	gtk_imhtml_show_comments(GTK_IMHTML(gtkconv->imhtml),TRUE);
@@ -6098,6 +6206,7 @@ pidgin_conv_write_conv(PurpleConversation *conv, const char *name, const char *a
 		else
 			tag = get_buddy_tag(conv, name, flags, TRUE);
 
+		//DISPLAY TIMESTAMP
 		if (GTK_IMHTML(gtkconv->imhtml)->show_comments) {
 			/* The color for the timestamp has to be set in the font-tags, unfortunately.
 			 * Applying the nick-tag to timestamps would work, but that can make it
@@ -6107,14 +6216,16 @@ pidgin_conv_write_conv(PurpleConversation *conv, const char *name, const char *a
 			const char *color = get_text_tag_color(tag);
 			g_snprintf(buf2, BUF_LONG, "<FONT %s%s%s SIZE=\"2\"><!--%s --></FONT>",
 					color ? "COLOR=\"" : "", color ? color : "", color ? "\"" : "", mdate);
-			gtk_imhtml_append_text(GTK_IMHTML(gtkconv->imhtml), buf2, gtk_font_options_all | GTK_IMHTML_NO_SCROLL);
+			//gtk_imhtml_append_text(GTK_IMHTML(gtkconv->imhtml), buf2, gtk_font_options_all | GTK_IMHTML_NO_SCROLL);
 		}
 
 		gtk_text_buffer_get_end_iter(buffer, &end);
 		mark = gtk_text_buffer_create_mark(buffer, NULL, &end, TRUE);
 
-		g_snprintf(buf2, BUF_LONG, "<FONT %s>%s</FONT> ", sml_attrib ? sml_attrib : "", str);
-		gtk_imhtml_append_text(GTK_IMHTML(gtkconv->imhtml), buf2, gtk_font_options_all | GTK_IMHTML_NO_SCROLL);
+		//DISPLAY NAME
+		//g_snprintf(buf2, BUF_LONG, "<FONT %s>%s</FONT> ", sml_attrib ? sml_attrib : "", str);
+		//gtk_imhtml_append_text(GTK_IMHTML(gtkconv->imhtml), buf2, gtk_font_options_all | GTK_IMHTML_NO_SCROLL);
+		add_to_list(gtkconv->conv_list, buf2);
 
 		gtk_text_buffer_get_end_iter(buffer, &end);
 		gtk_text_buffer_get_iter_at_mark(buffer, &start, mark);
@@ -6140,8 +6251,10 @@ pidgin_conv_write_conv(PurpleConversation *conv, const char *name, const char *a
 		} else
 			with_font_tag = g_memdup(new_message, length);
 
-		gtk_imhtml_append_text(GTK_IMHTML(gtkconv->imhtml),
-							 with_font_tag, gtk_font_options | gtk_font_options_all);
+		//DISPLAY MESSAGE
+		//gtk_imhtml_append_text(GTK_IMHTML(gtkconv->imhtml),
+		//					 with_font_tag, gtk_font_options | gtk_font_options_all);
+		//add_to_list(gtkconv->conv_list, with_font_tag);
 
 		g_free(with_font_tag);
 		g_free(new_message);
