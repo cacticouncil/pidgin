@@ -119,6 +119,7 @@ struct _PidginConversation
 	GList *send_history;
 	int history_load;
 	
+	GtkWidget *conv_list;
 	PidginWindow *win;
 
 	gboolean make_sound;
