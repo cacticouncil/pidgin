@@ -37,11 +37,7 @@ MOVE          = mv -f
 TAR           = tar -cf
 COMPRESS      = gzip -9f
 DISTNAME      = qtnullclient1.0.0
-<<<<<<< HEAD
 DISTDIR = /home/isarodriguez/pidgin/qtnullclient/.tmp/qtnullclient1.0.0
-=======
-DISTDIR = /home/capulongc/pidgin/qtnullclient/.tmp/qtnullclient1.0.0
->>>>>>> 8bedd39641cea58ef3c635b013d4c328bcc30b5d
 LINK          = g++
 LFLAGS        = -Wl,-O1
 LIBS          = $(SUBLIBS) -L../libpurple -lpurple /lib/x86_64-linux-gnu/libglib-2.0.so /usr/lib/x86_64-linux-gnu/libQt5Widgets.so /usr/lib/x86_64-linux-gnu/libQt5Gui.so /usr/lib/x86_64-linux-gnu/libQt5Core.so /usr/lib/x86_64-linux-gnu/libGL.so -lpthread   
@@ -58,15 +54,6 @@ OBJECTS_DIR   = ./
 
 SOURCES       = main.cpp \
 		MainWindow.cpp \
-<<<<<<< HEAD
-		qtnullclient.cpp \
-		qtlibpurple.cpp moc_MainWindow.cpp
-OBJECTS       = main.o \
-		MainWindow.o \
-		qtnullclient.o \
-		qtlibpurple.o \
-		moc_MainWindow.o
-=======
 		SlackWindow.cpp \
 		qtnullclient.cpp \
 		qtlibpurple.cpp moc_MainWindow.cpp \
@@ -78,7 +65,6 @@ OBJECTS       = main.o \
 		qtlibpurple.o \
 		moc_MainWindow.o \
 		moc_SlackWindow.o
->>>>>>> 8bedd39641cea58ef3c635b013d4c328bcc30b5d
 DIST          = /usr/lib/x86_64-linux-gnu/qt5/mkspecs/features/spec_pre.prf \
 		/usr/lib/x86_64-linux-gnu/qt5/mkspecs/common/unix.conf \
 		/usr/lib/x86_64-linux-gnu/qt5/mkspecs/common/linux.conf \
@@ -88,13 +74,6 @@ DIST          = /usr/lib/x86_64-linux-gnu/qt5/mkspecs/features/spec_pre.prf \
 		/usr/lib/x86_64-linux-gnu/qt5/mkspecs/common/g++-base.conf \
 		/usr/lib/x86_64-linux-gnu/qt5/mkspecs/common/g++-unix.conf \
 		/usr/lib/x86_64-linux-gnu/qt5/mkspecs/qconfig.pri \
-<<<<<<< HEAD
-		/usr/lib/x86_64-linux-gnu/qt5/mkspecs/modules/qt_KConfigCore.pri \
-		/usr/lib/x86_64-linux-gnu/qt5/mkspecs/modules/qt_KConfigGui.pri \
-		/usr/lib/x86_64-linux-gnu/qt5/mkspecs/modules/qt_KWallet.pri \
-		/usr/lib/x86_64-linux-gnu/qt5/mkspecs/modules/qt_KWindowSystem.pri \
-=======
->>>>>>> 8bedd39641cea58ef3c635b013d4c328bcc30b5d
 		/usr/lib/x86_64-linux-gnu/qt5/mkspecs/modules/qt_lib_accessibility_support_private.pri \
 		/usr/lib/x86_64-linux-gnu/qt5/mkspecs/modules/qt_lib_bootstrap_private.pri \
 		/usr/lib/x86_64-linux-gnu/qt5/mkspecs/modules/qt_lib_concurrent.pri \
@@ -142,10 +121,7 @@ DIST          = /usr/lib/x86_64-linux-gnu/qt5/mkspecs/features/spec_pre.prf \
 		/usr/lib/x86_64-linux-gnu/qt5/mkspecs/features/qt_config.prf \
 		/usr/lib/x86_64-linux-gnu/qt5/mkspecs/linux-g++/qmake.conf \
 		/usr/lib/x86_64-linux-gnu/qt5/mkspecs/features/spec_post.prf \
-<<<<<<< HEAD
-=======
 		.qmake.stash \
->>>>>>> 8bedd39641cea58ef3c635b013d4c328bcc30b5d
 		/usr/lib/x86_64-linux-gnu/qt5/mkspecs/features/exclusive_builds.prf \
 		/usr/lib/x86_64-linux-gnu/qt5/mkspecs/features/toolchain.prf \
 		/usr/lib/x86_64-linux-gnu/qt5/mkspecs/features/default_pre.prf \
@@ -165,18 +141,12 @@ DIST          = /usr/lib/x86_64-linux-gnu/qt5/mkspecs/features/spec_pre.prf \
 		/usr/lib/x86_64-linux-gnu/qt5/mkspecs/features/yacc.prf \
 		/usr/lib/x86_64-linux-gnu/qt5/mkspecs/features/lex.prf \
 		qtnullclient.pro MainWindow.h \
-<<<<<<< HEAD
-=======
 		SlackWindow.h \
->>>>>>> 8bedd39641cea58ef3c635b013d4c328bcc30b5d
 		qtnullclient.h \
 		qtlibpurple.h \
 		../libpurple/purple.h main.cpp \
 		MainWindow.cpp \
-<<<<<<< HEAD
-=======
 		SlackWindow.cpp \
->>>>>>> 8bedd39641cea58ef3c635b013d4c328bcc30b5d
 		qtnullclient.cpp \
 		qtlibpurple.cpp
 QMAKE_TARGET  = qtnullclient
@@ -199,13 +169,6 @@ Makefile: qtnullclient.pro /usr/lib/x86_64-linux-gnu/qt5/mkspecs/linux-g++/qmake
 		/usr/lib/x86_64-linux-gnu/qt5/mkspecs/common/g++-base.conf \
 		/usr/lib/x86_64-linux-gnu/qt5/mkspecs/common/g++-unix.conf \
 		/usr/lib/x86_64-linux-gnu/qt5/mkspecs/qconfig.pri \
-<<<<<<< HEAD
-		/usr/lib/x86_64-linux-gnu/qt5/mkspecs/modules/qt_KConfigCore.pri \
-		/usr/lib/x86_64-linux-gnu/qt5/mkspecs/modules/qt_KConfigGui.pri \
-		/usr/lib/x86_64-linux-gnu/qt5/mkspecs/modules/qt_KWallet.pri \
-		/usr/lib/x86_64-linux-gnu/qt5/mkspecs/modules/qt_KWindowSystem.pri \
-=======
->>>>>>> 8bedd39641cea58ef3c635b013d4c328bcc30b5d
 		/usr/lib/x86_64-linux-gnu/qt5/mkspecs/modules/qt_lib_accessibility_support_private.pri \
 		/usr/lib/x86_64-linux-gnu/qt5/mkspecs/modules/qt_lib_bootstrap_private.pri \
 		/usr/lib/x86_64-linux-gnu/qt5/mkspecs/modules/qt_lib_concurrent.pri \
@@ -253,10 +216,7 @@ Makefile: qtnullclient.pro /usr/lib/x86_64-linux-gnu/qt5/mkspecs/linux-g++/qmake
 		/usr/lib/x86_64-linux-gnu/qt5/mkspecs/features/qt_config.prf \
 		/usr/lib/x86_64-linux-gnu/qt5/mkspecs/linux-g++/qmake.conf \
 		/usr/lib/x86_64-linux-gnu/qt5/mkspecs/features/spec_post.prf \
-<<<<<<< HEAD
-=======
 		.qmake.stash \
->>>>>>> 8bedd39641cea58ef3c635b013d4c328bcc30b5d
 		/usr/lib/x86_64-linux-gnu/qt5/mkspecs/features/exclusive_builds.prf \
 		/usr/lib/x86_64-linux-gnu/qt5/mkspecs/features/toolchain.prf \
 		/usr/lib/x86_64-linux-gnu/qt5/mkspecs/features/default_pre.prf \
@@ -286,13 +246,6 @@ Makefile: qtnullclient.pro /usr/lib/x86_64-linux-gnu/qt5/mkspecs/linux-g++/qmake
 /usr/lib/x86_64-linux-gnu/qt5/mkspecs/common/g++-base.conf:
 /usr/lib/x86_64-linux-gnu/qt5/mkspecs/common/g++-unix.conf:
 /usr/lib/x86_64-linux-gnu/qt5/mkspecs/qconfig.pri:
-<<<<<<< HEAD
-/usr/lib/x86_64-linux-gnu/qt5/mkspecs/modules/qt_KConfigCore.pri:
-/usr/lib/x86_64-linux-gnu/qt5/mkspecs/modules/qt_KConfigGui.pri:
-/usr/lib/x86_64-linux-gnu/qt5/mkspecs/modules/qt_KWallet.pri:
-/usr/lib/x86_64-linux-gnu/qt5/mkspecs/modules/qt_KWindowSystem.pri:
-=======
->>>>>>> 8bedd39641cea58ef3c635b013d4c328bcc30b5d
 /usr/lib/x86_64-linux-gnu/qt5/mkspecs/modules/qt_lib_accessibility_support_private.pri:
 /usr/lib/x86_64-linux-gnu/qt5/mkspecs/modules/qt_lib_bootstrap_private.pri:
 /usr/lib/x86_64-linux-gnu/qt5/mkspecs/modules/qt_lib_concurrent.pri:
@@ -340,10 +293,7 @@ Makefile: qtnullclient.pro /usr/lib/x86_64-linux-gnu/qt5/mkspecs/linux-g++/qmake
 /usr/lib/x86_64-linux-gnu/qt5/mkspecs/features/qt_config.prf:
 /usr/lib/x86_64-linux-gnu/qt5/mkspecs/linux-g++/qmake.conf:
 /usr/lib/x86_64-linux-gnu/qt5/mkspecs/features/spec_post.prf:
-<<<<<<< HEAD
-=======
 .qmake.stash:
->>>>>>> 8bedd39641cea58ef3c635b013d4c328bcc30b5d
 /usr/lib/x86_64-linux-gnu/qt5/mkspecs/features/exclusive_builds.prf:
 /usr/lib/x86_64-linux-gnu/qt5/mkspecs/features/toolchain.prf:
 /usr/lib/x86_64-linux-gnu/qt5/mkspecs/features/default_pre.prf:
@@ -378,13 +328,8 @@ distdir: FORCE
 	@test -d $(DISTDIR) || mkdir -p $(DISTDIR)
 	$(COPY_FILE) --parents $(DIST) $(DISTDIR)/
 	$(COPY_FILE) --parents /usr/lib/x86_64-linux-gnu/qt5/mkspecs/features/data/dummy.cpp $(DISTDIR)/
-<<<<<<< HEAD
-	$(COPY_FILE) --parents MainWindow.h qtnullclient.h qtlibpurple.h ../libpurple/purple.h $(DISTDIR)/
-	$(COPY_FILE) --parents main.cpp MainWindow.cpp qtnullclient.cpp qtlibpurple.cpp $(DISTDIR)/
-=======
 	$(COPY_FILE) --parents MainWindow.h SlackWindow.h qtnullclient.h qtlibpurple.h ../libpurple/purple.h $(DISTDIR)/
 	$(COPY_FILE) --parents main.cpp MainWindow.cpp SlackWindow.cpp qtnullclient.cpp qtlibpurple.cpp $(DISTDIR)/
->>>>>>> 8bedd39641cea58ef3c635b013d4c328bcc30b5d
 	$(COPY_FILE) --parents mainwindow.ui $(DISTDIR)/
 
 
@@ -417,15 +362,6 @@ compiler_moc_predefs_clean:
 moc_predefs.h: /usr/lib/x86_64-linux-gnu/qt5/mkspecs/features/data/dummy.cpp
 	g++ -pipe -O2 -std=gnu++11 -Wall -W -dM -E -o moc_predefs.h /usr/lib/x86_64-linux-gnu/qt5/mkspecs/features/data/dummy.cpp
 
-<<<<<<< HEAD
-compiler_moc_header_make_all: moc_MainWindow.cpp
-compiler_moc_header_clean:
-	-$(DEL_FILE) moc_MainWindow.cpp
-moc_MainWindow.cpp: MainWindow.h \
-		moc_predefs.h \
-		/usr/lib/qt5/bin/moc
-	/usr/lib/qt5/bin/moc $(DEFINES) --include /home/isarodriguez/pidgin/qtnullclient/moc_predefs.h -I/usr/lib/x86_64-linux-gnu/qt5/mkspecs/linux-g++ -I/home/isarodriguez/pidgin/qtnullclient -I/home/isarodriguez/pidgin/qtnullclient -I/home/isarodriguez/pidgin/libpurple -I/home/isarodriguez/pidgin -I/usr/include/glib-2.0 -I/usr/lib/x86_64-linux-gnu/glib-2.0/include -I/usr/include/x86_64-linux-gnu/qt5 -I/usr/include/x86_64-linux-gnu/qt5/QtWidgets -I/usr/include/x86_64-linux-gnu/qt5/QtGui -I/usr/include/x86_64-linux-gnu/qt5/QtCore -I/usr/include/c++/9 -I/usr/include/x86_64-linux-gnu/c++/9 -I/usr/include/c++/9/backward -I/usr/lib/gcc/x86_64-linux-gnu/9/include -I/usr/local/include -I/usr/include/x86_64-linux-gnu -I/usr/include MainWindow.h -o moc_MainWindow.cpp
-=======
 compiler_moc_header_make_all: moc_MainWindow.cpp moc_SlackWindow.cpp
 compiler_moc_header_clean:
 	-$(DEL_FILE) moc_MainWindow.cpp moc_SlackWindow.cpp
@@ -438,7 +374,6 @@ moc_SlackWindow.cpp: SlackWindow.h \
 		moc_predefs.h \
 		/usr/lib/qt5/bin/moc
 	/usr/lib/qt5/bin/moc $(DEFINES) --include /home/capulongc/pidgin/qtnullclient/moc_predefs.h -I/usr/lib/x86_64-linux-gnu/qt5/mkspecs/linux-g++ -I/home/capulongc/pidgin/qtnullclient -I/home/capulongc/pidgin/qtnullclient -I/home/capulongc/pidgin/libpurple -I/home/capulongc/pidgin -I/usr/include/glib-2.0 -I/usr/lib/x86_64-linux-gnu/glib-2.0/include -I/usr/include/x86_64-linux-gnu/qt5 -I/usr/include/x86_64-linux-gnu/qt5/QtWidgets -I/usr/include/x86_64-linux-gnu/qt5/QtGui -I/usr/include/x86_64-linux-gnu/qt5/QtCore -I/usr/include/c++/9 -I/usr/include/x86_64-linux-gnu/c++/9 -I/usr/include/c++/9/backward -I/usr/lib/gcc/x86_64-linux-gnu/9/include -I/usr/local/include -I/usr/include/x86_64-linux-gnu -I/usr/include SlackWindow.h -o moc_SlackWindow.cpp
->>>>>>> 8bedd39641cea58ef3c635b013d4c328bcc30b5d
 
 compiler_moc_objc_header_make_all:
 compiler_moc_objc_header_clean:
@@ -523,12 +458,8 @@ main.o: main.cpp qtnullclient.h \
 		../libpurple/theme-manager.h \
 		../libpurple/upnp.h \
 		../libpurple/version.h \
-<<<<<<< HEAD
-		MainWindow.h
-=======
 		MainWindow.h \
 		SlackWindow.h
->>>>>>> 8bedd39641cea58ef3c635b013d4c328bcc30b5d
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o main.o main.cpp
 
 MainWindow.o: MainWindow.cpp MainWindow.h \
@@ -597,13 +528,10 @@ MainWindow.o: MainWindow.cpp MainWindow.h \
 		ui_mainwindow.h
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o MainWindow.o MainWindow.cpp
 
-<<<<<<< HEAD
-=======
 SlackWindow.o: SlackWindow.cpp SlackWindow.h \
 		ui_SlackWindow.h
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o SlackWindow.o SlackWindow.cpp
 
->>>>>>> 8bedd39641cea58ef3c635b013d4c328bcc30b5d
 qtnullclient.o: qtnullclient.cpp qtlibpurple.h \
 		../libpurple/purple.h \
 		../libpurple/account.h \
@@ -743,12 +671,9 @@ qtlibpurple.o: qtlibpurple.cpp ../libpurple/purple.h \
 moc_MainWindow.o: moc_MainWindow.cpp 
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o moc_MainWindow.o moc_MainWindow.cpp
 
-<<<<<<< HEAD
-=======
 moc_SlackWindow.o: moc_SlackWindow.cpp 
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o moc_SlackWindow.o moc_SlackWindow.cpp
 
->>>>>>> 8bedd39641cea58ef3c635b013d4c328bcc30b5d
 ####### Install
 
 install_target: first FORCE

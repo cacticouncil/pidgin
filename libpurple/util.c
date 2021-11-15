@@ -4913,6 +4913,7 @@ purple_print_utf8_to_console(FILE *filestream, char *message)
 	}
 }
 
+//might be useful function -- isa 1
 gboolean purple_message_meify(char *message, gssize len)
 {
 	char *c;

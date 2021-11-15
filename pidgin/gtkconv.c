@@ -471,7 +471,11 @@ check_for_and_do_command(PurpleConversation *conv)
 		send_history_add(gtkconv, send_history);
 		g_free(send_history);
 
+		printf("cmd is: %s \n", cmd);
+
 		cmdline = cmd + strlen(prefix);
+
+		printf("cmdline is: %s \n", cmdline);
 
 		if (purple_strequal(cmdline, "xyzzy")) {
 			purple_conversation_write(conv, "", "Nothing happens",
@@ -1568,6 +1572,7 @@ menu_chat_add_remove_cb(GtkWidget *w, PidginConversation *gtkconv)
 static GtkTextMark *
 get_mark_for_user(PidginConversation *gtkconv, const char *who)
 {
+	printf("get_mark_for_user \n");
 	GtkTextBuffer *buf = gtk_text_view_get_buffer(GTK_TEXT_VIEW(gtkconv->imhtml));
 	char *tmp = g_strconcat("user:", who, NULL);
 	GtkTextMark *mark = gtk_text_buffer_get_mark(buf, tmp);
@@ -2357,6 +2362,7 @@ static void
 insert_text_cb(GtkTextBuffer *textbuffer, GtkTextIter *position,
 			   gchar *new_text, gint new_text_length, gpointer user_data)
 {
+	printf("insert_text_cb \n");
 	PidginConversation *gtkconv = (PidginConversation *)user_data;
 
 	g_return_if_fail(gtkconv != NULL);
@@ -2372,6 +2378,7 @@ static void
 delete_text_cb(GtkTextBuffer *textbuffer, GtkTextIter *start_pos,
 			   GtkTextIter *end_pos, gpointer user_data)
 {
+	printf("delete_text_cb \n");
 	PidginConversation *gtkconv = (PidginConversation *)user_data;
 	PurpleConversation *conv;
 	PurpleConvIm *im;
@@ -5059,8 +5066,8 @@ setup_common_pane(PidginConversation *gtkconv)
 		/* Now add the userlist */
 		setup_chat_userlist(gtkconv, hpaned);
 	} else {
-		gtk_box_pack_start(GTK_BOX(vbox), frame, TRUE, TRUE, 0);
-	}
+	 	gtk_box_pack_start(GTK_BOX(vbox), frame, TRUE, TRUE, 0);
+    }
 	gtk_widget_show(frame);
 
 	gtk_widget_set_name(gtkconv->imhtml, "pidgin_conv_imhtml");
@@ -5792,6 +5799,8 @@ pidgin_conv_write_conv(PurpleConversation *conv, const char *name, const char *a
 						const char *message, PurpleMessageFlags flags,
 						time_t mtime)
 {
+	printf("pidgin_conv_write_conv \n");
+	printf(" message is: %s \n", message);
 	PidginConversation *gtkconv;
 	PurpleConnection *gc;
 	PurpleAccount *account;
@@ -6165,11 +6174,16 @@ pidgin_conv_write_conv(PurpleConversation *conv, const char *name, const char *a
 		pidgin_themes_smiley_themeize(gtkconv->imhtml);
 	}
 
+	printf("displaying is: %s \n", displaying);
+
 	purple_signal_emit(pidgin_conversations_get_handle(),
 		(type == PURPLE_CONV_TYPE_IM ? "displayed-im-msg" : "displayed-chat-msg"),
 		account, name, displaying, conv, flags);
 	g_free(displaying);
 	update_typing_message(gtkconv, NULL);
+
+		//printf(" message is: %s \n", message);
+		//printf(" imhtml is: %s \n", gtkconv->imhtml);
 }
 
 static gboolean get_iter_from_chatbuddy(PurpleConvChatBuddy *cb, GtkTreeIter *iter)
