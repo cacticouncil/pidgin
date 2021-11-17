@@ -5,6 +5,7 @@
         "list": "c",
         "string": "c",
         "vector": "c",
-        "string_view": "c"
+        "string_view": "c",
+        "atomic": "c"
     }
 }

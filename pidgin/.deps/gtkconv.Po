@@ -704,7 +704,8 @@ gtkconv.o: gtkconv.c /usr/include/stdc-predef.h ../libpurple/internal.h \
  gtklog.h gtkmenutray.h gtkpounce.h ../libpurple/pounce.h gtkprefs.h \
  ../libpurple/prefs.h gtkprivacy.h ../libpurple/privacy.h gtkstyle.h \
  gtkthemes.h gtkutils.h pidginstock.h gtkstatus-icon-theme.h \
- gtkicon-theme.h pidgintooltip.h gtknickcolors.h
+ gtkicon-theme.h pidgintooltip.h gtkcellrendererexpander.h \
+ gtknickcolors.h
 
 /usr/include/stdc-predef.h:
 
@@ -2409,5 +2410,7 @@ gtkstatus-icon-theme.h:
 gtkicon-theme.h:
 
 pidgintooltip.h:
+
+gtkcellrendererexpander.h:
 
 gtknickcolors.h:
