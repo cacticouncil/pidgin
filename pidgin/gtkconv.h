@@ -121,7 +121,7 @@ struct _PidginConversation
 	
 	GtkWidget *conv_list;
 	gchar *selected_message; 
-	GtkTreeIter *selected_item_iter;
+	GtkTreeIter selected_item_iter;
 	GtkCellRenderer *text_rend;
 	GtkTreeViewColumn *text_column;
 	PidginWindow *win;

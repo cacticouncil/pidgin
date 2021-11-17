@@ -5049,8 +5049,9 @@ static void gtk_messages_menu_edit_message_cb(GtkWidget *w, PidginConversation *
 	GtkTreeModel *model;
 
 	model = gtk_tree_view_get_model(GTK_TREE_VIEW(gtkconv->conv_list));
+	printf("history load: %d", gtkconv->history_load);
 
-	gboolean isvalid = gtk_list_store_iter_is_valid(model, gtkconv->selected_item_iter);
+	gboolean isvalid = gtk_list_store_iter_is_valid(model, &(gtkconv->selected_item_iter));
 	   printf("is the gtkconv->selected_item_iter iter valid? %d \n", isvalid);
 
 	// if (!(get_iter_from_node(node, &iter))) {
@@ -5064,7 +5065,7 @@ static void gtk_messages_menu_edit_message_cb(GtkWidget *w, PidginConversation *
 
 	
 
-	 path = gtk_tree_model_get_path(GTK_TREE_MODEL(model), gtkconv->selected_item_iter);
+	 path = gtk_tree_model_get_path(GTK_TREE_MODEL(model), &(gtkconv->selected_item_iter));
 	 g_object_set(G_OBJECT(gtkconv->text_rend), "editable", TRUE, NULL);
 	 gtk_tree_view_set_enable_search(GTK_TREE_VIEW(gtkconv->conv_list), FALSE);
 	 gtk_widget_grab_focus(gtkconv->conv_list);
@@ -5078,6 +5079,11 @@ static void gtk_messages_menu_delete_message_cb(GtkWidget *w, const gchar *str) 
 static GtkWidget *
 create_message_menu(PidginConversation *gtkconv)
 {
+	GtkTreeModel *model;
+	model = gtk_tree_view_get_model(GTK_TREE_VIEW(gtkconv->conv_list));
+
+	gboolean isvalid1 = gtk_list_store_iter_is_valid(model, &(gtkconv->selected_item_iter));
+	   printf("is selcleted iter valid in create message menu? %d \n", isvalid1);
 	GtkWidget *menu;
 
 	menu = gtk_menu_new();
@@ -5122,26 +5128,29 @@ pidgin_messages_popup_menu_cb(GtkWidget *treeview, PidginConversation *gtkconv)
 
 	PurpleConversation *conv = gtkconv->active_conv;
 	GtkTreeSelection *sel;
-	GtkTreeIter *iter;
+	GtkTreeIter iter;
 	GtkTreeModel *model;
 	GtkWidget *menu;
-	const gchar *str;
+	gchar *str;
 
 	gtkconv = PIDGIN_CONVERSATION(conv);
 
 	model = gtk_tree_view_get_model(GTK_TREE_VIEW(gtkconv->conv_list));
 
 	sel = gtk_tree_view_get_selection(GTK_TREE_VIEW(gtkconv->conv_list));
-	if(!gtk_tree_selection_get_selected(sel, NULL, iter))
+	if(!gtk_tree_selection_get_selected(sel, NULL, &iter))
 		return FALSE;
 
-		gboolean isvalid = gtk_list_store_iter_is_valid(model, iter);
-	   printf("is THIS iter valid? %d \n", isvalid);
+	gtk_tree_model_get(GTK_TREE_MODEL(model), &iter, LIST_ITEM, &str, -1);
 
-	gtk_tree_model_get(GTK_TREE_MODEL(model), iter, LIST_ITEM, str, -1);
+		gboolean isvalid = gtk_list_store_iter_is_valid(model, &iter);
+	   printf("is THIS iter valid? %d \n", isvalid);
 
 	gtkconv->selected_message = str;
 	gtkconv->selected_item_iter = iter; 
+
+	gboolean isvalid1 = gtk_list_store_iter_is_valid(model, &(gtkconv->selected_item_iter));
+	   printf("is selcleted iter valid? %d \n", isvalid1);
 
 	menu = create_message_menu (gtkconv);
 	gtk_menu_popup(GTK_MENU(menu), NULL, NULL,
