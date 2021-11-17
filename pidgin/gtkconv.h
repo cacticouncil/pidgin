@@ -120,6 +120,12 @@ struct _PidginConversation
 	int history_load;
 	
 	GtkWidget *conv_list;
+	gchar *selected_message; 
+	GtkTreeIter selected_item_iter;
+	GtkCellRenderer *img_rend;
+	GtkTreeViewColumn *img_column;
+	GtkCellRenderer *text_rend;
+	GtkTreeViewColumn *text_column;
 	PidginWindow *win;
 
 	gboolean make_sound;
