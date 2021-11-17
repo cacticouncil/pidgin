@@ -2978,8 +2978,9 @@ pidgin_conv_get_history(PurpleConversation *conv)
 	prefix = pidgin_get_cmd_prefix();
 	strcpy(cmd, "history ");
 	strcat(cmd, itoa(gtkconv->history_load, 10));
-
-	purple_cmd_do_command(conv, "clear", "clear", &error);
+	
+	//Need to clear history before loading again
+	gtk_list_store_clear(GTK_LIST_STORE(gtk_tree_view_get_model(GTK_TREE_VIEW(gtkconv->conv_list))));
 	purple_cmd_do_command(conv, cmd, cmd, &error);
 }
 
@@ -4950,26 +4951,39 @@ pidgin_conv_setup_quickfind(PidginConversation *gtkconv, GtkWidget *container)
 
 /* }}} */
 enum {
-  LIST_ITEM = 0,
-  N_COLUMNS
+	IMAGE,
+  	TEXT,
+  	N_COLUMNS
 };
 
 void 
 init_list(GtkWidget *list, PidginConversation *gtkconv) {
 
-  //	GtkCellRendererText *renderer;
+  	//GtkCellRendererText *renderer;
   	//GtkTreeViewColumn *column;
   	GtkListStore *store;
+	int chat_width;
+	chat_width = pidgin_blist_get_default_gtk_blist()->chat_notebook->allocation.width;
+
+  	gtkconv->img_rend = gtk_cell_renderer_text_new();
+  	gtkconv->img_column = gtk_tree_view_column_new_with_attributes("Image",
+          			gtkconv->img_rend, 
+					"text", IMAGE, 
+					NULL);
+	g_object_set(gtkconv->img_rend, "wrap_width", chat_width, NULL);
+  	gtk_tree_view_append_column(GTK_TREE_VIEW(list), gtkconv->img_column);
 
   	gtkconv->text_rend = gtk_cell_renderer_text_new();
-  	gtkconv->text_column = gtk_tree_view_column_new_with_attributes("List Items",
-          	gtkconv->text_rend, 
-			"text", LIST_ITEM, 
-			NULL);
-	g_object_set(gtkconv->text_rend, "wrap_width", 600, NULL);
+  	gtkconv->text_column = gtk_tree_view_column_new_with_attributes("Text",
+          			gtkconv->text_rend, 
+					"text", TEXT, 
+					"markup", TRUE,
+					NULL);
+	g_object_set(gtkconv->text_rend, "wrap_width", chat_width, NULL);
+	//g_object_set(renderer, "markup", TRUE, NULL);
   	gtk_tree_view_append_column(GTK_TREE_VIEW(list), gtkconv->text_column);
 
-  	store = gtk_list_store_new(N_COLUMNS, G_TYPE_STRING);
+  	store = gtk_list_store_new(N_COLUMNS, G_TYPE_STRING, G_TYPE_STRING);
 
   	gtk_tree_view_set_model(GTK_TREE_VIEW(list), 
       	GTK_TREE_MODEL(store));
@@ -4977,16 +4991,229 @@ init_list(GtkWidget *list, PidginConversation *gtkconv) {
   	g_object_unref(store);
 }
 
-void add_to_list(GtkWidget *list, const gchar *str) {
-    
+void add_to_list(GtkWidget *list, 
+				const gchar *name, 
+				const gchar *timestamp,
+				const gchar *message)
+{
   	GtkListStore *store;
   	GtkTreeIter iter;
+
+	char buffer[1024];
+	strcpy(buffer, name);
+	strcat(buffer, " - ");
+	strcat(buffer, timestamp);
+	strcat(buffer, "\n");
+	strcat(buffer, message);
 
   	store = GTK_LIST_STORE(gtk_tree_view_get_model
       	(GTK_TREE_VIEW(list)));
 
   	gtk_list_store_append(store, &iter);
-  	gtk_list_store_set(store, &iter, LIST_ITEM, str, -1);
+  	gtk_list_store_set(store, &iter, 
+	  					IMAGE, "IMG",
+						TEXT, buffer,
+						-1);
+}
+
+static gboolean do_selection_changed(GtkWidget *list, const gchar *new_selection)
+{
+	const gchar *old_selection = NULL;
+
+	/* test for gtkblist because crazy timeout means we can be called after the blist is gone */
+	// if (list && new_selection != gtkblist->selected_node) {
+	// 	old_selection = gtkblist->selected_node;
+	// 	gtkblist->selected_node = new_selection;
+	// 	if(new_selection)
+	// 		pidgin_blist_update(NULL, new_selection);
+	// 	if(old_selection)
+	// 		pidgin_blist_update(NULL, old_selection);
+	// }
+
+	return FALSE;
+}
+
+static void pidgin_messages_selection_changed(GtkTreeSelection *selection, PidginConversation *conv)
+{
+	printf("selection callback \n");
+	const gchar *new_selected_message = NULL;
+	GtkTreeIter iter;
+	GtkListStore *store;
+
+	//get the list store from the treeview
+	store = GTK_LIST_STORE(gtk_tree_view_get_model
+       	(GTK_TREE_VIEW(conv->conv_list)));
+
+	if(gtk_tree_selection_get_selected(selection, NULL, &iter)){
+		printf("inside if statement \n");
+		gtk_tree_model_get(GTK_TREE_MODEL(store), &iter,
+		 		TEXT, &new_selected_message, -1);
+
+		conv->selected_message = new_selected_message;
+
+		gboolean isvalid = gtk_list_store_iter_is_valid(store, &iter);
+	    printf("is iter valid? %d \n", isvalid);
+		printf("this is the selelected message: %s \n", new_selected_message);
+	}
+
+	printf("got here2");
+
+	// /* we set this up as a timeout, otherwise the blist flickers ...
+	//  * but we don't do it for groups, because it causes total bizarness -
+	//  * the previously selected buddy node might rendered at half height.
+	//  */
+	// if ((new_selected_message != NULL)) {
+	// 	do_selection_changed(store, new_selected_message);
+	// } else {
+	// 	g_timeout_add(0, (GSourceFunc)do_selection_changed, new_selected_message);
+	// }
+}
+
+static void gtk_messages_menu_edit_message_cb(GtkWidget *w, PidginConversation *gtkconv)
+{
+	// GtkTreeIter iter;
+	GtkTreePath *path;
+	GtkTreeModel *model;
+
+	model = gtk_tree_view_get_model(GTK_TREE_VIEW(gtkconv->conv_list));
+	printf("history load: %d", gtkconv->history_load);
+
+	gboolean isvalid = gtk_list_store_iter_is_valid(model, &(gtkconv->selected_item_iter));
+	   printf("is the gtkconv->selected_item_iter iter valid? %d \n", isvalid);
+
+	// if (!(get_iter_from_node(node, &iter))) {
+	// 	/* This is either a bug, or the buddy is in a collapsed contact */
+	// 	node = purple_blist_node_get_parent(node);
+		if (!isvalid) 
+			/* Now it's definitely a bug */
+			return;
+
+	// pidgin_blist_tooltip_destroy();
+
+	
+
+	 path = gtk_tree_model_get_path(GTK_TREE_MODEL(model), &(gtkconv->selected_item_iter));
+	 g_object_set(G_OBJECT(gtkconv->text_rend), "editable", TRUE, NULL);
+	 gtk_tree_view_set_enable_search(GTK_TREE_VIEW(gtkconv->conv_list), FALSE);
+	 gtk_widget_grab_focus(gtkconv->conv_list);
+	 gtk_tree_view_set_cursor_on_cell(GTK_TREE_VIEW(gtkconv->conv_list), path,
+	 		gtkconv->text_column, gtkconv->text_rend, TRUE);
+	 gtk_tree_path_free(path);
+}
+
+static void gtk_messages_menu_delete_message_cb(GtkWidget *w, const gchar *str) {}
+
+static GtkWidget *
+create_message_menu(PidginConversation *gtkconv)
+{
+	GtkTreeModel *model;
+	model = gtk_tree_view_get_model(GTK_TREE_VIEW(gtkconv->conv_list));
+
+	gboolean isvalid1 = gtk_list_store_iter_is_valid(model, &(gtkconv->selected_item_iter));
+	   printf("is selcleted iter valid in create message menu? %d \n", isvalid1);
+	GtkWidget *menu;
+
+	menu = gtk_menu_new();
+
+	pidgin_new_item_from_stock(menu, _("_Edit Message"), PIDGIN_STOCK_ALIAS,
+				 G_CALLBACK(gtk_messages_menu_edit_message_cb), gtkconv, 0, 0, NULL);
+	pidgin_new_item_from_stock(menu, _("_Delete Message"), GTK_STOCK_REMOVE,
+				 G_CALLBACK(gtk_messages_menu_delete_message_cb), gtkconv, 0, 0, NULL);
+
+	return menu;
+}
+
+static gboolean
+pidgin_messages_show_context_menu(const gchar *str,
+								 GtkMenuPositionFunc func,
+								 GtkWidget *tv,
+								 guint button,
+								 guint32 time)
+{
+	GtkWidget *menu = NULL;
+	gboolean handled = FALSE;
+	//PurpleConversation conv;
+	//conv = gtkconv->active_conv; -> gave undeclared error
+
+	/* Create a menu */
+		menu = create_message_menu(str);
+
+	/* Now display the menu */
+	if (menu != NULL) {
+		gtk_widget_show_all(menu);
+		gtk_menu_popup(GTK_MENU(menu), NULL, NULL, func, tv, button, time);
+		handled = TRUE;
+	}
+
+	return handled;
+}
+
+static gboolean
+pidgin_messages_popup_menu_cb(GtkWidget *treeview, PidginConversation *gtkconv)
+{
+	printf("helllooooooooooo");
+
+	PurpleConversation *conv = gtkconv->active_conv;
+	GtkTreeSelection *sel;
+	GtkTreeIter iter;
+	GtkTreeModel *model;
+	GtkWidget *menu;
+	gchar *str;
+
+	gtkconv = PIDGIN_CONVERSATION(conv);
+
+	model = gtk_tree_view_get_model(GTK_TREE_VIEW(gtkconv->conv_list));
+
+	sel = gtk_tree_view_get_selection(GTK_TREE_VIEW(gtkconv->conv_list));
+	if(!gtk_tree_selection_get_selected(sel, NULL, &iter))
+		return FALSE;
+
+	gtk_tree_model_get(GTK_TREE_MODEL(model), &iter, TEXT, &str, -1);
+
+		gboolean isvalid = gtk_list_store_iter_is_valid(model, &iter);
+	   printf("is THIS iter valid? %d \n", isvalid);
+
+	gtkconv->selected_message = str;
+	gtkconv->selected_item_iter = iter; 
+
+	gboolean isvalid1 = gtk_list_store_iter_is_valid(model, &(gtkconv->selected_item_iter));
+	   printf("is selcleted iter valid? %d \n", isvalid1);
+
+	menu = create_message_menu (gtkconv);
+	gtk_menu_popup(GTK_MENU(menu), NULL, NULL,
+				   pidgin_treeview_popup_menu_position_func, treeview,
+				   0, GDK_CURRENT_TIME);
+	//g_free(who);
+
+	return TRUE;
+	//---------------------------------------------------------
+	// GtkListStore *store;
+	// GtkTreeIter iter;
+	// GtkTreeSelection *sel;
+	
+	// gboolean handled = FALSE;
+
+	// //get the list store from the treeview
+	// store = GTK_LIST_STORE(gtk_tree_view_get_model
+    //   	(GTK_TREE_VIEW(treeview)));
+
+	// //get selected item from treeview and point item to iter
+	// sel = gtk_tree_view_get_selection(GTK_TREE_VIEW(treeview));
+	// if (!gtk_tree_selection_get_selected(sel, store, &iter))
+	// 	return FALSE;
+
+	// gboolean isvalid = gtk_list_store_iter_is_valid(store, &iter);
+	//     printf("is THIS iter valid? %d \n", isvalid);
+
+	// // maybe this is GTK_LIST_STORE instead of TREE_MODEL??
+	// //store selected message into the string str
+	// gtk_tree_model_get(GTK_TREE_MODEL(store), &iter, LIST_ITEM, str, -1);
+
+	// /* Shift+F10 draws a context menu */
+	// //might have problems here with func??
+	// handled = pidgin_messages_show_context_menu(str, pidgin_treeview_popup_menu_position_func, treeview, 0, GDK_CURRENT_TIME);
+
+	// return handled;
 }
 
 static gboolean do_selection_changed(GtkWidget *list, const gchar *new_selection)
@@ -5192,8 +5419,7 @@ pidgin_messages_popup_menu_cb(GtkWidget *treeview, PidginConversation *gtkconv)
 static GtkWidget *
 setup_common_pane(PidginConversation *gtkconv)
 {
-
-    GtkTreeSelection *selection;
+	GtkTreeSelection *selection;
 	GtkWidget *vbox, *frame, *imhtml_sw, *event_box;
 	GtkCellRenderer *rend;
 	GtkTreePath *path;
@@ -5297,62 +5523,8 @@ setup_common_pane(PidginConversation *gtkconv)
 	/* Setup the TreeView widget */
 	GtkWidget *view = gtk_tree_view_new();
 	init_list(view, gtkconv);
-	//gtk_tree_view_set_headers_visible(GTK_TREE_VIEW(view), FALSE);
+	gtk_tree_view_set_headers_visible(GTK_TREE_VIEW(view), FALSE);
 	gtkconv->conv_list = view;
-
-/*	GtkWidget *treeview = gtk_tree_view_new_with_model(GTK_TREE_MODEL(treemodel));
-	gtk_tree_view_set_headers_visible(GTK_TREE_VIEW(treeview), FALSE);
-	gtk_widget_set_size_request(treeview, -1, 0);
-	gtk_tree_view_columns_autosize(GTK_TREE_VIEW(treeview));
-
- 	GtkTreeViewColumn *column = gtk_tree_view_column_new();
-	gtk_tree_view_append_column(GTK_TREE_VIEW(treeview), column);
-	gtk_tree_view_column_set_visible(column, FALSE);
-	gtk_tree_view_set_expander_column(GTK_TREE_VIEW(treeview), column);
-
-	GtkTreeViewColumn *text_column = gtk_tree_view_column_new();
-	gtk_tree_view_append_column(GTK_TREE_VIEW(treeview), text_column);
-	gtk_tree_view_column_clear(text_column);
-
-	//group
-	rend = pidgin_cell_renderer_expander_new();
-	gtk_tree_view_column_pack_start(text_column, rend, FALSE);
-	gtk_tree_view_column_set_attributes(text_column, rend,
-					    "visible", GROUP_EXPANDER_VISIBLE_COLUMN,
-					    "expander-visible", GROUP_EXPANDER_COLUMN,
-					    "sensitive", GROUP_EXPANDER_COLUMN,
-					    "cell-background-gdk", BGCOLOR_COLUMN,
-					    NULL);
-
-	//contact
-	rend = pidgin_cell_renderer_expander_new();
-	gtk_tree_view_column_pack_start(text_column, rend, FALSE);
-	gtk_tree_view_column_set_attributes(text_column, rend,
-					    "visible", CONTACT_EXPANDER_VISIBLE_COLUMN,
-					    "expander-visible", CONTACT_EXPANDER_COLUMN,
-					    "sensitive", CONTACT_EXPANDER_COLUMN,
-					    "cell-background-gdk", BGCOLOR_COLUMN,
-					    NULL);
-
-	//profile picture
-	rend = gtk_cell_renderer_pixbuf_new();
-	gtk_tree_view_column_pack_start(column, rend, FALSE);
-	gtk_tree_view_column_set_attributes(column, rend,
-						"pixbuf", STATUS_ICON_COLUMN,
-						"visible", STATUS_ICON_VISIBLE_COLUMN,
-						"cell-background-gdk", BGCOLOR_COLUMN,
-						NULL);
-	g_object_set(rend, "xalign", 0.0, "xpad", 6, "ypad", 0, NULL);
-
-	//text
-	rend = gtk_cell_renderer_text_new();
-	gtk_tree_view_column_pack_start(column, rend, TRUE);
-	gtk_tree_view_column_set_attributes(column, rend,
-						"cell-background-gdk", BGCOLOR_COLUMN,
-						"markup", NAME_COLUMN,
-						NULL);
-	g_object_set(rend, "ypad", 0, "yalign", 0.5, NULL);
-	g_object_set(rend, "ellipsize", PANGO_ELLIPSIZE_END, NULL); */
 
 	if (chat) {
 		GtkWidget *hpaned;
@@ -5364,7 +5536,6 @@ setup_common_pane(PidginConversation *gtkconv)
 		hpaned = gtk_hpaned_new();
 		gtk_box_pack_start(GTK_BOX(vbox), hpaned, TRUE, TRUE, 0);
 		gtk_widget_show(hpaned);
-		//gtk_paned_pack1(GTK_PANED(hpaned), frame, TRUE, TRUE);
 		gtk_paned_pack1(GTK_PANED(hpaned),
 			pidgin_make_scrollable(view, GTK_POLICY_AUTOMATIC, GTK_POLICY_AUTOMATIC, GTK_SHADOW_NONE, -1, -1),
 			TRUE, TRUE);
@@ -5372,22 +5543,20 @@ setup_common_pane(PidginConversation *gtkconv)
 		/* Now add the userlist */
 		setup_chat_userlist(gtkconv, hpaned);
 	} else {
-		//gtk_box_pack_start(GTK_BOX(vbox), frame, TRUE, TRUE, 0);
 		gtk_box_pack_start(GTK_BOX(vbox),
 			pidgin_make_scrollable(view, GTK_POLICY_AUTOMATIC, GTK_POLICY_AUTOMATIC, GTK_SHADOW_NONE, -1, -1),
 			TRUE, TRUE, 0);
 	}
-	//gtk_widget_show(frame);
 	gtk_widget_show(view);
 
-		/* Set up selection stuff */
+	/* Set up selection stuff */
 	selection = gtk_tree_view_get_selection(GTK_TREE_VIEW(gtkconv->conv_list));
 
 	printf("got here hello \n");
 	g_signal_connect(G_OBJECT(selection), "changed", G_CALLBACK(pidgin_messages_selection_changed), gtkconv);
-printf("got here hello2 \n");
+	printf("got here hello2 \n");
 	g_signal_connect(G_OBJECT(gtkconv->conv_list), "popup-menu", G_CALLBACK(pidgin_messages_popup_menu_cb), gtkconv);
-printf("got here hello3 \n");
+	printf("got here hello3 \n");
 	gtk_widget_set_name(gtkconv->imhtml, "pidgin_conv_imhtml");
 	gtk_imhtml_show_comments(GTK_IMHTML(gtkconv->imhtml),TRUE);
 	g_object_set_data(G_OBJECT(gtkconv->imhtml), "gtkconv", gtkconv);
@@ -6435,7 +6604,7 @@ pidgin_conv_write_conv(PurpleConversation *conv, const char *name, const char *a
 		//DISPLAY NAME
 		//g_snprintf(buf2, BUF_LONG, "<FONT %s>%s</FONT> ", sml_attrib ? sml_attrib : "", str);
 		//gtk_imhtml_append_text(GTK_IMHTML(gtkconv->imhtml), buf2, gtk_font_options_all | GTK_IMHTML_NO_SCROLL);
-		add_to_list(gtkconv->conv_list, message);
+		add_to_list(gtkconv->conv_list, alias, mdate, message);
 
 		gtk_text_buffer_get_end_iter(buffer, &end);
 		gtk_text_buffer_get_iter_at_mark(buffer, &start, mark);

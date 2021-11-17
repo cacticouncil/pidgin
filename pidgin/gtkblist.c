@@ -6018,7 +6018,8 @@ static void pidgin_blist_show(PurpleBuddyList *list)
 
 	gtk_box_pack_start(GTK_BOX(gtkblist->vbox),
 		pidgin_make_scrollable(gtkblist->treeview, GTK_POLICY_AUTOMATIC, GTK_POLICY_AUTOMATIC, GTK_SHADOW_NONE, -1, -1),
-		TRUE, TRUE, 0);
+		FALSE, FALSE, 0);
+	gtk_widget_set_size_request(G_OBJECT(gtkblist->treeview), 500, 200);
 
 	sep = gtk_hseparator_new();
 	gtk_box_pack_start(GTK_BOX(gtkblist->vbox), sep, FALSE, FALSE, 0);
