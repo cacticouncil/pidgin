@@ -122,11 +122,8 @@ struct _PidginConversation
 	GtkWidget *conv_list;
 	gchar *selected_message; 
 	GtkTreeIter selected_item_iter;
-<<<<<<< HEAD
-=======
 	GtkCellRenderer *img_rend;
 	GtkTreeViewColumn *img_column;
->>>>>>> 869b649ab0685971aaeacb801095ff756d75c5db
 	GtkCellRenderer *text_rend;
 	GtkTreeViewColumn *text_column;
 	PidginWindow *win;

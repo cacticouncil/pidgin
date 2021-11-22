@@ -488,6 +488,8 @@ check_for_and_do_command(PurpleConversation *conv)
 		gtk_text_iter_forward_chars(&start, g_utf8_strlen(prefix, -1));
 		gtk_text_buffer_get_end_iter(GTK_IMHTML(gtkconv->entry)->text_buffer, &end);
 		markup = gtk_imhtml_get_markup_range(GTK_IMHTML(gtkconv->entry), &start, &end);
+
+		printf(" markup is: %s \n", markup);
 		status = purple_cmd_do_command(conv, cmdline, markup, &error);
 		g_free(markup);
 
@@ -5050,6 +5052,7 @@ static void pidgin_messages_selection_changed(GtkTreeSelection *selection, Pidgi
 		 		TEXT, &new_selected_message, -1);
 
 		conv->selected_message = new_selected_message;
+		conv->selected_item_iter = iter;
 
 		gboolean isvalid = gtk_list_store_iter_is_valid(store, &iter);
 	    printf("is iter valid? %d \n", isvalid);
@@ -5069,6 +5072,48 @@ static void pidgin_messages_selection_changed(GtkTreeSelection *selection, Pidgi
 	// }
 }
 
+static void message_edited_cb(GtkCellRenderer *rend, PidginConversation *gtkconv)
+{
+	PurpleConversation *conv = gtkconv->active_conv;
+
+	// GtkTreeModel *model;
+	// gboolean isvalid1 = gtk_list_store_iter_is_valid(model, &(gtkconv->selected_item_iter));
+	//    printf("is THIS FUCKING before model iter valid? %d \n", isvalid1);
+
+	// //model = gtk_tree_view_get_model(GTK_TREE_VIEW(gtkconv->conv_list));
+
+	// printf("after getting model \n");
+
+	// printf("this is selected message in message_edited_cb: %s \n", gtkconv->selected_message);
+
+	// gboolean isvalid2 = gtk_list_store_iter_is_valid(model, &(gtkconv->selected_item_iter));
+	//    printf("is THIS FUCKING after model iter valid? %d \n", isvalid2);
+
+	// //gtk_list_store_set(GTK_LIST_STORE(model), &(gtkconv->selected_item_iter), TEXT, "random message", -1);
+
+	// gboolean isvalid = gtk_list_store_iter_is_valid(model, &(gtkconv->selected_item_iter));
+	//    printf("is THIS FUCKING iter valid? %d \n", isvalid);
+
+	//    printf(" historrrrrrrr %d \n", gtkconv->history_load);
+
+	// printf("after setting to new message \n");
+	// printf(" this is new messagee: %s \n" );
+
+				//gtkconv = PIDGIN_CONVERSATION(conv);
+				//gtkconv->history_load = gtkconv->history_load + 25;
+
+	char *error, *prefix;
+	char cmd[50];
+	prefix = pidgin_get_cmd_prefix();
+	strcpy(cmd, "delete");
+//			strcat(cmd, itoa(gtkconv->history_load, 10));
+	
+				//Need to clear history before loading again
+				//gtk_list_store_clear(GTK_LIST_STORE(gtk_tree_view_get_model(GTK_TREE_VIEW(gtkconv->conv_list))));
+	purple_cmd_do_command(conv, cmd, cmd, &error);
+	printf("last message deleted");
+}
+
 static void gtk_messages_menu_edit_message_cb(GtkWidget *w, PidginConversation *gtkconv)
 {
 	// GtkTreeIter iter;
@@ -5076,10 +5121,10 @@ static void gtk_messages_menu_edit_message_cb(GtkWidget *w, PidginConversation *
 	GtkTreeModel *model;
 
 	model = gtk_tree_view_get_model(GTK_TREE_VIEW(gtkconv->conv_list));
-	printf("history load: %d", gtkconv->history_load);
+	printf("history load: %d \n", gtkconv->history_load);
 
 	gboolean isvalid = gtk_list_store_iter_is_valid(model, &(gtkconv->selected_item_iter));
-	   printf("is the gtkconv->selected_item_iter iter valid? %d \n", isvalid);
+	   printf("is the this this this iter valid? %d \n", isvalid);
 
 	// if (!(get_iter_from_node(node, &iter))) {
 	// 	/* This is either a bug, or the buddy is in a collapsed contact */
@@ -5090,18 +5135,39 @@ static void gtk_messages_menu_edit_message_cb(GtkWidget *w, PidginConversation *
 
 	// pidgin_blist_tooltip_destroy();
 
-	
-
-	 path = gtk_tree_model_get_path(GTK_TREE_MODEL(model), &(gtkconv->selected_item_iter));
+	path = gtk_tree_model_get_path(GTK_TREE_MODEL(model), &(gtkconv->selected_item_iter));
 	 g_object_set(G_OBJECT(gtkconv->text_rend), "editable", TRUE, NULL);
+	 
 	 gtk_tree_view_set_enable_search(GTK_TREE_VIEW(gtkconv->conv_list), FALSE);
-	 gtk_widget_grab_focus(gtkconv->conv_list);
+	gtk_widget_grab_focus(gtkconv->conv_list);
 	 gtk_tree_view_set_cursor_on_cell(GTK_TREE_VIEW(gtkconv->conv_list), path,
 	 		gtkconv->text_column, gtkconv->text_rend, TRUE);
-	 gtk_tree_path_free(path);
+g_signal_connect(G_OBJECT(gtkconv->text_rend), "edited", G_CALLBACK(message_edited_cb), gtkconv);
+
+	
+	printf("after edited signal");
+
+	//pidgin_conv_edit_message(gtkconv);
+
+	// gtk_tree_path_free(path);
+
+	// g_signal_connect(G_OBJECT(gtkconv->text_rend), "edited", G_CALLBACK(message_edited_cb), gtkconv);
 }
 
-static void gtk_messages_menu_delete_message_cb(GtkWidget *w, const gchar *str) {}
+static void gtk_messages_menu_delete_message_cb(GtkWidget *w, PidginConversation *gtkconv) {
+
+	printf("entered delete message callback \n");
+
+	PurpleConversation *conv = gtkconv->active_conv;
+
+	char *error;
+	char cmd[50];
+	strcpy(cmd, "delete");
+
+	purple_cmd_do_command(conv, cmd, cmd, &error);
+	printf("last message deleted \n");
+
+}
 
 static GtkWidget *
 create_message_menu(PidginConversation *gtkconv)
@@ -5124,7 +5190,7 @@ create_message_menu(PidginConversation *gtkconv)
 }
 
 static gboolean
-pidgin_messages_show_context_menu(const gchar *str,
+pidgin_messages_show_context_menu(PidginConversation *gtkconv,
 								 GtkMenuPositionFunc func,
 								 GtkWidget *tv,
 								 guint button,
@@ -5132,11 +5198,9 @@ pidgin_messages_show_context_menu(const gchar *str,
 {
 	GtkWidget *menu = NULL;
 	gboolean handled = FALSE;
-	//PurpleConversation conv;
-	//conv = gtkconv->active_conv; -> gave undeclared error
 
 	/* Create a menu */
-		menu = create_message_menu(str);
+		menu = create_message_menu(gtkconv);
 
 	/* Now display the menu */
 	if (menu != NULL) {
@@ -5149,7 +5213,7 @@ pidgin_messages_show_context_menu(const gchar *str,
 }
 
 static gboolean
-pidgin_messages_popup_menu_cb(GtkWidget *treeview, PidginConversation *gtkconv)
+pidgin_messages_popup_menu_cb(GtkWidget *treeview, PidginConversation *gtkconv) //-> callback not being called
 {
 	printf("helllooooooooooo");
 
@@ -5159,6 +5223,7 @@ pidgin_messages_popup_menu_cb(GtkWidget *treeview, PidginConversation *gtkconv)
 	GtkTreeModel *model;
 	GtkWidget *menu;
 	gchar *str;
+	gboolean handled = FALSE;
 
 	gtkconv = PIDGIN_CONVERSATION(conv);
 
@@ -5174,247 +5239,50 @@ pidgin_messages_popup_menu_cb(GtkWidget *treeview, PidginConversation *gtkconv)
 	   printf("is THIS iter valid? %d \n", isvalid);
 
 	gtkconv->selected_message = str;
-	gtkconv->selected_item_iter = iter; 
+	gtkconv->selected_item_iter = iter;
 
 	gboolean isvalid1 = gtk_list_store_iter_is_valid(model, &(gtkconv->selected_item_iter));
 	   printf("is selcleted iter valid? %d \n", isvalid1);
 
-	menu = create_message_menu (gtkconv);
-	gtk_menu_popup(GTK_MENU(menu), NULL, NULL,
-				   pidgin_treeview_popup_menu_position_func, treeview,
-				   0, GDK_CURRENT_TIME);
-	//g_free(who);
 
-	return TRUE;
-	//---------------------------------------------------------
-	// GtkListStore *store;
-	// GtkTreeIter iter;
-	// GtkTreeSelection *sel;
-	
-	// gboolean handled = FALSE;
-
-	// //get the list store from the treeview
-	// store = GTK_LIST_STORE(gtk_tree_view_get_model
-    //   	(GTK_TREE_VIEW(treeview)));
-
-	// //get selected item from treeview and point item to iter
-	// sel = gtk_tree_view_get_selection(GTK_TREE_VIEW(treeview));
-	// if (!gtk_tree_selection_get_selected(sel, store, &iter))
-	// 	return FALSE;
-
-	// gboolean isvalid = gtk_list_store_iter_is_valid(store, &iter);
-	//     printf("is THIS iter valid? %d \n", isvalid);
-
-	// // maybe this is GTK_LIST_STORE instead of TREE_MODEL??
-	// //store selected message into the string str
-	// gtk_tree_model_get(GTK_TREE_MODEL(store), &iter, LIST_ITEM, str, -1);
-
-	// /* Shift+F10 draws a context menu */
-	// //might have problems here with func??
-	// handled = pidgin_messages_show_context_menu(str, pidgin_treeview_popup_menu_position_func, treeview, 0, GDK_CURRENT_TIME);
-
-	// return handled;
-}
-
-static gboolean do_selection_changed(GtkWidget *list, const gchar *new_selection)
-{
-	const gchar *old_selection = NULL;
-
-	/* test for gtkblist because crazy timeout means we can be called after the blist is gone */
-	// if (list && new_selection != gtkblist->selected_node) {
-	// 	old_selection = gtkblist->selected_node;
-	// 	gtkblist->selected_node = new_selection;
-	// 	if(new_selection)
-	// 		pidgin_blist_update(NULL, new_selection);
-	// 	if(old_selection)
-	// 		pidgin_blist_update(NULL, old_selection);
-	// }
-
-	return FALSE;
-}
-
-static void pidgin_messages_selection_changed(GtkTreeSelection *selection, PidginConversation *conv)
-{
-	printf("selection callback \n");
-	const gchar *new_selected_message = NULL;
-	GtkTreeIter iter;
-	GtkListStore *store;
-
-	//get the list store from the treeview
-	store = GTK_LIST_STORE(gtk_tree_view_get_model
-       	(GTK_TREE_VIEW(conv->conv_list)));
-
-	if(gtk_tree_selection_get_selected(selection, NULL, &iter)){
-		printf("inside if statement \n");
-		gtk_tree_model_get(GTK_TREE_MODEL(store), &iter,
-		 		LIST_ITEM, &new_selected_message, -1);
-
-		conv->selected_message = new_selected_message;
-
-		gboolean isvalid = gtk_list_store_iter_is_valid(store, &iter);
-	    printf("is iter valid? %d \n", isvalid);
-		printf("this is the selelected message: %s \n", new_selected_message);
-	}
-
-	printf("got here2");
-
-	// /* we set this up as a timeout, otherwise the blist flickers ...
-	//  * but we don't do it for groups, because it causes total bizarness -
-	//  * the previously selected buddy node might rendered at half height.
-	//  */
-	// if ((new_selected_message != NULL)) {
-	// 	do_selection_changed(store, new_selected_message);
-	// } else {
-	// 	g_timeout_add(0, (GSourceFunc)do_selection_changed, new_selected_message);
-	// }
-}
-
-static void gtk_messages_menu_edit_message_cb(GtkWidget *w, PidginConversation *gtkconv)
-{
-	// GtkTreeIter iter;
-	GtkTreePath *path;
-	GtkTreeModel *model;
-
-	model = gtk_tree_view_get_model(GTK_TREE_VIEW(gtkconv->conv_list));
-	printf("history load: %d", gtkconv->history_load);
-
-	gboolean isvalid = gtk_list_store_iter_is_valid(model, &(gtkconv->selected_item_iter));
-	   printf("is the gtkconv->selected_item_iter iter valid? %d \n", isvalid);
-
-	// if (!(get_iter_from_node(node, &iter))) {
-	// 	/* This is either a bug, or the buddy is in a collapsed contact */
-	// 	node = purple_blist_node_get_parent(node);
-		if (!isvalid) 
-			/* Now it's definitely a bug */
-			return;
-
-	// pidgin_blist_tooltip_destroy();
-
-	
-
-	 path = gtk_tree_model_get_path(GTK_TREE_MODEL(model), &(gtkconv->selected_item_iter));
-	 g_object_set(G_OBJECT(gtkconv->text_rend), "editable", TRUE, NULL);
-	 gtk_tree_view_set_enable_search(GTK_TREE_VIEW(gtkconv->conv_list), FALSE);
-	 gtk_widget_grab_focus(gtkconv->conv_list);
-	 gtk_tree_view_set_cursor_on_cell(GTK_TREE_VIEW(gtkconv->conv_list), path,
-	 		gtkconv->text_column, gtkconv->text_rend, TRUE);
-	 gtk_tree_path_free(path);
-}
-
-static void gtk_messages_menu_delete_message_cb(GtkWidget *w, const gchar *str) {}
-
-static GtkWidget *
-create_message_menu(PidginConversation *gtkconv)
-{
-	GtkTreeModel *model;
-	model = gtk_tree_view_get_model(GTK_TREE_VIEW(gtkconv->conv_list));
-
-	gboolean isvalid1 = gtk_list_store_iter_is_valid(model, &(gtkconv->selected_item_iter));
-	   printf("is selcleted iter valid in create message menu? %d \n", isvalid1);
-	GtkWidget *menu;
-
-	menu = gtk_menu_new();
-
-	pidgin_new_item_from_stock(menu, _("_Edit Message"), PIDGIN_STOCK_ALIAS,
-				 G_CALLBACK(gtk_messages_menu_edit_message_cb), gtkconv, 0, 0, NULL);
-	pidgin_new_item_from_stock(menu, _("_Delete Message"), GTK_STOCK_REMOVE,
-				 G_CALLBACK(gtk_messages_menu_delete_message_cb), gtkconv, 0, 0, NULL);
-
-	return menu;
-}
-
-static gboolean
-pidgin_messages_show_context_menu(const gchar *str,
-								 GtkMenuPositionFunc func,
-								 GtkWidget *tv,
-								 guint button,
-								 guint32 time)
-{
-	GtkWidget *menu = NULL;
-	gboolean handled = FALSE;
-	//PurpleConversation conv;
-	//conv = gtkconv->active_conv; -> gave undeclared error
-
-	/* Create a menu */
-		menu = create_message_menu(str);
-
-	/* Now display the menu */
-	if (menu != NULL) {
-		gtk_widget_show_all(menu);
-		gtk_menu_popup(GTK_MENU(menu), NULL, NULL, func, tv, button, time);
-		handled = TRUE;
-	}
+	handled = pidgin_messages_show_context_menu(gtkconv, pidgin_treeview_popup_menu_position_func, treeview, 3, GDK_CURRENT_TIME);
 
 	return handled;
 }
 
 static gboolean
-pidgin_messages_popup_menu_cb(GtkWidget *treeview, PidginConversation *gtkconv)
+gtk_messages_button_press_cb(GtkWidget *tv, GdkEventButton *event, PidginConversation *gtkconv)
 {
-	printf("helllooooooooooo");
-
 	PurpleConversation *conv = gtkconv->active_conv;
-	GtkTreeSelection *sel;
-	GtkTreeIter iter;
 	GtkTreeModel *model;
-	GtkWidget *menu;
 	gchar *str;
+	GtkTreeIter iter;
+	GtkTreeSelection *sel;
+
+	gboolean handled = FALSE;
 
 	gtkconv = PIDGIN_CONVERSATION(conv);
 
 	model = gtk_tree_view_get_model(GTK_TREE_VIEW(gtkconv->conv_list));
 
+	/* Here we get the message that was clicked */
 	sel = gtk_tree_view_get_selection(GTK_TREE_VIEW(gtkconv->conv_list));
 	if(!gtk_tree_selection_get_selected(sel, NULL, &iter))
 		return FALSE;
-
-	gtk_tree_model_get(GTK_TREE_MODEL(model), &iter, LIST_ITEM, &str, -1);
-
-		gboolean isvalid = gtk_list_store_iter_is_valid(model, &iter);
-	   printf("is THIS iter valid? %d \n", isvalid);
+	
+	gtk_tree_model_get(GTK_TREE_MODEL(model), &iter, TEXT, &str, -1);
 
 	gtkconv->selected_message = str;
-	gtkconv->selected_item_iter = iter; 
+	gtkconv->selected_item_iter = iter;
 
-	gboolean isvalid1 = gtk_list_store_iter_is_valid(model, &(gtkconv->selected_item_iter));
-	   printf("is selcleted iter valid? %d \n", isvalid1);
-
-	menu = create_message_menu (gtkconv);
-	gtk_menu_popup(GTK_MENU(menu), NULL, NULL,
-				   pidgin_treeview_popup_menu_position_func, treeview,
-				   0, GDK_CURRENT_TIME);
-	//g_free(who);
-
-	return TRUE;
-	//---------------------------------------------------------
-	// GtkListStore *store;
-	// GtkTreeIter iter;
-	// GtkTreeSelection *sel;
+	/* Right click draws a context menu */
+	if ((event->button == 3) && (event->type == GDK_BUTTON_PRESS)) {
+		handled = pidgin_messages_show_context_menu(gtkconv, NULL, tv, 3, event->time);
+	 } 
 	
-	// gboolean handled = FALSE;
-
-	// //get the list store from the treeview
-	// store = GTK_LIST_STORE(gtk_tree_view_get_model
-    //   	(GTK_TREE_VIEW(treeview)));
-
-	// //get selected item from treeview and point item to iter
-	// sel = gtk_tree_view_get_selection(GTK_TREE_VIEW(treeview));
-	// if (!gtk_tree_selection_get_selected(sel, store, &iter))
-	// 	return FALSE;
-
-	// gboolean isvalid = gtk_list_store_iter_is_valid(store, &iter);
-	//     printf("is THIS iter valid? %d \n", isvalid);
-
-	// // maybe this is GTK_LIST_STORE instead of TREE_MODEL??
-	// //store selected message into the string str
-	// gtk_tree_model_get(GTK_TREE_MODEL(store), &iter, LIST_ITEM, str, -1);
-
-	// /* Shift+F10 draws a context menu */
-	// //might have problems here with func??
-	// handled = pidgin_messages_show_context_menu(str, pidgin_treeview_popup_menu_position_func, treeview, 0, GDK_CURRENT_TIME);
-
-	// return handled;
+	return handled;
 }
+
 
 static GtkWidget *
 setup_common_pane(PidginConversation *gtkconv)
@@ -5555,6 +5423,7 @@ setup_common_pane(PidginConversation *gtkconv)
 	printf("got here hello \n");
 	g_signal_connect(G_OBJECT(selection), "changed", G_CALLBACK(pidgin_messages_selection_changed), gtkconv);
 	printf("got here hello2 \n");
+	g_signal_connect(G_OBJECT(gtkconv->conv_list), "button-press-event", G_CALLBACK(gtk_messages_button_press_cb), gtkconv);
 	g_signal_connect(G_OBJECT(gtkconv->conv_list), "popup-menu", G_CALLBACK(pidgin_messages_popup_menu_cb), gtkconv);
 	printf("got here hello3 \n");
 	gtk_widget_set_name(gtkconv->imhtml, "pidgin_conv_imhtml");
