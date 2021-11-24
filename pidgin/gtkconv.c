@@ -4994,7 +4994,7 @@ void add_to_list(GtkWidget *list,
   	GtkListStore *store;
   	GtkTreeIter iter;
 
-	char buffer[1024];
+	char buffer[1024]; //might crash with message too big???
 	strcpy(buffer, name);
 	strcat(buffer, " - ");
 	strcat(buffer, timestamp);
@@ -5063,10 +5063,13 @@ static void message_edited_cb(GtkCellRenderer *rend, const char *path_string,
 {
 	PurpleConversation *conv = gtkconv->active_conv;
 
+	size_t message_len = strlen(new_text);
+
 	char *error, *prefix;
-	char cmd[50];
+	char cmd[6 + message_len];
 	prefix = pidgin_get_cmd_prefix();
-	strcpy(cmd, "edit");
+	strcpy(cmd, "edit ");
+	strcat(cmd, new_text);
 
 	purple_cmd_do_command(conv, cmd, cmd, &error);
 
@@ -5094,6 +5097,7 @@ static void gtk_messages_menu_edit_message_cb(GtkWidget *w, PidginConversation *
 	 		gtkconv->text_column, gtkconv->text_rend, TRUE);
 	g_signal_connect(G_OBJECT(gtkconv->text_rend), "edited", G_CALLBACK(message_edited_cb), gtkconv);
 
+	g_object_set(G_OBJECT(gtkconv->text_rend), "editable", FALSE, NULL);
 	gtk_tree_path_free(path);
 }
 

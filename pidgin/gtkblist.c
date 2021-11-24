@@ -1960,7 +1960,6 @@ gtk_blist_button_press_cb(GtkWidget *tv, GdkEventButton *event, gpointer user_da
 	/* Right click draws a context menu */
 	if ((event->button == 3) && (event->type == GDK_BUTTON_PRESS)) {
 		handled = pidgin_blist_show_context_menu(node, NULL, tv, 3, event->time);
-		printf("heluuuuu");
 
 	/* CTRL+middle click expands or collapse a contact */
 	} else if ((event->button == 2) && (event->type == GDK_BUTTON_PRESS) &&
