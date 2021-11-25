@@ -5028,7 +5028,7 @@ static gboolean do_selection_changed(GtkWidget *list, const gchar *new_selection
 
 static void pidgin_messages_selection_changed(GtkTreeSelection *selection, PidginConversation *conv)
 {
-	printf("selection callback \n");
+	//printf("selection callback \n");
 	const gchar *new_selected_message = NULL;
 	GtkTreeIter iter;
 	GtkListStore *store;
@@ -5038,18 +5038,18 @@ static void pidgin_messages_selection_changed(GtkTreeSelection *selection, Pidgi
        	(GTK_TREE_VIEW(conv->conv_list)));
 
 	if(gtk_tree_selection_get_selected(selection, NULL, &iter)){
-		printf("inside if statement \n");
+		//printf("inside if statement \n");
 		gtk_tree_model_get(GTK_TREE_MODEL(store), &iter,
 		 		TEXT, &new_selected_message, -1);
 
 		conv->selected_message = new_selected_message;
 
 		gboolean isvalid = gtk_list_store_iter_is_valid(store, &iter);
-	    printf("is iter valid? %d \n", isvalid);
-		printf("this is the selelected message: %s \n", new_selected_message);
+	    //printf("is iter valid? %d \n", isvalid);
+		//printf("this is the selelected message: %s \n", new_selected_message);
 	}
 
-	printf("got here2");
+	//printf("got here2");
 
 	// /* we set this up as a timeout, otherwise the blist flickers ...
 	//  * but we don't do it for groups, because it causes total bizarness -
@@ -5069,10 +5069,10 @@ static void gtk_messages_menu_edit_message_cb(GtkWidget *w, PidginConversation *
 	GtkTreeModel *model;
 
 	model = gtk_tree_view_get_model(GTK_TREE_VIEW(gtkconv->conv_list));
-	printf("history load: %d", gtkconv->history_load);
+	//printf("history load: %d", gtkconv->history_load);
 
 	gboolean isvalid = gtk_list_store_iter_is_valid(model, &(gtkconv->selected_item_iter));
-	   printf("is the gtkconv->selected_item_iter iter valid? %d \n", isvalid);
+	   //printf("is the gtkconv->selected_item_iter iter valid? %d \n", isvalid);
 
 	// if (!(get_iter_from_node(node, &iter))) {
 	// 	/* This is either a bug, or the buddy is in a collapsed contact */
@@ -5103,7 +5103,7 @@ create_message_menu(PidginConversation *gtkconv)
 	model = gtk_tree_view_get_model(GTK_TREE_VIEW(gtkconv->conv_list));
 
 	gboolean isvalid1 = gtk_list_store_iter_is_valid(model, &(gtkconv->selected_item_iter));
-	   printf("is selcleted iter valid in create message menu? %d \n", isvalid1);
+	   //printf("is selcleted iter valid in create message menu? %d \n", isvalid1);
 	GtkWidget *menu;
 
 	menu = gtk_menu_new();
@@ -5144,7 +5144,7 @@ pidgin_messages_show_context_menu(const gchar *str,
 static gboolean
 pidgin_messages_popup_menu_cb(GtkWidget *treeview, PidginConversation *gtkconv)
 {
-	printf("helllooooooooooo");
+	//printf("helllooooooooooo");
 
 	PurpleConversation *conv = gtkconv->active_conv;
 	GtkTreeSelection *sel;
@@ -5164,13 +5164,13 @@ pidgin_messages_popup_menu_cb(GtkWidget *treeview, PidginConversation *gtkconv)
 	gtk_tree_model_get(GTK_TREE_MODEL(model), &iter, TEXT, &str, -1);
 
 		gboolean isvalid = gtk_list_store_iter_is_valid(model, &iter);
-	   printf("is THIS iter valid? %d \n", isvalid);
+	   //printf("is THIS iter valid? %d \n", isvalid);
 
 	gtkconv->selected_message = str;
 	gtkconv->selected_item_iter = iter; 
 
 	gboolean isvalid1 = gtk_list_store_iter_is_valid(model, &(gtkconv->selected_item_iter));
-	   printf("is selcleted iter valid? %d \n", isvalid1);
+	   //printf("is selcleted iter valid? %d \n", isvalid1);
 
 	menu = create_message_menu (gtkconv);
 	gtk_menu_popup(GTK_MENU(menu), NULL, NULL,
@@ -5207,6 +5207,43 @@ pidgin_messages_popup_menu_cb(GtkWidget *treeview, PidginConversation *gtkconv)
 	// handled = pidgin_messages_show_context_menu(str, pidgin_treeview_popup_menu_position_func, treeview, 0, GDK_CURRENT_TIME);
 
 	// return handled;
+}
+
+void
+close_thread_window(GtkButton *button, PidginConversation *gtkconv)
+{
+	PidginBuddyList *gtkblist = pidgin_blist_get_default_gtk_blist();
+	GtkWidget *pane;
+	GtkWidget *tab_cont;
+
+	if(gtkblist->thread_notebook)
+	{
+		gtk_widget_destroy(gtkblist->thread_notebook);
+		gtkblist->thread_notebook = NULL;
+		return;
+	}
+	gtkblist->thread_notebook = gtk_vbox_new(FALSE, PIDGIN_HIG_BOX_SPACE);
+	gtk_notebook_set_show_tabs(GTK_NOTEBOOK(gtkblist->thread_notebook), FALSE);
+	gtk_notebook_set_show_border(GTK_NOTEBOOK(gtkblist->thread_notebook), FALSE);
+
+	GtkPositionType pos = purple_prefs_get_int(PIDGIN_PREFS_ROOT "/conversations/tab_side");
+	gtk_notebook_set_tab_pos(GTK_NOTEBOOK(gtkblist->thread_notebook), pos);
+	gtk_notebook_set_scrollable(GTK_NOTEBOOK(gtkblist->thread_notebook), TRUE);
+	gtk_notebook_popup_enable(GTK_NOTEBOOK(gtkblist->thread_notebook));
+	gtk_notebook_set_show_tabs(GTK_NOTEBOOK(gtkblist->thread_notebook), FALSE);
+	gtk_notebook_set_show_border(GTK_NOTEBOOK(gtkblist->thread_notebook), TRUE);
+
+	gtk_widget_show(gtkblist->thread_notebook);
+
+	gtk_box_pack_start(GTK_BOX(gtkblist->chat_notebook), gtkblist->thread_notebook, TRUE, TRUE, 0);
+	
+	/*pane = gtk_vbox_new(FALSE, PIDGIN_HIG_BOX_SPACE);
+	gtk_widget_show(pane);
+	tab_cont = gtk_vbox_new(FALSE, PIDGIN_HIG_BOX_SPACE);
+	g_object_set_data(G_OBJECT(tab_cont), "PidginConversation", gtkconv);
+	gtk_container_set_border_width(gtkblist->thread_notebook, PIDGIN_HIG_BOX_SPACE);
+	gtk_container_add(gtkblist->thread_notebook, pane);
+	gtk_widget_show(pane);*/
 }
 
 static GtkWidget *
@@ -5283,6 +5320,12 @@ setup_common_pane(PidginConversation *gtkconv)
 		gtk_widget_show(gtkconv->u.im->icon_container);
 	}
 
+	gtkconv->close = pidgin_create_small_button(gtk_label_new("×"));
+	gtk_tooltips_set_tip(gtkconv->tooltips, gtkconv->close,
+	                     _("Close thread"), NULL);
+	g_signal_connect(gtkconv->close, "clicked", G_CALLBACK (close_thread_window), gtkconv);
+	gtk_box_pack_start(GTK_BOX(gtkconv->infopane_hbox), gtkconv->close, FALSE, FALSE, 0);
+	gtk_widget_show(gtkconv->close);
 	gtk_widget_show(gtkconv->infopane);
 
 	rend = gtk_cell_renderer_pixbuf_new();
@@ -5345,11 +5388,11 @@ setup_common_pane(PidginConversation *gtkconv)
 	/* Set up selection stuff */
 	selection = gtk_tree_view_get_selection(GTK_TREE_VIEW(gtkconv->conv_list));
 
-	printf("got here hello \n");
+	//printf("got here hello \n");
 	g_signal_connect(G_OBJECT(selection), "changed", G_CALLBACK(pidgin_messages_selection_changed), gtkconv);
-	printf("got here hello2 \n");
+	//printf("got here hello2 \n");
 	g_signal_connect(G_OBJECT(gtkconv->conv_list), "popup-menu", G_CALLBACK(pidgin_messages_popup_menu_cb), gtkconv);
-	printf("got here hello3 \n");
+	//printf("got here hello3 \n");
 	gtk_widget_set_name(gtkconv->imhtml, "pidgin_conv_imhtml");
 	gtk_imhtml_show_comments(GTK_IMHTML(gtkconv->imhtml),TRUE);
 	g_object_set_data(G_OBJECT(gtkconv->imhtml), "gtkconv", gtkconv);

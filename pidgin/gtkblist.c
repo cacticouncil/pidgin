@@ -5899,7 +5899,7 @@ static void pidgin_blist_show(PurpleBuddyList *list)
 	g_signal_connect(G_OBJECT(ebox), "button-press-event", G_CALLBACK(headline_box_press_cb), gtkblist);
 
 	/****************************** Chat Box *************************************/
-	gtkblist->chat_notebook = gtk_vbox_new(FALSE, PIDGIN_HIG_BOX_SPACE);
+	gtkblist->chat_notebook = gtk_hbox_new(FALSE, PIDGIN_HIG_BOX_SPACE);
 	gtk_notebook_set_show_tabs(GTK_NOTEBOOK(gtkblist->chat_notebook), FALSE);
 	gtk_notebook_set_show_border(GTK_NOTEBOOK(gtkblist->chat_notebook), FALSE);
 

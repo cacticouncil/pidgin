@@ -73,6 +73,7 @@ struct _PidginBuddyList {
 	GtkWidget *notebook;            /**< The notebook that switches between the real buddy list and the helpful
 					   instructions page */
 	GtkWidget *chat_notebook;
+	GtkWidget *thread_notebook;
 
 	GtkWidget *main_vbox;           /**< This vbox contains the menu and notebook */
 	GtkWidget *vbox;                /**< This is the vbox that everything important gets packed into.
