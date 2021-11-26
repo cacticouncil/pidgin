@@ -118,7 +118,8 @@ struct _PidginConversation
 	GList *convs;
 	GList *send_history;
 	int history_load;
-	
+	GtkWidget *thread_list;
+
 	GtkWidget *conv_list;
 	gchar *selected_message; 
 	GtkTreeIter selected_item_iter;
@@ -147,6 +148,10 @@ struct _PidginConversation
 				 * automatically by typing too much to fit
 				 * in one line */
 
+	GtkTextBuffer *thread_entry_buffer;
+	GtkWidget *thread_entry;
+	char *thread_parent_timestamp;
+
 	GtkWidget *close; /* "x" on the tab */
 	GtkWidget *icon;
 	GtkWidget *tab_label;
@@ -160,6 +165,7 @@ struct _PidginConversation
 #endif
 
 	GtkWidget *lower_hbox;
+	GtkWidget *thread_lower_hbox;
 
 	GtkWidget *toolbar;
 
@@ -179,6 +185,10 @@ struct _PidginConversation
 	GtkListStore *infopane_model;
 	GtkTreeIter infopane_iter;
 
+	GtkWidget *thread_infopane_hbox;
+	GtkWidget *thread_infopane;
+	GtkListStore *thread_infopane_model;
+	GtkTreeIter thread_infopane_iter;
 	/* Used when attaching a PidginConversation to a PurpleConversation
 	 * with message history */
 	struct {
@@ -287,6 +297,7 @@ GdkPixbuf *pidgin_conv_get_tab_icon(PurpleConversation *conv, gboolean small_ico
 void pidgin_conv_new(PurpleConversation *conv);
 int pidgin_conv_get_tab_at_xy(PidginWindow *win, int x, int y, gboolean *to_right);
 gboolean pidgin_conv_is_hidden(PidginConversation *gtkconv);
+void close_thread_window(void);
 /*@}*/
 
 /**************************************************************************/

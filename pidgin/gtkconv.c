@@ -278,9 +278,9 @@ default_formatize(PidginConversation *c)
 }
 
 static void
-conversation_entry_clear(PidginConversation *gtkconv)
+conversation_entry_clear(PidginConversation *gtkconv, GtkWidget *widget)
 {
-	GtkIMHtml *imhtml = GTK_IMHTML(gtkconv->entry);
+	GtkIMHtml *imhtml = GTK_IMHTML(widget);
 	gtk_source_undo_manager_begin_not_undoable_action(imhtml->undo_manager);
 	gtk_imhtml_clear(imhtml);
 	gtk_source_undo_manager_end_not_undoable_action(imhtml->undo_manager);
@@ -559,8 +559,34 @@ send_cb(GtkWidget *widget, PidginConversation *gtkconv)
 
 	account = purple_conversation_get_account(conv);
 
+	//Check and handle if messgae was a thread response
+	//TODO: Modify to work with images/additional settings
+	//		Currently only handles plain text responses
+	if(strcmp("pidgin_thread_entry", gtk_widget_get_name(widget)) == 0)
+	{
+		char cmd[10000];
+		char *error;
+
+		buf = gtk_imhtml_get_markup(GTK_IMHTML(widget));
+		clean = gtk_imhtml_get_text(GTK_IMHTML(widget), NULL, NULL);
+		if (strlen(clean) == 0) {
+			g_free(buf);
+			g_free(clean);
+			return;
+		}
+
+		strcpy(cmd, "th ");
+		strcat(cmd, gtkconv->thread_parent_timestamp);
+		strcat(cmd, " ");
+		strcat(cmd, buf);
+
+		purple_cmd_do_command(conv, cmd, cmd, &error);
+		conversation_entry_clear(gtkconv, widget);
+		return;
+	}
+
 	if (check_for_and_do_command(conv)) {
-		conversation_entry_clear(gtkconv);
+		conversation_entry_clear(gtkconv, widget);
 		return;
 	}
 
@@ -571,10 +597,10 @@ send_cb(GtkWidget *widget, PidginConversation *gtkconv)
 	if (!purple_account_is_connected(account))
 		return;
 
-	buf = gtk_imhtml_get_markup(GTK_IMHTML(gtkconv->entry));
-	clean = gtk_imhtml_get_text(GTK_IMHTML(gtkconv->entry), NULL, NULL);
+	buf = gtk_imhtml_get_markup(GTK_IMHTML(widget));
+	clean = gtk_imhtml_get_text(GTK_IMHTML(widget), NULL, NULL);
 
-	gtk_widget_grab_focus(gtkconv->entry);
+	gtk_widget_grab_focus(widget);
 
 	if (strlen(clean) == 0) {
 		g_free(buf);
@@ -585,7 +611,7 @@ send_cb(GtkWidget *widget, PidginConversation *gtkconv)
 	purple_idle_touch();
 
 	/* XXX: is there a better way to tell if the message has images? */
-	if (GTK_IMHTML(gtkconv->entry)->im_images != NULL)
+	if (GTK_IMHTML(widget)->im_images != NULL)
 		flags |= PURPLE_MESSAGE_IMAGES;
 
 	gc = purple_account_get_connection(account);
@@ -593,7 +619,7 @@ send_cb(GtkWidget *widget, PidginConversation *gtkconv)
 		char **bufs;
 		int i;
 
-		bufs = gtk_imhtml_get_markup_lines(GTK_IMHTML(gtkconv->entry));
+		bufs = gtk_imhtml_get_markup_lines(GTK_IMHTML(widget));
 		for (i = 0; bufs[i]; i++) {
 			send_history_add(gtkconv, bufs[i]);
 			if (purple_conversation_get_type(conv) == PURPLE_CONV_TYPE_IM)
@@ -615,7 +641,7 @@ send_cb(GtkWidget *widget, PidginConversation *gtkconv)
 	g_free(clean);
 	g_free(buf);
 
-	conversation_entry_clear(gtkconv);
+	conversation_entry_clear(gtkconv, widget);
 	gtkconv_set_unseen(gtkconv, PIDGIN_UNSEEN_NONE);
 }
 
@@ -2980,21 +3006,14 @@ pidgin_conv_get_history(PurpleConversation *conv)
 void
 pidgin_conv_present_conversation(PurpleConversation *conv)
 {
+	//Close thread window if it is open
+	//We do this here rather than pidgin_conv_new because this function gets
+	//called even if user switches to the same conv/channel
+	if(pidgin_blist_get_default_gtk_blist()->thread_notebook)
+		close_thread_window();
+
 	//Fetch and display recent messages
 	pidgin_conv_get_history(conv);
-
-	/*PidginConversation *gtkconv;
-	GdkModifierType state;
-
-	pidgin_conv_attach_to_conversation(conv);
-	gtkconv = PIDGIN_CONVERSATION(conv);
-
-	pidgin_conv_switch_active_conversation(conv);
-	//Switch the tab only if the user initiated the event by pressing
-	//a button or hitting a key.
-	if (gtk_get_current_event_state(&state))
-		pidgin_conv_window_switch_gtkconv(gtkconv->win, gtkconv);
-	gtk_window_present(GTK_WINDOW(gtkconv->win->window));*/
 }
 
 GList *
@@ -4669,7 +4688,7 @@ static gboolean resize_imhtml_cb(PidginConversation *gtkconv)
 		return FALSE;
 
 	gtk_widget_set_size_request(gtkconv->lower_hbox, -1,
-		diff + gtkconv->lower_hbox->allocation.height);
+		diff + 90);
 
 	return FALSE;
 }
@@ -4945,19 +4964,20 @@ pidgin_conv_setup_quickfind(PidginConversation *gtkconv, GtkWidget *container)
 /* }}} */
 enum {
 	IMAGE,
+	TIMESTAMP,
   	TEXT,
+	THREAD,
   	N_COLUMNS
 };
 
 void 
-init_list(GtkWidget *list, PidginConversation *gtkconv) {
-
-  	//GtkCellRendererText *renderer;
-  	//GtkTreeViewColumn *column;
+init_list(GtkWidget *list, PidginConversation *gtkconv)
+{
   	GtkListStore *store;
 	int chat_width;
 	chat_width = pidgin_blist_get_default_gtk_blist()->chat_notebook->allocation.width;
 
+	//TODO: Use pixbuf renderer to show user profile picture
   	gtkconv->img_rend = gtk_cell_renderer_text_new();
   	gtkconv->img_column = gtk_tree_view_column_new_with_attributes("Image",
           			gtkconv->img_rend, 
@@ -4969,6 +4989,16 @@ init_list(GtkWidget *list, PidginConversation *gtkconv) {
   	gtkconv->text_rend = gtk_cell_renderer_text_new();
   	gtkconv->text_column = gtk_tree_view_column_new_with_attributes("Text",
           			gtkconv->text_rend, 
+					"text", TIMESTAMP, 
+					"markup", TRUE,
+					NULL);
+	g_object_set(gtkconv->text_rend, "wrap_width", chat_width, NULL);
+  	gtk_tree_view_append_column(GTK_TREE_VIEW(list), gtkconv->text_column);
+
+	//TODO: Format text in HTML or markup
+  	gtkconv->text_rend = gtk_cell_renderer_text_new();
+  	gtkconv->text_column = gtk_tree_view_column_new_with_attributes("Text",
+          			gtkconv->text_rend, 
 					"text", TEXT, 
 					"markup", TRUE,
 					NULL);
@@ -4976,7 +5006,7 @@ init_list(GtkWidget *list, PidginConversation *gtkconv) {
 	//g_object_set(renderer, "markup", TRUE, NULL);
   	gtk_tree_view_append_column(GTK_TREE_VIEW(list), gtkconv->text_column);
 
-  	store = gtk_list_store_new(N_COLUMNS, G_TYPE_STRING, G_TYPE_STRING);
+  	store = gtk_list_store_new(N_COLUMNS, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_BOOLEAN);
 
   	gtk_tree_view_set_model(GTK_TREE_VIEW(list), 
       	GTK_TREE_MODEL(store));
@@ -4985,28 +5015,50 @@ init_list(GtkWidget *list, PidginConversation *gtkconv) {
 }
 
 void
-add_to_list(GtkWidget *list, 
+add_to_list(PidginConversation *gtkconv, 
+				GtkWidget *list, 
 				const gchar *name, 
 				const gchar *timestamp,
 				const gchar *message)
 {
   	GtkListStore *store;
   	GtkTreeIter iter;
+	gboolean thread_parent = FALSE;
 
-	char buffer[1024]; //might crash with message too big???
+	//Check if message contains Slack plugin's thread_indicator or parent_indicator
+	wchar_t c[1];
+	mbstowcs(c, message, 1);
+
+	//Loading thread replies; return if message is not thread reply
+	//OR
+	//Message is thread response; do not show in main chat window
+	if((pidgin_blist_get_default_gtk_blist()->thread_notebook && c[0] != 10551) ||
+	   (!pidgin_blist_get_default_gtk_blist()->thread_notebook && c[0] == 10551))
+		return;
+
+	//Message is thread parent
+	if(c[0] == 9672)
+		thread_parent = TRUE;
+
+	char buffer[10000]; //might crash with message too big???
 	strcpy(buffer, name);
-	strcat(buffer, " - ");
-	strcat(buffer, timestamp);
 	strcat(buffer, "\n");
 	strcat(buffer, message);
 
-  	store = GTK_LIST_STORE(gtk_tree_view_get_model
-      	(GTK_TREE_VIEW(list)));
+	//If thread_notebook widget exists, assume we are loading thread replies
+	//Store message in thread TreeList
+	//Else store message in main TreeList
+	if(pidgin_blist_get_default_gtk_blist()->thread_notebook)
+		store = GTK_LIST_STORE(gtk_tree_view_get_model(GTK_TREE_VIEW(gtkconv->thread_list)));
+	else
+  		store = GTK_LIST_STORE(gtk_tree_view_get_model(GTK_TREE_VIEW(list)));
 
   	gtk_list_store_append(store, &iter);
   	gtk_list_store_set(store, &iter, 
 	  					IMAGE, "IMG",
+						TIMESTAMP, timestamp,
 						TEXT, buffer,
+						THREAD, thread_parent,
 						-1);
 }
 
@@ -5117,17 +5169,221 @@ gtk_messages_menu_delete_message_cb(GtkWidget *w, PidginConversation *gtkconv) {
 
 }
 
+void
+close_thread_window()
+{
+	PidginBuddyList *gtkblist;
+	GtkWidget *pane;
+	GtkWidget *tab_cont;
+
+	gtkblist = pidgin_blist_get_default_gtk_blist();
+	if(gtkblist->thread_notebook)
+	{
+		gtk_widget_destroy(gtkblist->thread_notebook);
+		gtkblist->thread_notebook = NULL;
+		return;
+	}
+}
+
+void
+open_thread_window(GtkWidget *w, PidginConversation *gtkconv)
+{
+	PidginBuddyList *gtkblist;
+	GtkWidget *pane;
+	GtkWidget *tab_cont;
+	GtkTreeModel *model;
+	GtkTreeIter iter;
+	GValue tsVal, messageVal;
+	char *timestamp, *message;
+
+	//Close previous thread window if open
+	gtkblist = pidgin_blist_get_default_gtk_blist();
+	if(gtkblist->thread_notebook){
+		close_thread_window();
+	}
+
+	//Create and display thread notebook
+	gtkblist->thread_notebook = gtk_vbox_new(FALSE, PIDGIN_HIG_BOX_SPACE);
+	gtk_notebook_set_show_tabs(GTK_NOTEBOOK(gtkblist->thread_notebook), FALSE);
+	gtk_notebook_set_show_border(GTK_NOTEBOOK(gtkblist->thread_notebook), FALSE);
+	gtk_notebook_set_tab_pos(GTK_NOTEBOOK(gtkblist->thread_notebook),
+		purple_prefs_get_int(PIDGIN_PREFS_ROOT "/conversations/tab_side"));
+	gtk_notebook_set_scrollable(GTK_NOTEBOOK(gtkblist->thread_notebook), TRUE);
+	gtk_notebook_popup_enable(GTK_NOTEBOOK(gtkblist->thread_notebook));
+	gtk_notebook_set_show_tabs(GTK_NOTEBOOK(gtkblist->thread_notebook), FALSE);
+	gtk_notebook_set_show_border(GTK_NOTEBOOK(gtkblist->thread_notebook), TRUE);
+	gtk_widget_show(gtkblist->thread_notebook);
+	gtk_box_pack_end(GTK_BOX(gtkblist->chat_notebook), gtkblist->thread_notebook, TRUE, TRUE, 0);
+
+	tab_cont = gtk_vbox_new(FALSE, PIDGIN_HIG_BOX_SPACE);
+	g_object_set_data(G_OBJECT(tab_cont), "PidginConversation", gtkconv);
+	gtk_container_set_border_width(gtkblist->thread_notebook, PIDGIN_HIG_BOX_SPACE);
+	gtk_widget_show(tab_cont);
+
+	//Get values from selected message
+	model = gtk_tree_view_get_model(GTK_TREE_VIEW(gtkconv->conv_list));
+	if(gtk_tree_selection_get_selected(gtk_tree_view_get_selection(GTK_TREE_VIEW(gtkconv->conv_list)), NULL, &iter))
+	{
+		tsVal.g_type = messageVal.g_type = 0;
+		gtk_tree_model_get_value(model, &iter, TIMESTAMP, &tsVal);
+		gtk_tree_model_get_value(model, &iter, TEXT, &messageVal);
+		timestamp = g_value_get_string(&tsVal);
+		message = g_value_get_string(&messageVal);
+
+		//Remove parenthesis from timestamp
+		size_t len = strlen(timestamp);
+    	memmove(timestamp, timestamp+1, len-2);
+    	timestamp[len-2] = 0;
+		gtkconv->thread_parent_timestamp = timestamp;
+	}
+
+	//Setup thread window pane
+	//setup_common_pane
+	GtkWidget *vbox, *imhtml_sw, *event_box, *frame;
+	GtkTreePath *path;
+	GtkCellRenderer *rend;
+
+	vbox = gtk_vbox_new(FALSE, PIDGIN_HIG_BOX_SPACE);
+	gtk_widget_show(vbox);
+	
+	/* Setup the info pane */
+	event_box = gtk_event_box_new();
+	gtk_event_box_set_visible_window(GTK_EVENT_BOX(event_box), FALSE);
+	gtk_widget_show(event_box);
+	gtkconv->thread_infopane_hbox = gtk_hbox_new(FALSE, 0);
+	gtk_box_pack_start(GTK_BOX(vbox), event_box, FALSE, FALSE, 0);
+	gtk_container_add(GTK_CONTAINER(event_box), gtkconv->thread_infopane_hbox);
+	gtk_widget_show(gtkconv->thread_infopane_hbox);
+	gtk_widget_add_events(event_box,
+	                      GDK_POINTER_MOTION_MASK | GDK_LEAVE_NOTIFY_MASK);
+	g_signal_connect(G_OBJECT(event_box), "button-press-event",
+	                 G_CALLBACK(infopane_press_cb), gtkconv);
+
+	pidgin_tooltip_setup_for_widget(event_box, gtkconv,
+		pidgin_conv_create_tooltip, NULL);
+
+	gtkconv->thread_infopane = gtk_cell_view_new();
+	gtkconv->thread_infopane_model = gtk_list_store_new(CONV_NUM_COLUMNS, G_TYPE_STRING, G_TYPE_STRING, GDK_TYPE_PIXBUF, GDK_TYPE_PIXBUF);
+	gtk_cell_view_set_model(GTK_CELL_VIEW(gtkconv->thread_infopane),
+				GTK_TREE_MODEL(gtkconv->thread_infopane_model));
+	g_object_unref(gtkconv->thread_infopane_model);
+	gtk_list_store_append(gtkconv->thread_infopane_model, &(gtkconv->thread_infopane_iter));
+	gtk_box_pack_start(GTK_BOX(gtkconv->thread_infopane_hbox), gtkconv->thread_infopane, TRUE, TRUE, 0);
+	path = gtk_tree_path_new_from_string("0");
+	gtk_cell_view_set_displayed_row(GTK_CELL_VIEW(gtkconv->thread_infopane), path);
+	gtk_tree_path_free(path);
+
+	gtkconv->close = pidgin_create_small_button(gtk_label_new("×"));
+	gtk_tooltips_set_tip(gtkconv->tooltips, gtkconv->close,
+	                     _("Close thread"), NULL);
+	g_signal_connect(gtkconv->close, "clicked", G_CALLBACK (close_thread_window), gtkconv);
+	gtk_box_pack_start(GTK_BOX(gtkconv->thread_infopane_hbox), gtkconv->close, FALSE, FALSE, 0);
+	gtk_widget_show(gtkconv->close);
+	gtk_widget_show(gtkconv->thread_infopane);
+
+	rend = gtk_cell_renderer_pixbuf_new();
+	gtk_cell_layout_pack_start(GTK_CELL_LAYOUT(gtkconv->thread_infopane), rend, FALSE);
+	gtk_cell_layout_set_attributes(GTK_CELL_LAYOUT(gtkconv->thread_infopane), rend, "stock-id", CONV_ICON_COLUMN, NULL);
+	g_object_set(rend, "xalign", 0.0, "xpad", 6, "ypad", 0,
+			"stock-size", gtk_icon_size_from_name(PIDGIN_ICON_SIZE_TANGO_EXTRA_SMALL),
+			NULL);
+
+	rend = gtk_cell_renderer_text_new();
+	gtk_cell_layout_pack_start(GTK_CELL_LAYOUT(gtkconv->thread_infopane), rend, TRUE);
+	gtk_cell_layout_set_attributes(GTK_CELL_LAYOUT(gtkconv->thread_infopane), rend, "text", CONV_TEXT_COLUMN, NULL);
+	g_object_set(rend, "ypad", 0, "yalign", 0.5, NULL);
+	g_object_set(rend, "wrap_width", (int)(gtkblist->chat_notebook->allocation.width * .28), NULL);
+	gtk_widget_set_size_request(G_OBJECT(gtkconv->thread_infopane), 200, -1);
+
+	//Setup the TreeView widget
+	gtkconv->thread_list = gtk_tree_view_new();
+	init_list(gtkconv->thread_list, gtkconv);
+	gtk_tree_view_set_headers_visible(GTK_TREE_VIEW(gtkconv->thread_list), FALSE);
+	gtk_box_pack_start(GTK_BOX(vbox),
+			pidgin_make_scrollable(gtkconv->thread_list, GTK_POLICY_AUTOMATIC, GTK_POLICY_AUTOMATIC, GTK_SHADOW_NONE, -1, -1),
+			TRUE, TRUE, 0);
+	gtk_widget_show(gtkconv->thread_list);
+
+	//Set infopane data to thread parent data
+	gtk_list_store_set(GTK_LIST_STORE(gtkconv->thread_infopane_model),
+			&(gtkconv->thread_infopane_iter),
+			CONV_ICON_COLUMN, pidgin_conv_get_icon_stock(gtkconv), -1);
+	gtk_list_store_set(gtkconv->thread_infopane_model,
+			&(gtkconv->thread_infopane_iter),
+			CONV_TEXT_COLUMN, message, -1);
+
+	//Setup entry widget
+	gtkconv->thread_lower_hbox = gtk_hbox_new(FALSE, PIDGIN_HIG_BOX_SPACE);
+	gtk_box_pack_start(GTK_BOX(vbox), gtkconv->thread_lower_hbox, FALSE, FALSE, 0);
+	gtk_widget_show(gtkconv->thread_lower_hbox);
+
+	/* Setup the toolbar, entry widget and all signals */
+	frame = pidgin_create_imhtml(TRUE, &gtkconv->thread_entry, &gtkconv->toolbar, NULL);
+	gtk_box_pack_start(GTK_BOX(gtkconv->thread_lower_hbox), frame, TRUE, TRUE, 0);
+	gtk_widget_show(frame);
+
+	gtk_widget_set_name(gtkconv->thread_entry, "pidgin_thread_entry");
+
+	g_signal_connect(G_OBJECT(gtkconv->thread_entry), "populate-popup",
+	                 G_CALLBACK(entry_popup_menu_cb), gtkconv);
+	g_signal_connect(G_OBJECT(gtkconv->thread_entry), "key_press_event",
+	                 G_CALLBACK(entry_key_press_cb), gtkconv);
+	g_signal_connect_after(G_OBJECT(gtkconv->thread_entry), "message_send",
+	                       G_CALLBACK(send_cb), gtkconv);
+	g_signal_connect_after(G_OBJECT(gtkconv->thread_entry), "button_press_event",
+	                       G_CALLBACK(entry_stop_rclick_cb), NULL);
+
+	gtkconv->thread_entry_buffer = gtk_text_view_get_buffer(GTK_TEXT_VIEW(gtkconv->thread_entry));
+	g_object_set_data(G_OBJECT(gtkconv->thread_entry_buffer), "user_data", gtkconv);
+
+	g_signal_connect_swapped(G_OBJECT(gtkconv->thread_entry_buffer), "changed",
+				 G_CALLBACK(resize_imhtml_cb), gtkconv);
+	g_signal_connect_swapped(G_OBJECT(gtkconv->thread_entry), "size-allocate",
+				 G_CALLBACK(resize_imhtml_cb), gtkconv);
+
+	default_formatize(gtkconv);
+	g_signal_connect_after(G_OBJECT(gtkconv->thread_entry), "format_function_clear",
+	                       G_CALLBACK(clear_formatting_cb), gtkconv);
+
+	//Show widget
+	gtk_container_add(gtkblist->thread_notebook, vbox);
+	gtk_widget_show(vbox);
+	gtk_widget_show_all(GTK_WIDGET(gtkblist->chat_notebook));
+	gtk_widget_hide(gtkconv->quickfind.container);
+
+	//Get thread history
+	char *error;
+	char cmd[50];
+	strcpy(cmd, "gth ");
+	strcat(cmd, timestamp);
+	purple_cmd_do_command(gtkconv->active_conv, cmd, cmd, &error);
+}
+
 static GtkWidget *
 create_message_menu(PidginConversation *gtkconv)
 {
 	GtkTreeModel *model;
+	GtkTreeSelection *sel;
+	GtkTreeIter iter;
+	GValue val;
 
 	model = gtk_tree_view_get_model(GTK_TREE_VIEW(gtkconv->conv_list));
+	sel = gtk_tree_view_get_selection(GTK_TREE_VIEW(gtkconv->conv_list));
 
 	GtkWidget *menu;
 
 	//create menu
 	menu = gtk_menu_new();
+
+	//Check if selected message is thread parent
+	if(gtk_tree_selection_get_selected(sel, NULL, &iter))
+	{
+		val.g_type = 0;
+		gtk_tree_model_get_value(model, &iter, THREAD, &val);
+		if(g_value_get_boolean(&val) == 1)
+			pidgin_new_item_from_stock(menu, _("_Show Replies"), PIDGIN_STOCK_CHAT,
+				G_CALLBACK(open_thread_window), gtkconv, 0, 0, NULL);
+	}
 
 	//create menu item
 	pidgin_new_item_from_stock(menu, _("_Edit Message"), PIDGIN_STOCK_ALIAS,
@@ -5227,42 +5483,6 @@ gtk_messages_button_press_cb(GtkWidget *tv, GdkEventButton *event, PidginConvers
 	return handled;
 }
 
-void
-close_thread_window(GtkButton *button, PidginConversation *gtkconv)
-{
-	PidginBuddyList *gtkblist = pidgin_blist_get_default_gtk_blist();
-	GtkWidget *pane;
-	GtkWidget *tab_cont;
-
-	if(gtkblist->thread_notebook)
-	{
-		gtk_widget_destroy(gtkblist->thread_notebook);
-		gtkblist->thread_notebook = NULL;
-		return;
-	}
-	gtkblist->thread_notebook = gtk_vbox_new(FALSE, PIDGIN_HIG_BOX_SPACE);
-	gtk_notebook_set_show_tabs(GTK_NOTEBOOK(gtkblist->thread_notebook), FALSE);
-	gtk_notebook_set_show_border(GTK_NOTEBOOK(gtkblist->thread_notebook), FALSE);
-
-	GtkPositionType pos = purple_prefs_get_int(PIDGIN_PREFS_ROOT "/conversations/tab_side");
-	gtk_notebook_set_tab_pos(GTK_NOTEBOOK(gtkblist->thread_notebook), pos);
-	gtk_notebook_set_scrollable(GTK_NOTEBOOK(gtkblist->thread_notebook), TRUE);
-	gtk_notebook_popup_enable(GTK_NOTEBOOK(gtkblist->thread_notebook));
-	gtk_notebook_set_show_tabs(GTK_NOTEBOOK(gtkblist->thread_notebook), FALSE);
-	gtk_notebook_set_show_border(GTK_NOTEBOOK(gtkblist->thread_notebook), TRUE);
-
-	gtk_widget_show(gtkblist->thread_notebook);
-
-	gtk_box_pack_start(GTK_BOX(gtkblist->chat_notebook), gtkblist->thread_notebook, TRUE, TRUE, 0);
-	
-	pane = gtk_vbox_new(FALSE, PIDGIN_HIG_BOX_SPACE);
-	gtk_widget_show(pane);
-	tab_cont = gtk_vbox_new(FALSE, PIDGIN_HIG_BOX_SPACE);
-	g_object_set_data(G_OBJECT(tab_cont), "PidginConversation", gtkconv);
-	gtk_container_set_border_width(gtkblist->thread_notebook, PIDGIN_HIG_BOX_SPACE);
-	gtk_container_add(gtkblist->thread_notebook, pane);
-}
-
 static GtkWidget *
 setup_common_pane(PidginConversation *gtkconv)
 {
@@ -5336,13 +5556,6 @@ setup_common_pane(PidginConversation *gtkconv)
 
 		gtk_widget_show(gtkconv->u.im->icon_container);
 	}
-
-	gtkconv->close = pidgin_create_small_button(gtk_label_new("×"));
-	gtk_tooltips_set_tip(gtkconv->tooltips, gtkconv->close,
-	                     _("Close thread"), NULL);
-	g_signal_connect(gtkconv->close, "clicked", G_CALLBACK (close_thread_window), gtkconv);
-	gtk_box_pack_start(GTK_BOX(gtkconv->infopane_hbox), gtkconv->close, FALSE, FALSE, 0);
-	gtk_widget_show(gtkconv->close);
 	gtk_widget_show(gtkconv->infopane);
 
 	rend = gtk_cell_renderer_pixbuf_new();
@@ -5383,7 +5596,7 @@ setup_common_pane(PidginConversation *gtkconv)
 		GtkWidget *hpaned;
 
 		/* Add the topic */
-		setup_chat_topic(gtkconv, vbox);
+		//setup_chat_topic(gtkconv, vbox);
 
 		/* Add the gtkimhtml frame */
 		hpaned = gtk_hpaned_new();
@@ -6455,7 +6668,7 @@ pidgin_conv_write_conv(PurpleConversation *conv, const char *name, const char *a
 		//DISPLAY NAME
 		//g_snprintf(buf2, BUF_LONG, "<FONT %s>%s</FONT> ", sml_attrib ? sml_attrib : "", str);
 		//gtk_imhtml_append_text(GTK_IMHTML(gtkconv->imhtml), buf2, gtk_font_options_all | GTK_IMHTML_NO_SCROLL);
-		add_to_list(gtkconv->conv_list, alias, mdate, message);
+		add_to_list(gtkconv, gtkconv->conv_list, alias, mdate, message);
 
 		gtk_text_buffer_get_end_iter(buffer, &end);
 		gtk_text_buffer_get_iter_at_mark(buffer, &start, mark);
@@ -6484,7 +6697,6 @@ pidgin_conv_write_conv(PurpleConversation *conv, const char *name, const char *a
 		//DISPLAY MESSAGE
 		//gtk_imhtml_append_text(GTK_IMHTML(gtkconv->imhtml),
 		//					 with_font_tag, gtk_font_options | gtk_font_options_all);
-		//add_to_list(gtkconv->conv_list, with_font_tag);
 
 		g_free(with_font_tag);
 		g_free(new_message);
