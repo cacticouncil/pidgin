@@ -137,7 +137,7 @@ static gboolean editing_blist = FALSE;
 static GList *pidgin_blist_sort_methods = NULL;
 static struct pidgin_blist_sort_method *current_sort_method = NULL;
 static void sort_method_none(PurpleBlistNode *node, PurpleBuddyList *blist, GtkTreeIter groupiter, GtkTreeIter *cur, GtkTreeIter *iter);
-
+static void sort_method_node_type(PurpleBlistNode *node, PurpleBuddyList *blist, GtkTreeIter groupiter, GtkTreeIter *cur, GtkTreeIter *iter);
 static void sort_method_alphabetical(PurpleBlistNode *node, PurpleBuddyList *blist, GtkTreeIter groupiter, GtkTreeIter *cur, GtkTreeIter *iter);
 static void sort_method_status(PurpleBlistNode *node, PurpleBuddyList *blist, GtkTreeIter groupiter, GtkTreeIter *cur, GtkTreeIter *iter);
 static void sort_method_log_activity(PurpleBlistNode *node, PurpleBuddyList *blist, GtkTreeIter groupiter, GtkTreeIter *cur, GtkTreeIter *iter);
@@ -415,6 +415,7 @@ static void gtk_blist_renderer_editing_cancelled_cb(GtkCellRenderer *renderer, P
 	pidgin_blist_refresh(list);
 }
 
+//gets called when you try to edit an alias of someone/group in your buddy list
 static void gtk_blist_renderer_editing_started_cb(GtkCellRenderer *renderer,
 		GtkCellEditable *editable,
 		gchar *path_str,
@@ -432,7 +433,7 @@ static void gtk_blist_renderer_editing_started_cb(GtkCellRenderer *renderer,
 
 	switch (purple_blist_node_get_type(node)) {
 	case PURPLE_BLIST_CONTACT_NODE:
-		text = purple_contact_get_alias(PURPLE_CONTACT(node));
+		text = purple_contact_get_alias(PURPLE_CONTACT(node)); //-> a DM in Slack
 		break;
 	case PURPLE_BLIST_BUDDY_NODE:
 		text = purple_buddy_get_alias(PURPLE_BUDDY(node));
@@ -441,7 +442,7 @@ static void gtk_blist_renderer_editing_started_cb(GtkCellRenderer *renderer,
 		text = purple_group_get_name(PURPLE_GROUP(node));
 		break;
 	case PURPLE_BLIST_CHAT_NODE:
-		text = purple_chat_get_name(PURPLE_CHAT(node));
+		text = purple_chat_get_name(PURPLE_CHAT(node)); //-> a channel in Slack
 		break;
 	default:
 		g_return_if_reached();
@@ -1170,6 +1171,8 @@ static void gtk_blist_row_expanded_cb(GtkTreeView *tv, GtkTreeIter *iter, GtkTre
 {
 	PurpleBlistNode *node;
 
+	//iter parameter is referencing a row
+	//get me the value from column NODE_COLUMN, store it in node
 	gtk_tree_model_get(GTK_TREE_MODEL(gtkblist->treemodel), iter, NODE_COLUMN, &node, -1);
 
 	if (PURPLE_BLIST_NODE_IS_GROUP(node)) {
@@ -3286,6 +3289,7 @@ pidgin_blist_create_tooltip(GtkWidget *widget, GtkTreePath *path,
 	}
 
 	gtk_tree_model_get_iter(GTK_TREE_MODEL(gtkblist->treemodel), &iter, path);
+	gboolean isvalid = gtk_tree_store_iter_is_valid(GTK_TREE_MODEL(gtkblist->treemodel), &iter);
 	gtk_tree_model_get(GTK_TREE_MODEL(gtkblist->treemodel), &iter, NODE_COLUMN, &node, -1);
 
 	return pidgin_blist_create_tooltip_for_node(widget, node, w, h);
@@ -4828,6 +4832,7 @@ void pidgin_blist_setup_sort_methods()
 	const char *id;
 
 	pidgin_blist_sort_method_reg("none", _("Manually"), sort_method_none);
+	pidgin_blist_sort_method_reg("node_type", _("By Channels & Direct Messages"), sort_method_node_type);
 	pidgin_blist_sort_method_reg("alphabetical", _("Alphabetically"), sort_method_alphabetical);
 	pidgin_blist_sort_method_reg("status", _("By status"), sort_method_status);
 	pidgin_blist_sort_method_reg("log_size", _("By recent log activity"), sort_method_log_activity);
@@ -5587,6 +5592,7 @@ kiosk_page()
 static void
 pidgin_blist_build_layout(PurpleBuddyList *list)
 {
+	//("You are in pidgin_blist_build_layout() \n");
 	GtkTreeViewColumn *column;
 	PidginBlistLayout *layout;
 	PidginBlistTheme *theme;
@@ -5606,7 +5612,7 @@ pidgin_blist_build_layout(PurpleBuddyList *list)
 
 	gtk_tree_view_column_clear(column);
 
-	/* group */
+	/* group */ //->> rendering the small dropdown arrows next to the Workspaces names
 	rend = pidgin_cell_renderer_expander_new();
 	gtk_tree_view_column_pack_start(column, rend, FALSE);
 	gtk_tree_view_column_set_attributes(column, rend,
@@ -5616,7 +5622,7 @@ pidgin_blist_build_layout(PurpleBuddyList *list)
 					    "cell-background-gdk", BGCOLOR_COLUMN,
 					    NULL);
 
-	/* contact */
+	/* contact */ //->> rendering the small dropdown arrows next to the Workspaces names
 	rend = pidgin_cell_renderer_expander_new();
 	gtk_tree_view_column_pack_start(column, rend, FALSE);
 	gtk_tree_view_column_set_attributes(column, rend,
@@ -5626,7 +5632,10 @@ pidgin_blist_build_layout(PurpleBuddyList *list)
 					    "cell-background-gdk", BGCOLOR_COLUMN,
 					    NULL);
 
-	for (i = 0; i < 5; i++) {
+	
+	
+
+	for (i = 0; i < 5; i++) { // different cell renderers that render every part of the channel and dm list 
 
 		if (status_icon == i) {
 			/* status icons */
@@ -5652,6 +5661,10 @@ pidgin_blist_build_layout(PurpleBuddyList *list)
 			g_signal_connect(G_OBJECT(rend), "edited", G_CALLBACK(gtk_blist_renderer_edited_cb), list);
 			g_object_set(rend, "ypad", 0, "yalign", 0.5, NULL);
 			g_object_set(rend, "ellipsize", PANGO_ELLIPSIZE_END, NULL);
+			g_object_set(rend,
+               "cell-background", "Orange",
+               "cell-background-set", TRUE,
+               NULL);
 
 			/* idle */
 			rend = gtk_cell_renderer_text_new();
@@ -5662,6 +5675,9 @@ pidgin_blist_build_layout(PurpleBuddyList *list)
 							    "visible", IDLE_VISIBLE_COLUMN,
 							    "cell-background-gdk", BGCOLOR_COLUMN,
 							    NULL);
+
+		    
+
 		} else if (emblem == i) {
 			/* emblem */
 			rend = gtk_cell_renderer_pixbuf_new();
@@ -5741,7 +5757,7 @@ pidgin_blist_search_equal_func(GtkTreeModel *model, gint column,
 
 	return res;
 }
-
+//function called to start showing all the stuff???///
 static void pidgin_blist_show(PurpleBuddyList *list)
 {
 	PidginBuddyListPrivate *priv;
@@ -5755,7 +5771,7 @@ static void pidgin_blist_show(PurpleBuddyList *list)
 	char *pretty, *tmp;
 	const char *theme_name;
 	GtkAccelGroup *accel_group;
-	GtkTreeSelection *selection;
+	GtkTreeSelection *selection; //-> to select a row
 	GtkTargetEntry dte[] = {{"PURPLE_BLIST_NODE", GTK_TARGET_SAME_APP, DRAG_ROW},
 				{"application/x-im-contact", 0, DRAG_BUDDY},
 				{"text/x-vcard", 0, DRAG_VCARD },
@@ -5827,8 +5843,8 @@ static void pidgin_blist_show(PurpleBuddyList *list)
 
 	/****************************** Notebook *************************************/
 	gtkblist->notebook = gtk_notebook_new();
-	gtk_notebook_set_show_tabs(GTK_NOTEBOOK(gtkblist->notebook), FALSE);
-	gtk_notebook_set_show_border(GTK_NOTEBOOK(gtkblist->notebook), FALSE);
+	gtk_notebook_set_show_tabs(GTK_NOTEBOOK(gtkblist->notebook), TRUE);
+	gtk_notebook_set_show_border(GTK_NOTEBOOK(gtkblist->notebook), TRUE);
 	gtk_box_pack_start(GTK_BOX(gtkblist->main_vbox), gtkblist->notebook, TRUE, TRUE, 0);
 
 #if 0
@@ -5914,6 +5930,10 @@ static void pidgin_blist_show(PurpleBuddyList *list)
 
 	gtk_box_pack_end(GTK_BOX(gtkblist->vbox), gtkblist->chat_notebook, TRUE, TRUE, 0);	
 	/****************************** GtkTreeView **********************************/
+	//creating tree model where # of model columns and types is stored
+	//model is where data to be displayed is stored
+	//Each TreeViewColumn contains at least one CellRenderer. 
+	//Cell renderers are what actually display the data - items in the model are mapped to cell renderers.
 	gtkblist->treemodel = gtk_tree_store_new(BLIST_COLUMNS,
 						 GDK_TYPE_PIXBUF, /* Status icon */
 						 G_TYPE_BOOLEAN,  /* Status icon visible */
@@ -5931,7 +5951,8 @@ static void pidgin_blist_show(PurpleBuddyList *list)
 						 GDK_TYPE_PIXBUF, /* Emblem */
 						 G_TYPE_BOOLEAN,  /* Emblem visible */
 						 GDK_TYPE_PIXBUF, /* Protocol icon */
-						 G_TYPE_BOOLEAN   /* Protocol visible */
+						 G_TYPE_BOOLEAN,   /* Protocol visible */
+						 G_TYPE_STRING
 						);
 
 	gtkblist->treeview = gtk_tree_view_new_with_model(GTK_TREE_MODEL(gtkblist->treemodel));
@@ -5980,6 +6001,8 @@ static void pidgin_blist_show(PurpleBuddyList *list)
 	gtkblist->text_column = gtk_tree_view_column_new ();
 	gtk_tree_view_append_column(GTK_TREE_VIEW(gtkblist->treeview), gtkblist->text_column);
 	pidgin_blist_build_layout(list);
+
+	//first_row_iter is still invalid at this point
 
 	g_signal_connect(G_OBJECT(gtkblist->treeview), "row-activated", G_CALLBACK(gtk_blist_row_activated_cb), NULL);
 	g_signal_connect(G_OBJECT(gtkblist->treeview), "row-expanded", G_CALLBACK(gtk_blist_row_expanded_cb), NULL);
@@ -6079,7 +6102,7 @@ static void pidgin_blist_show(PurpleBuddyList *list)
 
 	/* sorting */
 	purple_prefs_connect_callback(handle, PIDGIN_PREFS_ROOT "/blist/sort_type",
-			_prefs_change_sort_method, NULL);
+			_prefs_change_sort_method, NULL); 
 
 	/* menus */
 	purple_prefs_connect_callback(handle, PIDGIN_PREFS_ROOT "/sound/mute",
@@ -6142,9 +6165,10 @@ static void pidgin_blist_show(PurpleBuddyList *list)
 	/* emit our created signal */
 	handle = pidgin_blist_get_handle();
 	purple_signal_emit(handle, "gtkblist-created", list);
+
 }
 
-static void redo_buddy_list(PurpleBuddyList *list, gboolean remove, gboolean rerender)
+static void  redo_buddy_list(PurpleBuddyList *list, gboolean remove, gboolean rerender)
 {
 	PurpleBlistNode *node;
 
@@ -6191,6 +6215,7 @@ pidgin_blist_update_refresh_timeout()
 }
 
 static gboolean get_iter_from_node(PurpleBlistNode *node, GtkTreeIter *iter) {
+
 	struct _pidgin_blist_node *gtknode = (struct _pidgin_blist_node *)node->ui_data;
 	GtkTreePath *path;
 
@@ -7006,6 +7031,8 @@ groups_tree(void)
 	return list;
 }
 
+//The following functions add buddies, chats and groups/////
+
 static void
 add_buddy_select_account_cb(GObject *w, PurpleAccount *account,
 							PidginAddBuddyData *data)
@@ -7582,7 +7609,7 @@ void pidgin_blist_init(void)
 	purple_prefs_add_bool(PIDGIN_PREFS_ROOT "/blist/show_protocol_icons", FALSE);
 	purple_prefs_add_bool(PIDGIN_PREFS_ROOT "/blist/list_visible", FALSE);
 	purple_prefs_add_bool(PIDGIN_PREFS_ROOT "/blist/list_maximized", FALSE);
-	purple_prefs_add_string(PIDGIN_PREFS_ROOT "/blist/sort_type", "alphabetical");
+	purple_prefs_add_string(PIDGIN_PREFS_ROOT "/blist/sort_type", "node_type");
 	purple_prefs_add_int(PIDGIN_PREFS_ROOT "/blist/x", 0);
 	purple_prefs_add_int(PIDGIN_PREFS_ROOT "/blist/y", 0);
 	purple_prefs_add_int(PIDGIN_PREFS_ROOT "/blist/width", 250); /* Golden ratio, baby */
@@ -7734,8 +7761,25 @@ static void sort_method_none(PurpleBlistNode *node, PurpleBuddyList *blist, GtkT
 			sibling ? &sibling_iter : NULL);
 }
 
+int channel_dm_compare(PurpleBlistNodeType type1, PurpleBlistNodeType type2) {
+	//if type1 is channel and type2 is dm
+	if (type1 == PURPLE_BLIST_CHAT_NODE && type2 == PURPLE_BLIST_CONTACT_NODE) {
+		return -1;
+	}
+	else if (type1 == PURPLE_BLIST_CONTACT_NODE && type2 == PURPLE_BLIST_CHAT_NODE) {
+		return 1;
+	}
+	else if (type1 == type2) {
+		return 0;
+	}
+
+	return -2;
+}
+
 static void sort_method_alphabetical(PurpleBlistNode *node, PurpleBuddyList *blist, GtkTreeIter groupiter, GtkTreeIter *cur, GtkTreeIter *iter)
 {
+	//("You are in sort_method_alphabeticaL() \n");
+
 	GtkTreeIter more_z;
 
 	const char *my_name;
@@ -7749,6 +7793,7 @@ static void sort_method_alphabetical(PurpleBlistNode *node, PurpleBuddyList *bli
 		return;
 	}
 
+	//if no children, enter if statement, but if there are children, set more_z to point to first child of groupiter
 	if (!gtk_tree_model_iter_children(GTK_TREE_MODEL(gtkblist->treemodel), &more_z, &groupiter)) {
 		gtk_tree_store_insert(gtkblist->treemodel, iter, &groupiter, 0);
 		return;
@@ -7759,19 +7804,101 @@ static void sort_method_alphabetical(PurpleBlistNode *node, PurpleBuddyList *bli
 		const char *this_name;
 		int cmp;
 
+		//get node info from more_z and store it in n 
 		gtk_tree_model_get(GTK_TREE_MODEL(gtkblist->treemodel), &more_z, NODE_COLUMN, &n, -1);
 
+		//is first child a contact/dm, 
 		if(PURPLE_BLIST_NODE_IS_CONTACT(n)) {
 			this_name = purple_contact_get_alias((PurpleContact*)n);
-		} else if(PURPLE_BLIST_NODE_IS_CHAT(n)) {
+		} else if(PURPLE_BLIST_NODE_IS_CHAT(n)) { //is first child a chat/channel
 			this_name = purple_chat_get_name((PurpleChat*)n);
 		} else {
 			this_name = NULL;
 		}
 
+		//comparing name of node you are looking to move with name of first child on list
 		cmp = purple_utf8_strcasecmp(my_name, this_name);
 
-		if(this_name && (cmp < 0 || (cmp == 0 && node < n))) {
+// first child name exists and (current node name comes before first child name or (both names are the same and current node is less than first child))
+		if(this_name && (cmp < 0 || (cmp == 0 && node < n))) { //does the current node go before first child?
+			if(cur) {
+				gtk_tree_store_move_before(gtkblist->treemodel, cur, &more_z);
+				*iter = *cur;
+				return;
+			} else {
+				gtk_tree_store_insert_before(gtkblist->treemodel, iter,
+						&groupiter, &more_z);
+				return;
+			}
+		}
+	} while (gtk_tree_model_iter_next (GTK_TREE_MODEL(gtkblist->treemodel), &more_z));
+
+	if(cur) {
+		gtk_tree_store_move_before(gtkblist->treemodel, cur, NULL);
+		*iter = *cur;
+		return;
+	} else {
+		gtk_tree_store_append(gtkblist->treemodel, iter, &groupiter);
+		return;
+	}
+
+}
+
+static void sort_method_node_type(PurpleBlistNode *node, PurpleBuddyList *blist, GtkTreeIter groupiter, GtkTreeIter *cur, GtkTreeIter *iter)
+{
+	GtkTreeIter more_z;
+
+	PurpleBlistNode *my_buddy, *this_buddy;
+	PurpleBlistNodeType my_type;
+
+	if(PURPLE_BLIST_NODE_IS_CONTACT(node)) {
+		my_type = PURPLE_BLIST_CONTACT_NODE;
+		my_buddy = node;
+	} else if(PURPLE_BLIST_NODE_IS_CHAT(node)) {
+		my_type = PURPLE_BLIST_CHAT_NODE;
+		my_buddy = node;
+	} else {
+		sort_method_none(node, blist, groupiter, cur, iter);
+		return;
+	}
+
+	//if no children, enter if statement, but if there are children, set more_z to point to first child of groupiter
+	if (!gtk_tree_model_iter_children(GTK_TREE_MODEL(gtkblist->treemodel), &more_z, &groupiter)) {
+		gtk_tree_store_insert(gtkblist->treemodel, iter, &groupiter, 0);
+		return;
+	}
+
+	do {
+		PurpleBlistNode *n;
+		PurpleBlistNodeType this_type;
+		int cmp;
+		int name_cmp;
+
+		//get node info from more_z and store it in n 
+		gtk_tree_model_get(GTK_TREE_MODEL(gtkblist->treemodel), &more_z, NODE_COLUMN, &n, -1);
+
+		//is first child a contact/dm, 
+		if(PURPLE_BLIST_NODE_IS_CONTACT(n)) {
+			this_type = PURPLE_BLIST_CONTACT_NODE;
+			this_buddy = n;
+		} else if(PURPLE_BLIST_NODE_IS_CHAT(n)) { //is first child a chat/channel
+			this_type = PURPLE_BLIST_CHAT_NODE;
+			this_buddy = n;
+		} else {
+			this_type = PURPLE_BLIST_OTHER_NODE;
+		}
+
+		name_cmp = purple_utf8_strcasecmp(
+			purple_contact_get_alias(purple_buddy_get_contact(my_buddy)),
+			(this_buddy
+			 ? purple_contact_get_alias(purple_buddy_get_contact(this_buddy))
+			 : NULL));
+
+		//comparing type of node you are looking to move with type of first child on list
+		cmp = channel_dm_compare(my_type, this_type);
+
+// first child type exists and (current node type comes before first child type or (both types are the same and current node is less than first child))
+		if((this_type != PURPLE_BLIST_OTHER_NODE) && (cmp < 0 || (cmp == 0 && node < n))) { //does the current node go before first child?
 			if(cur) {
 				gtk_tree_store_move_before(gtkblist->treemodel, cur, &more_z);
 				*iter = *cur;
@@ -7815,7 +7942,7 @@ static void sort_method_status(PurpleBlistNode *node, PurpleBuddyList *blist, Gt
 		return;
 	}
 
-
+	//if no children
 	if (!gtk_tree_model_iter_children(GTK_TREE_MODEL(gtkblist->treemodel), &more_z, &groupiter)) {
 		gtk_tree_store_insert(gtkblist->treemodel, iter, &groupiter, 0);
 		return;
