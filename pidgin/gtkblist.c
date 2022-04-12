@@ -5928,7 +5928,7 @@ static void pidgin_blist_show(PurpleBuddyList *list)
 
 	gtk_widget_show(gtkblist->chat_notebook);
 
-	gtk_box_pack_end(GTK_BOX(gtkblist->vbox), gtkblist->chat_notebook, TRUE, TRUE, 0);	
+	//gtk_box_pack_end(GTK_BOX(gtkblist->vbox), gtkblist->chat_notebook, TRUE, TRUE, 0);	
 	/****************************** GtkTreeView **********************************/
 	//creating tree model where # of model columns and types is stored
 	//model is where data to be displayed is stored
@@ -6016,10 +6016,29 @@ static void pidgin_blist_show(PurpleBuddyList *list)
 	gtk_tree_view_set_search_equal_func(GTK_TREE_VIEW(gtkblist->treeview),
 			pidgin_blist_search_equal_func, NULL, NULL);
 
-	gtk_box_pack_start(GTK_BOX(gtkblist->vbox),
-		pidgin_make_scrollable(gtkblist->treeview, GTK_POLICY_AUTOMATIC, GTK_POLICY_AUTOMATIC, GTK_SHADOW_NONE, -1, -1),
-		FALSE, FALSE, 0);
-	gtk_widget_set_size_request(G_OBJECT(gtkblist->treeview), 500, 200);
+	GtkWidget *hpaned = gtk_hpaned_new();
+
+	gtk_box_pack_start(GTK_BOX(gtkblist->vbox), hpaned, TRUE, TRUE, 0);
+	gtk_widget_show(hpaned);
+	gtk_paned_pack1(GTK_PANED(hpaned), pidgin_make_scrollable(gtkblist->treeview, GTK_POLICY_AUTOMATIC, GTK_POLICY_AUTOMATIC, GTK_SHADOW_NONE, -1, -1), TRUE, TRUE);
+	//gtk_box_pack_start(GTK_BOX(gtkblist->vbox),
+		//pidgin_make_scrollable(gtkblist->treeview, GTK_POLICY_AUTOMATIC, GTK_POLICY_AUTOMATIC, GTK_SHADOW_NONE, -1, -1),
+		//FALSE, FALSE, 0);
+	//gtk_widget_set_size_request(G_OBJECT(gtkblist->treeview), 500, 200);
+
+	gtk_paned_pack2(GTK_PANED(hpaned), gtkblist->chat_notebook, FALSE, TRUE);
+
+	
+
+	int cn_width = 400;
+	//cn_width = purple_prefs_get_int(PIDGIN_PREFS_ROOT "/chat_notebook/width", 405);
+	gtk_widget_set_size_request(gtkblist->chat_notebook, cn_width, -1);
+
+	if (cn_width == 0)
+		gtk_paned_set_position(GTK_PANED(hpaned), 999999);
+	
+
+	//g_signal_connect(G_OBJECT(gtkblist->chat_notebook), "size-allocate", G_CALLBACK(chat_notebook_size_allocate_cb), NULL);
 
 	sep = gtk_hseparator_new();
 	gtk_box_pack_start(GTK_BOX(gtkblist->vbox), sep, FALSE, FALSE, 0);
@@ -7614,6 +7633,8 @@ void pidgin_blist_init(void)
 	purple_prefs_add_int(PIDGIN_PREFS_ROOT "/blist/y", 0);
 	purple_prefs_add_int(PIDGIN_PREFS_ROOT "/blist/width", 250); /* Golden ratio, baby */
 	purple_prefs_add_int(PIDGIN_PREFS_ROOT "/blist/height", 405); /* Golden ratio, baby */
+	purple_prefs_add_int(PIDGIN_PREFS_ROOT "/chat_notebook/width", 405);
+
 #if !GTK_CHECK_VERSION(2,14,0)
 	/* This pref is used in pidgintooltip.c. */
 	purple_prefs_add_int(PIDGIN_PREFS_ROOT "/blist/tooltip_delay", 500);
@@ -8130,6 +8151,14 @@ build_plugin_actions(GtkWidget *menu, PurplePlugin *plugin,
 	}
 
 	g_list_free(actions);
+}
+
+gboolean
+chat_notebook_size_allocate_cb(GtkWidget *w, GtkAllocation *allocation, gpointer data)
+{
+	purple_prefs_set_int(PIDGIN_PREFS_ROOT "/chat_notebook/width", allocation->width == 1 ? 0 : allocation->width);
+
+	return FALSE;
 }
 
 static void
