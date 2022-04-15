@@ -1,0 +1,150 @@
+Installing Pidgin on MacOS(Intel Chips)
+ 
+Open terminal on Mac:
+·      Click the launchpad icon in the DOCK, type terminal in the search field, then select terminal. 
+·      Or, in the Finder folder, open the Applications/Utilities folder, then double click terminal. 
+ 
+Once the terminal is opened, we then need to install a few libraries and dependencies for pidgin, using Homebrew and/or MacPorts. 
+ 
+Installing Homebrew:
+ 
+/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+the above text should ran as a single command starting from /bin….. install.sh)”
+ 
+Once Homebrew is installed, run the following command(s):
+brew install python
+brew install intltool 
+brew install libxml++
+brew install gtk+
+brew install gstreamer
+brew install dbus
+brew install libidn
+brew install perl
+brew install gnutls
+brew install --cask xquartz
+ 
+You can also do this as a single command, for example:
+brew install python intltool gtk+ dbus….. 
+ 
+Installing MacPorts:
+ 
+https://www.youtube.com/watch?v=uP7zPNATLR8 (start at the 2:16 mark)
+ 
+After installing MacPorts, run the following command(s) – keep in mind that when using sudo you must enter your password for your computer:
+sudo port install farstream
+sudo port install gtk2
+sudo port install xorg
+sudo port install avahi 
+sudo port install libidn
+sudo port install libpurple
+ 
+Once you have those libraries installed you can clone the pidgin repository to your local machine (your computer) by running the command in terminal :
+git clone --branch qt-nullclient https://github.com/cacticouncil/pidgin.git pidgin
+ 
+ 
+Navigate to the folder (let’s say we cloned the repository onto the desktop) the commands are as follows: 
+ 
+we are here – “your MacBook’s name”@Users-MacBook ~ %
+cd Desktop
+cd pidgin 
+ 
+Configure pidgin:
+ 
+Since we were not able to get all dependencies and libraries for pidgin, we must run the following command: 
+./configure --disable-screensaver --disable-sm --disable-gtkspell --disable-meanwhile --disable-nm --disable-tcl   
+ 
+If you run into a problem with the xml:parser 
+fix: sudo perl -MCPAN -e shell
+then install XML::Parser in Cpan window
+ 
+reconfigure 
+ 
+This should allow you to build the repo using “make”
+ 
+while making if you get a dbus error: run the following command in terminal:
+mkdir /usr/local/opt/dbus/share/dbus-1/services
+ 
+You may also run into errors where an included file could not be found. 
+The fix is to export that path. 
+ 
+example: stroke-draw.c:14:10: fatal error ‘gdk/gdkx.h’ file not found
+The path found on your system will mostly likely be /usr/local/include/gtk-2.0.
+If not, you will have to find where the file is located on your machine and modify the blue color part. 
+If the path is similar, then you just follow the command below then reconfigure.
+echo 'export PKG_CONFIG_PATH=/usr/local/include/gtk-2.0' >> ~/.zshenv
+ 
+ 
+.zshenv is for a zsh terminal .bash will be for bash terminal
+example with bash terminal: 
+echo 'export PKG_CONFIG_PATH=/usr/local/include/gtk-2.0' >> ~/.bash
+ 
+Then make the repo again. 
+Then run sudo make install
+ 
+This should allow you open pidgin by running the command (in terminal): 
+pidgin 
+ 
+if Display does not open because of GDK then run command in terminal:
+export DISPLAY:=0
+ 
+ 
+Now it’s time to clone slack-libpurple.
+ 
+Navigate to your pidgin folder on your local machine in terminal and clone the repository:
+git clone https://github.com/dylex/slack-libpurple.git 
+ 
+Then run the command:
+echo 'export PKG_CONFIG_PATH=/usr/local/lib/pkgconfig' >> ~/.zshenv
+ 
+cd slack-libpurple 
+sudo make install 
+ 
+After doing this, go back a directory to the pidgin directory and run pidgin:
+cd ..
+pidgin
+
+This is only to test that pidgin runs. Once you know pidgin runs, close pidgin 
+and switch to the branch with the latest UI changes by following these 
+commands:
+
+git checkout pidgin-ui-rework
+sudo make install
+
+(Every time you switch branches or make any changes to the code, you need
+to run sudo make install for you to see the changes on the pidgin app)
+Now run pidgin again to add your slack account.
+ 
+Now you should be able to open pidgin and select the slack protocol.
+Good to Go
+ 
+For one of the disables, we did during ./configure
+ 
+This is probably the installer for xscreensaver, but I did not think it was vital for the compiling process.
+https://www.jwz.org/xscreensaver/download.html  (Download at own risk)
+ 
+Known Errors
+ 
+If you ever happen to run into a file not being found as mentioned above while making,
+The fix will be to export that path using the command above with the path of the file. 
+ 
+Command: 
+echo 'export PKG_CONFIG_PATH=/usr/local/include/gtk-2.0' >> ~/.zshenv
+export PKG_CONFIG_PATH=/usr/lib/pkgconfig'
+ 
+Again you may need to figure out the exact path of the file you need as the above commands are examples. 
+ 
+You may have an issue with the Slack protocol not being able to show up in the protocols tab when you open pidgin(This Is after you’ve completed the steps above). 
+You will need to go to you slack libpurple folder within the terminal and then use the command;
+sudo mv libslack.so /usr/local/lib/purple-2/libslack.so
+
+At this point you can run the command:
+ sudo port uninstall libpurple 
+
+After this go back to your pidgin folder and run:
+sudo make install
+ 
+Now re-open pidgin and you should be good to go.
+
+Authors: Kemari Chen Loy, Wesley Petry
+ 
+
