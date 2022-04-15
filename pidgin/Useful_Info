@@ -1,0 +1,92 @@
+Lounge Lizard Project
+Pidgin Documentation 
+TASK
+Apply hyperlink features that was seen in the view log and apply it to the live chat feed. 
+.C file – gtklog.c
+Contains function display_log_viewer (around lines 520 - 530). This function gets called when we right-click a chat and select the view log option. 
+ 
+The widow that pops up after clicking “View Log” controlled by the display_log_viewer function.
+within that function we have frame = pidgin_create_imhtml. 
+ pidgin_create_imhtml returns a GTK widget struct which was type casted, this is what was responsible for turning special texts into the appropriate hyperlinks with the help of other protocols. 
+gtk_imhtml_append_text – I believe this function is used to add text to an imhtml pane. So, this function works just fine as it is called when we want to make a hyperlink as it does for the view log window. This, however, does not happen for the message within the main chat. 
+
+
+.C file – gtkconv.c
+The main chat window is being created in this .c file. The function that handles this is private_gtkconv_new. Within this function tried to create a pointer to the class PidginLogview which would allow me to take the information for the hyperlinks being properly created there and try to call them within the main chat frame. This would be a work around however, this method failed. Another effort was made to copy the code within the file gtklog (with minor adjustments) and place it within the function. 
+GtkWidget* frame = pidgin_create_imhtml(FALSE, &gtkconv->imhtml, NULL, NULL);
+    gtk_widget_set_name(gtkconv->imhtml, "pidgin_log_imhtml");
+    gtk_widget_set_size_request(gtkconv->imhtml, 320, 200);
+    //gtk_box_pack_start(GTK_BOX(vbox), frame, TRUE, TRUE, 0);
+    gtk_imhtml_set_format_functions(GTK_IMHTML(gtkconv->imhtml),GTK_IMHTML_ALL);
+    gtk_widget_show(frame);
+   // pidgin_create_imhtml(FALSE, &gtkconv->imhtml, NULL, NULL);
+    /*
+    printf("New Conv\n");
+    const char *str = gtk_imhtml_get_protocol_name(gtkconv->imhtml);
+    printf("%s DATA" , str);
+    gtk_imhtml_set_format_functions(GTK_IMHTML(gtkconv->imhtml),GTK_IMHTML_ALL);
+
+However, this was also a failure as the GUI did not respond to these changes. 
+Now I believe the main issue is within the function setup_common_pane. Two frames are being created within this function and only one gets called. when one frame is being called is passes an imhtml object in the correct parameter specified for widgets: 
+frame = pidgin_create_imhtml(FALSE, &gtkconv->imhtml, NULL, &imhtml_sw);
+
+whereas, when the toolbar is being set up and all other signals this frame is created instead: 
+frame = pidgin_create_imhtml(TRUE, &gtkconv->entry, &gtkconv->toolbar, NULL);
+
+I believe there to be some disconnect within the code structure right here which causes a cascading effect when trying to fix the html links. 
+In the function add_to_list the previous developer did a work around to have the main chat window rendered when clicked. However, it does not follow the same structure as the view log window to correctly append hyperlinks. This part of the code specifically:   
+  gtk_list_store_set(store, &iter, 
+                        IMAGE, "IMG",
+                        TIMESTAMP, timestamp,
+                        TEXT, buffer,
+                        THREAD, thread_parent,
+                        -1);
+
+if this part of the code is commented out you will not be able to open a main chat window. 
+The main chat window was trying to be correctly implemented with this line of code:
+   //DISPLAY MESSAGE
+        //gtk_imhtml_append_text(GTK_IMHTML(gtkconv->imhtml),
+        //                   with_font_tag, gtk_font_options | gtk_font_options_all);
+
+however, this just breaks the build. That line was commented out by a previous developer as well. This is not how the code should be implemented. It takes a different pane window and adding text to it. 
+
+What we need to happen is creating an imhtml pane and appending the text to the frame that was created in this very same file. 
+frame = pidgin_create_imhtml(TRUE, &gtkconv->entry, &gtkconv->toolbar, NULL);
+
+.C file – gtkutils.c
+In this file we have where pidgin_create_imhtml being implemented, within the function signature we have **imhtml_ret. gtk_imhtml_new allocates the space that the double pointer is going to return. 
+The function pidgin_utils_init, I believe, allows for the calls backs for hyperlinks to be handled. Commented out  this line of code :
+gtk_imhtml_class_register_protocol("https://", url_clicked_cb, link_context_menu);
+
+after rebuilding the pidgin library and opening the GUI, I found that the links within the view log window was not being rendered anymore i.e., cannot click them anymore. 
+
+.C file – gtkimhtml
+In this file we have a struct known as _GtkIMHtmlClass,  within here Glist *protocols handle the making of images, hyperlinks, audio files, etc. This file also sets up the call back for each one of those types that has been made. 
+
+.C file – slack-message
+This file handles the html links as supposed to. All the work must be done in the pidgin folder.
+
+
+TRIED THESE THINGS 
+In gtkconv.c file its found that the personal message chat window is controlled by the function:
+static void private_gtkconv_new. This function helps to create or can create single chats or group chats. 
+In gtklog.c I found that the frame for the “view log” option(within the actual UI) can be controlled by frame pointer variable. gtk_widget_show. 
+the VIEW Log. 
+Made a change to gtklog.c -> added code at line 5962. 
+GtkWidget* frame = pidgin_create_imhtml(FALSE, &gtkconv->imhtml, NULL, NULL);
+    gtk_widget_set_name(gtkconv->imhtml, "pidgin_log_imhtml");
+    gtk_widget_set_size_request(gtkconv->imhtml, 320, 200);
+    //gtk_box_pack_start(GTK_BOX(vbox), frame, TRUE, TRUE, 0);
+    gtk_imhtml_set_format_functions(GTK_IMHTML(gtkconv->imhtml),GTK_IMHTML_ALL);
+    gtk_widget_show(frame);
+
+Code does nothing to the UI.
+
+commented out class_registers (lines 3622-3634) in function pidgin_utils_init(void)
+
+register_gnome_url_handles added a print statement to 3548 and commented out 3550.
+I couldn’t click the link in the view log window. 
+In gtkutils.c void pidgins_utils_init function one of the functions controls the clickable links. 
+commented out 6034 and 6043-6051 in gtkconv.c  doing this threw many unexpected errors. I created a new struct variable and a few members were not included. I would have to have commented out many other important lines of code. 
+
+Author: Kemari Chen Loy
