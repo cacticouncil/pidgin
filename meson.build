@@ -255,7 +255,17 @@ nice = dependency('nice',
 #######################################################################
 if get_option('gtkui')
 	gtk = dependency('gtk4', version : '>= 4.0.0')
-	libadwaita = dependency('libadwaita-1', version : '>= 1')
+	libadwaita = dependency(
+  'libadwaita-1',
+  version: '>= 1.0.0',
+  fallback: ['libadwaita', 'libadwaita_dep'],
+  default_options: [
+    'examples=false',
+    'introspection=disabled',
+    'tests=false',
+    'vapi=false',
+  ]
+)
 
 	talkatu_dep = dependency('talkatu',
 		version: '>=0.1.0',
