@@ -273,7 +273,7 @@ if ENABLE_GTK
 	    filebase : pidgin_filebase,
 	    subdirs : pidgin_filebase,
 	    # NOTE: Don't use dependencies from subprojects.
-	    requires : [gtk, libadwaita, libpurple, 'talkatu', 'gplugin-gtk4'],
+	    libraries : [gtk, libadwaita, libpurple, 'talkatu', 'gplugin-gtk4'],
 	    variables : ['plugindir=${libdir}/pidgin-@0@'.format(purple_major_version)])
 
 	PIDGIN_DESKTOP_FILE = 'im.pidgin.Pidgin3.desktop'
