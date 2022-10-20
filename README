@@ -33,7 +33,7 @@ sudo apt-get install build-essential libgirepository1.0-dev libnice-dev libgtk-4
 meson build
 cd build
 ninja
-ninja install
+sudo ninja install
 ```
 
 There are quite a few options for the build that you can view by running
