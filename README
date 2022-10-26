@@ -37,6 +37,16 @@ cd build
 ninja
 sudo ninja install
 ```
+You may have to do ldconfig if it does not launch
+If permissions fail do, sudo ldconfig
+
+If python error, try the following commands
+sudo -i
+curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py
+python3 get-pip.py
+python3 -m pip install meson
+
+Then exit the prompt to return to wsl and run sudo ninja install again.
 
 There are quite a few options for the build that you can view by running
 `meson configure` in your build directory. You can specify the options when
